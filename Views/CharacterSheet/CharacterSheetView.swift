@@ -117,8 +117,13 @@ struct CharacterSheetView: View {
                             HStack(spacing: 12) {
                                 // Короткий отдых
                                 Button {
-                                    SoundManager.shared.play(.equip, haptic: .medium)
-                                    partyManager.initiateRestVote(type: .short, from: character)
+                                    if partyManager.gameRules.canShortRest {
+                                        SoundManager.shared.play(.equip, haptic: .medium)
+                                        partyManager.initiateRestVote(type: .short, from: character)
+                                    } else {
+                                        // Тактильный feedback при попытке нажать заблокированную кнопку
+                                        UINotificationFeedbackGenerator().notificationOccurred(.warning)
+                                    }
                                 } label: {
                                     HStack(spacing: 6) {
                                         Image(systemName: "moon.zzz.fill")
@@ -134,11 +139,12 @@ struct CharacterSheetView: View {
                                     .foregroundColor(partyManager.gameRules.canShortRest ? Color.dsBackground : Color.dsTextDim)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 12)
-                                    .background(partyManager.gameRules.canShortRest ? Color.dsBlue : Color.dsSurfaceAlt)
+                                    .background(partyManager.gameRules.canShortRest ? Color.dsBlue : Color.dsSurfaceAlt.opacity(0.5))
                                     .cornerRadius(4)
+                                    .opacity(partyManager.gameRules.canShortRest ? 1.0 : 0.6)
                                 }
                                 .buttonStyle(.plain)
-                                .disabled(!partyManager.gameRules.canShortRest)
+                                // Убрали .disabled() чтобы кнопка оставалась интерактивной
                                 
                                 // Долгий отдых
                                 Button {
@@ -195,13 +201,16 @@ struct CharacterSheetView: View {
                 members: partyManager.partyMembers
             ) { member in
                 selectedMember = member
-                withAnimation(.spring(response: 0.4)) {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                     isDrawerOpen = false
                 }
             }
-            .offset(x: drawerDragOffset)  // 🆕 Следует за пальцем
-            .allowsHitTesting(isDrawerOpen || drawerDragOffset < 0)  // 🆕 Активен при drag влево
+            .frame(width: 280)
+            .offset(x: isDrawerOpen ? 0 : (UIScreen.main.bounds.width / 2 + 140) + drawerDragOffset)
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: isDrawerOpen)
+            .allowsHitTesting(isDrawerOpen || drawerDragOffset < 0)
             .zIndex(1000)
+            .transition(.move(edge: .trailing))
             
         }
         .navigationTitle(character.displayName)

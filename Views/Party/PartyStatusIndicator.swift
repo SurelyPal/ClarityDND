@@ -1,16 +1,18 @@
+// PartyStatusIndicator.swift
+// Clarity
 //
-//  PartyStatusIndicator.swift
-//  Clarity
-//
-//  Created by KEBAB on 05.06.2026.
+// Created by KEBAB on 05.06.2026.
 //
 import SwiftUI
 
 /// Глобальный индикатор статуса партии.
 /// Размещается поверх всего приложения в AppRootView.
 struct PartyStatusIndicator: View {
-    @StateObject private var partyManager = PartyManager.shared
+    @ObservedObject private var partyManager = PartyManager.shared // ✅ Исправлено: @StateObject → @ObservedObject
     @State private var pulse: Double = 0.6
+    @State private var showDisconnectError: Bool = false
+    @State private var showDetailsSheet: Bool = false
+    @State private var connectionStartTime: Date? = nil
     
     var body: some View {
         if shouldShow {
@@ -42,16 +44,68 @@ struct PartyStatusIndicator: View {
                 removal: .scale(scale: 1.1).combined(with: .opacity)
             ))
             .animation(.spring(response: 0.4, dampingFraction: 0.8), value: shouldShow)
-            .onAppear {
-                if isConnected {
+            .onLongPressGesture {
+                // ✅ Показываем детали при долгом нажатии
+                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                showDetailsSheet = true
+            }
+            .onChange(of: partyManager.connectionState) { oldState, newState in
+                handleStateChange(from: oldState, to: newState)
+            }
+            .onChange(of: isConnected) { _, connected in
+                // ✅ Исправлено: анимация пульсации теперь корректно возобновляется
+                if connected {
                     withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
                         pulse = 1.0
                     }
+                    connectionStartTime = Date()
+                } else {
+                    pulse = 0.6
                 }
+            }
+            .sheet(isPresented: $showDetailsSheet) {
+                ConnectionDetailsSheet(
+                    connectionState: partyManager.connectionState,
+                    role: partyManager.role,
+                    partyMembers: partyManager.partyMembers,
+                    connectionStartTime: connectionStartTime,
+                    disconnectReason: partyManager.disconnectReason
+                )
+                .presentationDetents([.medium])
             }
         }
     }
     
+    // MARK: - Обработка изменений состояния
+    
+    private func handleStateChange(from oldState: PartyManager.ConnectionState, to newState: PartyManager.ConnectionState) {
+        // ✅ Тактильная обратная связь при изменении состояния
+        switch newState {
+        case .connected:
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            
+        case .connecting, .searching:
+            UISelectionFeedbackGenerator().selectionChanged()
+            
+        case .disconnected:
+            UINotificationFeedbackGenerator().notificationOccurred(.error)
+            
+            // ✅ Показываем ошибку при потере связи (3 секунды)
+            if case .connected = oldState {
+                showDisconnectError = true
+                
+                // Через 3 секунды скрываем ошибку
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                    withAnimation(.easeOut(duration: 0.3)) {
+                        showDisconnectError = false
+                    }
+                }
+            }
+            
+        default:
+            break
+        }
+    }
     
     // MARK: - Иконка состояния
     
@@ -59,7 +113,13 @@ struct PartyStatusIndicator: View {
     private var indicatorIcon: some View {
         switch partyManager.connectionState {
         case .disconnected:
-            EmptyView()
+            if showDisconnectError {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 10))
+                    .foregroundColor(Color.dsRed)
+            } else {
+                EmptyView()
+            }
             
         case .selectingCharacter:
             Image(systemName: "person.crop.circle.badge.questionmark")
@@ -100,7 +160,12 @@ struct PartyStatusIndicator: View {
     private var indicatorText: some View {
         switch partyManager.connectionState {
         case .disconnected:
-            EmptyView()
+            if showDisconnectError {
+                Text("Связь потеряна")
+                    .foregroundColor(Color.dsRed)
+            } else {
+                EmptyView()
+            }
             
         case .selectingCharacter:
             Text("Выбор героя")
@@ -130,7 +195,10 @@ struct PartyStatusIndicator: View {
     // MARK: - Вспомогательные свойства
     
     private var shouldShow: Bool {
-        partyManager.connectionState != .disconnected
+        // ✅ Показываем индикатор если:
+        // 1. Не disconnected, ИЛИ
+        // 2. Только что потеряли связь (показываем ошибку)
+        partyManager.connectionState != .disconnected || showDisconnectError
     }
     
     private var isConnected: Bool {
@@ -150,7 +218,7 @@ struct PartyStatusIndicator: View {
             return partyManager.role == .dungeonMaster ? Color.dsGold : .white
             
         case .disconnected:
-            return Color.dsTextDim
+            return showDisconnectError ? Color.dsRed : Color.dsTextDim
         }
     }
     
@@ -167,14 +235,14 @@ struct PartyStatusIndicator: View {
             
         case .connected:
             return partyManager.role == .dungeonMaster
-                ? Color.dsGold.opacity(0.15)
-                : Color.green.opacity(0.15)
-                
+            ? Color.dsGold.opacity(0.15)
+            : Color.green.opacity(0.15)
+            
         case .searching, .connecting:
             return Color.dsSurfaceAlt
             
         case .disconnected:
-            return Color.dsSurfaceAlt
+            return showDisconnectError ? Color.dsRed.opacity(0.15) : Color.dsSurfaceAlt
         }
     }
     
@@ -191,19 +259,173 @@ struct PartyStatusIndicator: View {
             
         case .connected:
             return partyManager.role == .dungeonMaster
-                ? Color.dsGold.opacity(0.5)
-                : Color.green.opacity(0.5)
-                
+            ? Color.dsGold.opacity(0.5)
+            : Color.green.opacity(0.5)
+            
         case .searching, .connecting:
             return Color.dsBorder
             
         case .disconnected:
-            return Color.clear
+            return showDisconnectError ? Color.dsRed.opacity(0.5) : Color.clear
         }
     }
     
     private var glowColor: Color {
         partyManager.role == .dungeonMaster ? Color.dsGold : .green
+    }
+}
+
+// MARK: - Sheet с деталями подключения
+
+struct ConnectionDetailsSheet: View {
+    let connectionState: PartyManager.ConnectionState
+    let role: PartyManager.Role
+    let partyMembers: [PartyMember]
+    let connectionStartTime: Date?
+    let disconnectReason: String?
+    
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        ZStack {
+            Color.dsBackground.ignoresSafeArea()
+            
+            VStack(alignment: .leading, spacing: 20) {
+                // Заголовок
+                HStack {
+                    Text("✦ СТАТУС ПОДКЛЮЧЕНИЯ ✦")
+                        .font(.system(size: 14, weight: .medium))
+                        .tracking(2)
+                        .foregroundColor(Color.dsGold)
+                    
+                    Spacer()
+                    
+                    Button("Закрыть") {
+                        dismiss()
+                    }
+                    .font(.system(size: 13))
+                    .foregroundColor(Color.dsTextDim)
+                }
+                
+                DSdivider()
+                
+                // Информация о роли
+                DetailRow(
+                    icon: role == .dungeonMaster ? "crown.fill" : "person.fill",
+                    title: "Роль",
+                    value: role == .dungeonMaster ? "Мастер подземелий" : "Игрок"
+                )
+                
+                // Время подключения
+                if let startTime = connectionStartTime {
+                    DetailRow(
+                        icon: "clock.fill",
+                        title: "Время в сессии",
+                        value: formatDuration(from: startTime)
+                    )
+                }
+                
+                // Количество игроков
+                DetailRow(
+                    icon: "person.3.fill",
+                    title: "Игроков в партии",
+                    value: "\(partyMembers.filter { $0.isConnected }.count) / \(partyMembers.count)"
+                )
+                
+                // Статус подключения
+                DetailRow(
+                    icon: connectionIcon,
+                    title: "Статус",
+                    value: connectionStatusText,
+                    valueColor: connectionStatusColor
+                )
+                
+                // Причина отключения (если есть)
+                if let reason = disconnectReason {
+                    DetailRow(
+                        icon: "exclamationmark.triangle.fill",
+                        title: "Последняя ошибка",
+                        value: reason,
+                        valueColor: Color.dsRed
+                    )
+                }
+                
+                Spacer()
+            }
+            .padding(24)
+        }
+    }
+    
+    private var connectionIcon: String {
+        switch connectionState {
+        case .connected: return "checkmark.circle.fill"
+        case .connecting, .searching: return "arrow.triangle.2.circlepath"
+        case .disconnected: return "xmark.circle.fill"
+        default: return "circle"
+        }
+    }
+    
+    private var connectionStatusText: String {
+        switch connectionState {
+        case .connected: return "Подключено"
+        case .connecting: return "Подключение..."
+        case .searching: return "Поиск..."
+        case .hosting: return "Ожидание игроков"
+        case .disconnected: return "Отключено"
+        case .selectingCharacter: return "Выбор персонажа"
+        case .configuringRules: return "Настройка правил"
+        }
+    }
+    
+    private var connectionStatusColor: Color {
+        switch connectionState {
+        case .connected: return .green
+        case .connecting, .searching: return Color.dsGold
+        case .disconnected: return Color.dsRed
+        default: return Color.dsTextDim
+        }
+    }
+    
+    private func formatDuration(from startTime: Date) -> String {
+        let duration = Date().timeIntervalSince(startTime)
+        let minutes = Int(duration) / 60
+        let seconds = Int(duration) % 60
+        
+        if minutes > 0 {
+            return "\(minutes) мин \(seconds) сек"
+        } else {
+            return "\(seconds) сек"
+        }
+    }
+}
+
+// MARK: - Компонент строки деталей
+
+struct DetailRow: View {
+    let icon: String
+    let title: String
+    let value: String
+    var valueColor: Color = Color.dsText
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundColor(Color.dsGold)
+                .frame(width: 24)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 11))
+                    .foregroundColor(Color.dsTextDim)
+                
+                Text(value)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(valueColor)
+            }
+            
+            Spacer()
+        }
     }
 }
 
@@ -223,4 +445,3 @@ struct PartyStatusIndicator: View {
     }
     .preferredColorScheme(.dark)
 }
-

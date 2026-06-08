@@ -277,10 +277,21 @@ final class PartyManager: NSObject, ObservableObject {
     // MARK: - 📋 Рассылка списка партии
 
     /// Отправляет всем игрокам обновлённый список партии
+    private var lastBroadcastTime: Date = .distantPast
+    private let broadcastThrottle: TimeInterval = 1.0 // Не чаще 1 раза в секунду
+
     private func broadcastPartyList() {
         guard role == .dungeonMaster,
               let session = session,
               !session.connectedPeers.isEmpty else { return }
+        
+        let now = Date()
+        guard now.timeIntervalSince(lastBroadcastTime) >= broadcastThrottle else {
+            // Слишком рано, пропускаем
+            return
+        }
+        
+        lastBroadcastTime = now
         
         let message = PartyMessage.partyList(members: partyMembers)
         send(message)

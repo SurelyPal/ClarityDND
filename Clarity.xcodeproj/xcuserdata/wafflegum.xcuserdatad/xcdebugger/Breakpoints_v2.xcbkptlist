@@ -30,54 +30,10 @@
             filePath = "Core/Party/PartyManager.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "336"
-            endingLineNumber = "336"
+            startingLineNumber = "347"
+            endingLineNumber = "347"
             landmarkName = "PartyManager"
             landmarkType = "3">
-            <Locations>
-               <Location
-                  uuid = "B38DA4F6-C93F-417C-88F2-0924C386BFCE - 9ddfda847b69057c"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "Clarity.PartyManager.scheduleThrottledSync(for: Clarity.DNDCharacter) -&gt; ()"
-                  moduleName = "Clarity.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/wafflegum/Desktop/Xcodeworks/Clarity/Core/Party/PartyManager.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "337"
-                  endingLineNumber = "337">
-               </Location>
-               <Location
-                  uuid = "B38DA4F6-C93F-417C-88F2-0924C386BFCE - 9ddfda847b69057c"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "Clarity.PartyManager.scheduleThrottledSync(for: Clarity.DNDCharacter) -&gt; ()"
-                  moduleName = "Clarity.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/wafflegum/Desktop/Xcodeworks/Clarity/Core/Party/PartyManager.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "337"
-                  endingLineNumber = "337">
-               </Location>
-               <Location
-                  uuid = "B38DA4F6-C93F-417C-88F2-0924C386BFCE - 9ddfda847b69057c"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "Clarity.PartyManager.scheduleThrottledSync(for: Clarity.DNDCharacter) -&gt; ()"
-                  moduleName = "Clarity.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/wafflegum/Desktop/Xcodeworks/Clarity/Core/Party/PartyManager.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "337"
-                  endingLineNumber = "337">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>
