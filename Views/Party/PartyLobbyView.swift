@@ -14,6 +14,7 @@ struct PartyLobbyView: View {
     @State private var rules = GameRules.default
     @State private var showErrorAlert = false          // 🆕
     @State private var errorMessage: String = ""
+    @State private var isLoadingCharacters = true // 🆕 Состояние загрузки
     
     var body: some View {
         NavigationStack {
@@ -59,6 +60,20 @@ struct PartyLobbyView: View {
             }
             .navigationTitle("Партия")
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                // 🆕 Инициализация загрузки
+                isLoadingCharacters = true
+                
+                // 🆕 Проверка загрузки данных (в реальном приложении это будет из SwiftData)
+                // Если данные уже загружены — сразу показываем
+                if !store.characters.isEmpty {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            isLoadingCharacters = false
+                        }
+                    }
+                }
+            }
         }
         .preferredColorScheme(.dark)
         // 🆕 ЕДИНЫЙ alert для всех ошибок и отключений
@@ -156,7 +171,10 @@ struct PartyLobbyView: View {
     
     private var playerFlow: some View {
         VStack(spacing: 20) {
-            if store.characters.isEmpty {
+            if isLoadingCharacters {
+                // 🆕 Показываем skeletons при загрузке
+                characterSelection
+            } else if store.characters.isEmpty {
                 emptyCharacterList
             } else {
                 characterSelection
@@ -171,6 +189,14 @@ struct PartyLobbyView: View {
                     .foregroundColor(Color.dsRed)
             }
             .buttonStyle(.plain)
+        }
+        .onAppear {
+            // 🆕 Имитация загрузки данных (удали после подключения к реальной БД)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    isLoadingCharacters = false
+                }
+            }
         }
     }
     
@@ -238,57 +264,68 @@ struct PartyLobbyView: View {
                 Spacer()
             }
             
-            ForEach(store.characters) { char in
-                Button {
-                    selectedCharacter = char
-                    partyManager.setSelectedCharacter(char)
-                } label: {
-                    HStack(spacing: 12) {
-                        AvatarView(avatarData: char.avatarData, race: char.race, size: 48)
-                        
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(char.displayName)
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(Color.dsText)
-                            Text("\(char.race.rawValue) · \(char.characterClass.rawValue) · Веха \(char.level)")
-                                .font(.system(size: 10))
-                                .foregroundColor(Color.dsTextDim)
-                        }
-                        
-                        Spacer()
-                        
-                        VStack(alignment: .trailing, spacing: 3) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "heart.fill")
-                                    .font(.system(size: 9))
-                                    .foregroundColor(Color.dsRed)
-                                Text("\(char.currentHP)/\(char.hitPoints)")
-                                    .font(.system(size: 11, weight: .medium))
-                                    .foregroundColor(char.hpColor)
+            // 🆕 Показываем skeletons при загрузке
+            if isLoadingCharacters {
+                ForEach(0..<3, id: \.self) { _ in
+                    SkeletonCharacterRow()
+                }
+            } else {
+                ForEach(store.characters) { char in
+                    Button {
+                        selectedCharacter = char
+                        partyManager.setSelectedCharacter(char)
+                    } label: {
+                        HStack(spacing: 12) {
+                            AvatarView(avatarData: char.avatarData, race: char.race, size: 48)
+                            
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(char.displayName)
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(Color.dsText)
+                                Text("\(char.race.rawValue) · \(char.characterClass.rawValue) · Веха \(char.level)")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(Color.dsTextDim)
                             }
                             
-                            if selectedCharacter?.id == char.id {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(Color.dsGold)
-                            } else {
-                                Image(systemName: "circle")
-                                    .foregroundColor(Color.dsTextDim.opacity(0.5))
+                            Spacer()
+                            
+                            VStack(alignment: .trailing, spacing: 3) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "heart.fill")
+                                        .font(.system(size: 9))
+                                        .foregroundColor(Color.dsRed)
+                                    Text("\(char.currentHP)/\(char.hitPoints)")
+                                        .font(.system(size: 11, weight: .medium))
+                                        .foregroundColor(char.hpColor)
+                                }
+                                
+                                if selectedCharacter?.id == char.id {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(Color.dsGold)
+                                } else {
+                                    Image(systemName: "circle")
+                                        .foregroundColor(Color.dsTextDim.opacity(0.5))
+                                }
                             }
                         }
+                        .padding(12)
+                        .background(selectedCharacter?.id == char.id ? Color.dsGold.opacity(0.1) : Color.dsSurfaceAlt)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(selectedCharacter?.id == char.id ? Color.dsGold : Color.dsBorder, lineWidth: selectedCharacter?.id == char.id ? 1.5 : 0.5)
+                        )
+                        .cornerRadius(6)
                     }
-                    .padding(12)
-                    .background(selectedCharacter?.id == char.id ? Color.dsGold.opacity(0.1) : Color.dsSurfaceAlt)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 6)
-                            .stroke(selectedCharacter?.id == char.id ? Color.dsGold : Color.dsBorder, lineWidth: selectedCharacter?.id == char.id ? 1.5 : 0.5)
-                    )
-                    .cornerRadius(6)
+                    .buttonStyle(.plain)
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .move(edge: .leading)),
+                        removal: .opacity
+                    ))
                 }
-                .buttonStyle(.plain)
             }
             
             // Кнопка "Найти партию"
-            if selectedCharacter != nil {
+            if !isLoadingCharacters && selectedCharacter != nil {
                 Button {
                     guard let char = selectedCharacter else { return }
                     partyManager.startSearching(with: char)
@@ -306,13 +343,15 @@ struct PartyLobbyView: View {
                 }
                 .buttonStyle(.plain)
                 .padding(.top, 8)
-            } else {
+                .transition(.opacity)
+            } else if !isLoadingCharacters {
                 Text("Выберите героя, чтобы подключиться")
                     .font(.system(size: 11))
                     .foregroundColor(Color.dsTextDim)
                     .padding(.top, 8)
             }
         }
+        .animation(.easeInOut(duration: 0.3), value: isLoadingCharacters)
     }
     
     // MARK: - ДМ
