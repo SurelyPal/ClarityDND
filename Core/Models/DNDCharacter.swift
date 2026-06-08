@@ -36,7 +36,9 @@ final class DNDCharacter {
     var inventory: [InventoryItem]
     var tarotCards: [TarotCard]
     var instrumentModStorage: [InstrumentModEntry]
-    
+
+    // 🆕 История изменений HP (последние 50 записей)
+    var hpHistory: [HPChange] = []
     // MARK: - Бинарные данные (хранятся отдельно от SQLite)
     @Attribute(.externalStorage) var avatarData: Data?
     
@@ -59,6 +61,7 @@ final class DNDCharacter {
         self.tarotCards = []
         self.instrumentModStorage = []
         self.avatarData = nil
+        self.hpHistory = [] // 🆕 Инициализация истории
     }
 }
 
@@ -179,6 +182,7 @@ extension DNDCharacter: Codable {
         case id, name, race, characterClass, level, stats, background
         case hitPoints, currentHP, alignment, stress, rerollPoints, instrument
         case inventory, tarotCards, instrumentModStorage, avatarData
+        case hpHistory
     }
     
     convenience init(from decoder: Decoder) throws {
@@ -206,6 +210,7 @@ extension DNDCharacter: Codable {
         self.tarotCards     = try container.decodeIfPresent([TarotCard].self, forKey: .tarotCards) ?? []
         self.avatarData     = try container.decodeIfPresent(Data.self, forKey: .avatarData)
         self.instrumentModStorage = try container.decodeIfPresent([InstrumentModEntry].self, forKey: .instrumentModStorage) ?? []
+        self.hpHistory = try container.decodeIfPresent([HPChange].self, forKey: .hpHistory) ?? [] // 🆕
     }
     
     func encode(to encoder: Encoder) throws {
@@ -227,6 +232,7 @@ extension DNDCharacter: Codable {
         try container.encode(tarotCards, forKey: .tarotCards)
         try container.encode(instrumentModStorage, forKey: .instrumentModStorage)
         try container.encodeIfPresent(avatarData, forKey: .avatarData)
+        try container.encode(hpHistory, forKey: .hpHistory) // 🆕
     }
     
 }
@@ -242,5 +248,40 @@ extension DNDCharacter {
         return Color.dsRed
     }
 }
+    // MARK: - HP History Management
+
+    extension DNDCharacter {
+        /// Записывает изменение HP в историю
+        /// - Parameters:
+        ///   - oldHP: Старое значение HP
+        ///   - newHP: Новое значение HP
+        ///   - reason: Причина изменения (опционально)
+        func recordHPChange(oldHP: Int, newHP: Int, reason: String = "") {
+            let amount = newHP - oldHP
+            
+            // Не записываем если ничего не изменилось
+            guard amount != 0 else { return }
+            
+            let change = HPChange(
+                amount: amount,
+                reason: reason,
+                oldHP: oldHP,
+                newHP: newHP
+            )
+            
+            hpHistory.insert(change, at: 0) // Новые записи в начало
+            
+            // Ограничиваем историю последними 50 записями
+            if hpHistory.count > 50 {
+                hpHistory = Array(hpHistory.prefix(50))
+            }
+        }
+        
+        /// Очищает историю изменений HP
+        func clearHPHistory() {
+            hpHistory.removeAll()
+        }
+    }
+
 
 

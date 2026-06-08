@@ -5,6 +5,7 @@
 //  Created by KEBAB on 04.06.2026.
 //
 
+#if canImport(UIKit)
 import UIKit
 
 enum ImageCompressor {
@@ -52,3 +53,4 @@ enum ImageCompressor {
         }
     }
 }
+#endif
