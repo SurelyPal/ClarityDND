@@ -333,9 +333,17 @@ final class PartyManager: NSObject, ObservableObject {
     }
     
     private var throttledSyncTask: Task<Void, Never>?
-    
+
     private func scheduleThrottledSync(for character: DNDCharacter) {
         throttledSyncTask?.cancel()
+        
+        // Сохраняем данные персонажа для отложенной отправки
+        let characterID = character.id
+        let currentHP = character.currentHP
+        let maxHP = character.hitPoints
+        let level = character.level
+        let stress = character.stress
+        let rerollPoints = character.rerollPoints
         
         throttledSyncTask = Task { [weak self] in
             let elapsed = Date().timeIntervalSince(self?.lastBasicSyncTime ?? .distantPast)
@@ -350,16 +358,22 @@ final class PartyManager: NSObject, ObservableObject {
             self.lastBasicSyncTime = Date()
             
             let message = PartyMessage.characterUpdated(
-                characterID: character.id,
-                currentHP: character.currentHP,
-                maxHP: character.hitPoints,
-                level: character.level,
-                stress: character.stress,
-                rerollPoints: character.rerollPoints
+                characterID: characterID,
+                currentHP: currentHP,
+                maxHP: maxHP,
+                level: level,
+                stress: stress,
+                rerollPoints: rerollPoints
             )
             self.send(message)
-            self.log("⏰ syncBasic (throttled): currentHP=\(character.currentHP)")
+            self.log("⏰ syncBasic (throttled): currentHP=\(currentHP)")
         }
+    }
+
+    // Добавь deinit для очистки
+    deinit {
+        throttledSyncTask?.cancel()
+        session?.disconnect()
     }
     
     func autoSync(_ character: DNDCharacter) {
@@ -911,9 +925,8 @@ extension PartyManager {
         case .characterUpdated(let charID, let currentHP, let maxHP, let level, let stress, let rerollPoints):
             guard role == .dungeonMaster else { return }
             if let idx = partyMembers.firstIndex(where: { $0.id == charID }) {
-                let oldLevel = partyMembers[idx].level
                 
-                // ✅ ШАГ 1: Создаём КОПИЮ элемента
+                let oldLevel = partyMembers[idx].level
                 var updatedMember = partyMembers[idx]
                 updatedMember.currentHP = currentHP
                 updatedMember.maxHP = maxHP
@@ -922,7 +935,7 @@ extension PartyManager {
                 updatedMember.rerollPoints = rerollPoints
                 updatedMember.lastSeen = Date()
                 
-                // ✅ ШАГ 2: Заменяем ВЕСЬ массив — это триггерит @Published!
+                // ✅ Создаём НОВЫЙ массив для триггера @Published
                 var newMembers = partyMembers
                 newMembers[idx] = updatedMember
                 partyMembers = newMembers
@@ -935,7 +948,6 @@ extension PartyManager {
                 savePartyState()
                 broadcastPartyList()
             }
-            
         case .partyList(let members):
             guard role == .player else { return }
             

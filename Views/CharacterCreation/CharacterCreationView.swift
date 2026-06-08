@@ -12,7 +12,7 @@ struct CharacterCreationView: View {
     @Environment(\.dismiss) var dismiss
     
     @State private var currentStep = 0
-    @State private var character = DNDCharacter()
+    @State private var character: DNDCharacter = DNDCharacter()
     
     private let totalSteps = 4
     

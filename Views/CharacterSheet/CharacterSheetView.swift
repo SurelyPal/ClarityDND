@@ -11,7 +11,7 @@ struct CharacterSheetView: View {
     
     @State private var showEditBlockedAlert = false
     // 🆕 КРИТИЧНО: подписываемся на изменения PartyManager
-    @StateObject private var partyManager = PartyManager.shared
+    @ObservedObject private var partyManager = PartyManager.shared
     private var demotionMessage: String {
         let rewardTitles = demotionRewards.map { $0.title }.joined(separator: ", ")
         return """
