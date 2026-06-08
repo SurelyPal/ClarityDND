@@ -12,35 +12,7 @@ struct CharacterSheetView: View {
     @State private var showEditBlockedAlert = false
     // 🆕 КРИТИЧНО: подписываемся на изменения PartyManager
     @ObservedObject private var partyManager = PartyManager.shared
-    private var demotionMessage: String {
-        let rewardTitles = demotionRewards.map { $0.title }.joined(separator: ", ")
-        return """
-    Уровень станет \(character.level - 1).
-    Будут отозваны награды:
-    \(rewardTitles)
 
-    HP уменьшится на 5.
-    """
-    }
-    // MARK: - Откат уровня
-    
-    private func performDemotion() {
-        withAnimation(.spring(response: 0.4)) {
-            character.level -= 1
-            // 📉 Уменьшаем МАКСИМУМ HP на 5 (но не ниже 1)
-            let newMaxHP = max(1, character.hitPoints - 5)
-            character.hitPoints = newMaxHP
-            // Если игрок был ранен — сохраняем его состояние (но не ниже 1)
-            // Если был полностью здоров — опускаем до нового максимума
-            currentHP = min(currentHP, newMaxHP)
-            currentHP = max(1, currentHP)
-            
-            // 💀 Звук и визуальный эффект отката
-            SoundManager.shared.play(.demotion, haptic: .warning)
-            
-            store.update(character, changed: .full)
-        }
-    }
     /// Проверяет, разрешено ли редактировать этого персонажа
     private var canEditCharacter: Bool {
         // Если правило разрешает — всегда можно
@@ -69,8 +41,6 @@ struct CharacterSheetView: View {
     @State private var selectedTab = 0
     @State private var showingMap = false
     @State private var showingMilestonePopup = false
-    @State private var showingDemotePopup = false
-    @State private var demotionRewards: [MilestoneReward] = []
     // 🆕 Состояния для drawer'а партии
     @State private var isDrawerOpen = false
     @State private var drawerDragOffset: CGFloat = 0
@@ -92,6 +62,7 @@ struct CharacterSheetView: View {
                     CharacterHeaderSection(
                         character: $character,
                         canEdit: canEditCharacter,
+                        currentHP: $currentHP,
                         onLevelUp: { showingMilestonePopup = true }
                     )
                     .equatable()  // 🆕 ОПТИМИЗАЦИЯ
@@ -242,18 +213,6 @@ struct CharacterSheetView: View {
                         }
                     }
                     
-                    // Кнопка отката уровня
-                    if character.level > 1 {
-                        Button {
-                            demotionRewards = MilestoneLibrary.rewards(for: character.level)
-                            withAnimation(.spring(response: 0.4)) {
-                                showingDemotePopup = true
-                            }
-                        } label: {
-                            Image(systemName: "arrow.uturn.backward.circle")
-                                .foregroundColor(Color.dsRed.opacity(0.8))
-                        }
-                    }
                     
                     // Кнопка карты
                     Button(action: { showingMap = true }) {
@@ -276,22 +235,6 @@ struct CharacterSheetView: View {
                     store.update(character)
                     showingMilestonePopup = false
                 }
-            }
-            
-            // ✅ НОВЫЙ Popup отката уровня
-            if showingDemotePopup {
-                DemotionPopupView(
-                    currentLevel: character.level,
-                    rewards: demotionRewards,
-                    onConfirm: {
-                        performDemotion()
-                        showingDemotePopup = false
-                    },
-                    onCancel: {
-                        showingDemotePopup = false
-                    }
-                )
-                
             }
         }
         // 🆕 Модальное окно с деталями выбранного игрока

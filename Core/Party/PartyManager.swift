@@ -342,6 +342,25 @@ final class PartyManager: NSObject, ObservableObject {
         sendCharacterDetails(for: character)
         log("📋 syncFull: все данные отправлены для \(character.displayName)")
     }
+    // MARK: - 🆕 Запрос полной синхронизации
+
+    /// ДМ запрашивает свежие данные от всех игроков (pull-to-refresh)
+    func requestFullSync() async {
+        guard role == .dungeonMaster,
+              case .connected = connectionState,
+              let session = session,
+              !session.connectedPeers.isEmpty else {
+            log("⚠️ requestFullSync: нет подключения или я не ДМ")
+            return
+        }
+        
+        let message = PartyMessage.requestSync
+        send(message)
+        log("🔄 requestFullSync: запросил свежие данные у \(session.connectedPeers.count) игроков")
+        
+        // Ждём немного чтобы данные пришли
+        try? await Task.sleep(for: .milliseconds(500))
+    }
     
     private var throttledSyncTask: Task<Void, Never>?
 
@@ -1038,7 +1057,14 @@ extension PartyManager {
             guard role == .player else { return }
             gameRules.resetRests()
             log("🔄 Сессия сброшена: отдыхи восстановлены")
-
+            
+        case .requestSync:
+            // 🆕 ДМ запросил синхронизацию — отправляем все данные
+            log("📥 Получен requestSync от ДМа")
+            if let char = selectedCharacter {
+                syncFull(char)
+            }
+            
         case .ping: send(.pong)
         case .pong, .requestCharacterSync: break
         }

@@ -57,6 +57,15 @@ struct PartyLobbyView: View {
                     .padding(.horizontal, 20)
                     .padding(.top, 20)
                 }
+                // 🆕 Pull-to-refresh для обновления списка персонажей
+                .refreshable {
+                                #if os(iOS)
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                #endif
+                                
+                                try? await Task.sleep(for: .milliseconds(500))
+                    }
+                }
             }
             .navigationTitle("Партия")
             .navigationBarTitleDisplayMode(.inline)
@@ -74,7 +83,7 @@ struct PartyLobbyView: View {
                     }
                 }
             }
-        }
+        
         .preferredColorScheme(.dark)
         // 🆕 ЕДИНЫЙ alert для всех ошибок и отключений
         .alert(

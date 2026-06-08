@@ -76,4 +76,6 @@ enum PartyMessage: Codable {
     case ping
     case pong
     case requestCharacterSync
+    // 🆕 ДМ запрашивает полную синхронизацию от игрока
+    case requestSync
 }

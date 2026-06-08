@@ -46,6 +46,11 @@ struct DungeonMasterView: View {
                 }
                 .padding(.horizontal, 16).padding(.vertical, 20)
             }
+            // 🆕 Pull-to-refresh для обновления данных партии
+            .refreshable {
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                await partyManager.requestFullSync()
+            }
         }
         .navigationTitle("Экран Мастера")
         .navigationBarTitleDisplayMode(.inline)
