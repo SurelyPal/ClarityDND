@@ -1,0 +1,870 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1521C05D2FD3D7FC00FD2981 /* LockedComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1521C05C2FD3D7EC00FD2981 /* LockedComponents.swift */; };
+		1521C0972FD3EC7700FD2981 /* PartyMembersDrawer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1521C0962FD3EC7700FD2981 /* PartyMembersDrawer.swift */; };
+		1521C0A12FD58BA900FD2981 /* RestVoteOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1521C0A02FD58BA900FD2981 /* RestVoteOverlayView.swift */; };
+		1521C0A32FD58D1300FD2981 /* RestEffectOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1521C0A22FD58D1300FD2981 /* RestEffectOverlayView.swift */; };
+		15DF91E32FD21640007A87F8 /* ClarityApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF91E22FD21640007A87F8 /* ClarityApp.swift */; };
+		15DF91E52FD21640007A87F8 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF91E42FD21640007A87F8 /* ContentView.swift */; };
+		15DF921E2FD21A25007A87F8 /* CharacterCreationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF921D2FD21A25007A87F8 /* CharacterCreationView.swift */; };
+		15DF92202FD21A37007A87F8 /* RaceCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF921F2FD21A37007A87F8 /* RaceCard.swift */; };
+		15DF92222FD21A42007A87F8 /* RaceStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92212FD21A42007A87F8 /* RaceStepView.swift */; };
+		15DF92242FD21A88007A87F8 /* ClassStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92232FD21A88007A87F8 /* ClassStepView.swift */; };
+		15DF92262FD21A95007A87F8 /* StatsStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92252FD21A95007A87F8 /* StatsStepView.swift */; };
+		15DF92282FD21AA4007A87F8 /* PointBuyRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92272FD21AA4007A87F8 /* PointBuyRow.swift */; };
+		15DF922A2FD21AB4007A87F8 /* NameStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92292FD21AB4007A87F8 /* NameStepView.swift */; };
+		15DF922D2FD21ADB007A87F8 /* AvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF922C2FD21ADB007A87F8 /* AvatarView.swift */; };
+		15DF922F2FD21C55007A87F8 /* DSBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF922E2FD21C55007A87F8 /* DSBadge.swift */; };
+		15DF92312FD21C60007A87F8 /* DSHPButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92302FD21C60007A87F8 /* DSHPButton.swift */; };
+		15DF92332FD21C6F007A87F8 /* CharacterSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92322FD21C6F007A87F8 /* CharacterSheetView.swift */; };
+		15DF92352FD21C83007A87F8 /* CharacterHeaderSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92342FD21C83007A87F8 /* CharacterHeaderSection.swift */; };
+		15DF92372FD21C8E007A87F8 /* HPSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92362FD21C8E007A87F8 /* HPSection.swift */; };
+		15DF92392FD21C97007A87F8 /* TabSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92382FD21C97007A87F8 /* TabSection.swift */; };
+		15DF923B2FD21CA1007A87F8 /* DSStatCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF923A2FD21CA1007A87F8 /* DSStatCard.swift */; };
+		15DF923D2FD21CA8007A87F8 /* StatsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF923C2FD21CA8007A87F8 /* StatsTabView.swift */; };
+		15DF923F2FD21CB2007A87F8 /* DSCombatStatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF923E2FD21CB2007A87F8 /* DSCombatStatsView.swift */; };
+		15DF92412FD21CBF007A87F8 /* SkillsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92402FD21CBF007A87F8 /* SkillsTabView.swift */; };
+		15DF92432FD21CCB007A87F8 /* StressTrackerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92422FD21CCB007A87F8 /* StressTrackerView.swift */; };
+		15DF92452FD21CD6007A87F8 /* InventoryTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92442FD21CD6007A87F8 /* InventoryTabView.swift */; };
+		15DF92472FD21CDF007A87F8 /* InventoryItemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92462FD21CDF007A87F8 /* InventoryItemRow.swift */; };
+		15DF92492FD21CE9007A87F8 /* ItemEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92482FD21CE9007A87F8 /* ItemEditorView.swift */; };
+		15DF924B2FD21CF9007A87F8 /* EquipmentPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF924A2FD21CF9007A87F8 /* EquipmentPanel.swift */; };
+		15DF924D2FD21D20007A87F8 /* MapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF924C2FD21D20007A87F8 /* MapView.swift */; };
+		15DF924F2FD21D33007A87F8 /* TarotTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF924E2FD21D33007A87F8 /* TarotTabView.swift */; };
+		15DF92502FD21DF5007A87F8 /* DSColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92182FD219CE007A87F8 /* DSColors.swift */; };
+		15DF92522FD21FD8007A87F8 /* TarotCardEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92512FD21FD8007A87F8 /* TarotCardEditorView.swift */; };
+		15DF92532FD22075007A87F8 /* DSdivider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF921A2FD219FF007A87F8 /* DSdivider.swift */; };
+		15DF92552FD220C5007A87F8 /* TarotCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92542FD220C5007A87F8 /* TarotCardView.swift */; };
+		15DF92562FD222D9007A87F8 /* CornerOrnaments.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF921C2FD21A14007A87F8 /* CornerOrnaments.swift */; };
+		15DF92572FD222DF007A87F8 /* DSSectionHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF921B2FD21A0D007A87F8 /* DSSectionHeader.swift */; };
+		15DF92582FD223C7007A87F8 /* DSModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92192FD219EC007A87F8 /* DSModifiers.swift */; };
+		15DF92592FD223E2007A87F8 /* ImageCompressor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF922B2FD21AC9007A87F8 /* ImageCompressor.swift */; };
+		15DF925E2FD22463007A87F8 /* MilestonePopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF925D2FD22463007A87F8 /* MilestonePopupView.swift */; };
+		15DF92602FD227B5007A87F8 /* ZoomedLocationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF925F2FD227B5007A87F8 /* ZoomedLocationView.swift */; };
+		15DF92622FD22BEC007A87F8 /* SparkleEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92612FD22BEC007A87F8 /* SparkleEffect.swift */; };
+		15DF926E2FD246DF007A87F8 /* InstrumentModSlotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF926D2FD246DF007A87F8 /* InstrumentModSlotView.swift */; };
+		15DF92712FD2471B007A87F8 /* InstrumentModsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92702FD2471B007A87F8 /* InstrumentModsTabView.swift */; };
+		15DF92732FD24728007A87F8 /* InstrumentModPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92722FD24728007A87F8 /* InstrumentModPickerView.swift */; };
+		15DF92972FD250E4007A87F8 /* DemotionPopupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92962FD250E4007A87F8 /* DemotionPopupView.swift */; };
+		15DF929B2FD2582F007A87F8 /* InstrumentModHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF929A2FD2582F007A87F8 /* InstrumentModHeader.swift */; };
+		15DF929D2FD26225007A87F8 /* AppRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF929C2FD2621E007A87F8 /* AppRootView.swift */; };
+		15DF92BF2FD2DCB3007A87F8 /* PartyLobbyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92BE2FD2DCB3007A87F8 /* PartyLobbyView.swift */; };
+		15DF92C12FD2DCD4007A87F8 /* DungeonMasterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92C02FD2DCD4007A87F8 /* DungeonMasterView.swift */; };
+		15DF92C52FD2E7DF007A87F8 /* PartyStatusIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92C42FD2E7DF007A87F8 /* PartyStatusIndicator.swift */; };
+		15DF92C72FD2F27D007A87F8 /* DungeonMasterDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92C62FD2F27D007A87F8 /* DungeonMasterDetailView.swift */; };
+		15DF92D02FD30FDB007A87F8 /* DatabaseRecoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92CF2FD30FDB007A87F8 /* DatabaseRecoveryView.swift */; };
+		15DF92D32FD3128A007A87F8 /* TODO.md in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92D22FD31269007A87F8 /* TODO.md */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		15DF92AA2FD26713007A87F8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 15DF91D72FD21640007A87F8 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 15DF91DE2FD21640007A87F8;
+			remoteInfo = Clarity;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		1521C05C2FD3D7EC00FD2981 /* LockedComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockedComponents.swift; sourceTree = "<group>"; };
+		1521C0962FD3EC7700FD2981 /* PartyMembersDrawer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartyMembersDrawer.swift; sourceTree = "<group>"; };
+		1521C0A02FD58BA900FD2981 /* RestVoteOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestVoteOverlayView.swift; sourceTree = "<group>"; };
+		1521C0A22FD58D1300FD2981 /* RestEffectOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestEffectOverlayView.swift; sourceTree = "<group>"; };
+		15DF91E22FD21640007A87F8 /* ClarityApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClarityApp.swift; sourceTree = "<group>"; };
+		15DF91E42FD21640007A87F8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		15DF92182FD219CE007A87F8 /* DSColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DSColors.swift; sourceTree = "<group>"; };
+		15DF92192FD219EC007A87F8 /* DSModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DSModifiers.swift; sourceTree = "<group>"; };
+		15DF921A2FD219FF007A87F8 /* DSdivider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DSdivider.swift; sourceTree = "<group>"; };
+		15DF921B2FD21A0D007A87F8 /* DSSectionHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DSSectionHeader.swift; sourceTree = "<group>"; };
+		15DF921C2FD21A14007A87F8 /* CornerOrnaments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CornerOrnaments.swift; sourceTree = "<group>"; };
+		15DF921D2FD21A25007A87F8 /* CharacterCreationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacterCreationView.swift; sourceTree = "<group>"; };
+		15DF921F2FD21A37007A87F8 /* RaceCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceCard.swift; sourceTree = "<group>"; };
+		15DF92212FD21A42007A87F8 /* RaceStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaceStepView.swift; sourceTree = "<group>"; };
+		15DF92232FD21A88007A87F8 /* ClassStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassStepView.swift; sourceTree = "<group>"; };
+		15DF92252FD21A95007A87F8 /* StatsStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsStepView.swift; sourceTree = "<group>"; };
+		15DF92272FD21AA4007A87F8 /* PointBuyRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointBuyRow.swift; sourceTree = "<group>"; };
+		15DF92292FD21AB4007A87F8 /* NameStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NameStepView.swift; sourceTree = "<group>"; };
+		15DF922B2FD21AC9007A87F8 /* ImageCompressor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCompressor.swift; sourceTree = "<group>"; };
+		15DF922C2FD21ADB007A87F8 /* AvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AvatarView.swift; sourceTree = "<group>"; };
+		15DF922E2FD21C55007A87F8 /* DSBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DSBadge.swift; sourceTree = "<group>"; };
+		15DF92302FD21C60007A87F8 /* DSHPButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DSHPButton.swift; sourceTree = "<group>"; };
+		15DF92322FD21C6F007A87F8 /* CharacterSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacterSheetView.swift; sourceTree = "<group>"; };
+		15DF92342FD21C83007A87F8 /* CharacterHeaderSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacterHeaderSection.swift; sourceTree = "<group>"; };
+		15DF92362FD21C8E007A87F8 /* HPSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HPSection.swift; sourceTree = "<group>"; };
+		15DF92382FD21C97007A87F8 /* TabSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSection.swift; sourceTree = "<group>"; };
+		15DF923A2FD21CA1007A87F8 /* DSStatCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DSStatCard.swift; sourceTree = "<group>"; };
+		15DF923C2FD21CA8007A87F8 /* StatsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsTabView.swift; sourceTree = "<group>"; };
+		15DF923E2FD21CB2007A87F8 /* DSCombatStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DSCombatStatsView.swift; sourceTree = "<group>"; };
+		15DF92402FD21CBF007A87F8 /* SkillsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillsTabView.swift; sourceTree = "<group>"; };
+		15DF92422FD21CCB007A87F8 /* StressTrackerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StressTrackerView.swift; sourceTree = "<group>"; };
+		15DF92442FD21CD6007A87F8 /* InventoryTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryTabView.swift; sourceTree = "<group>"; };
+		15DF92462FD21CDF007A87F8 /* InventoryItemRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InventoryItemRow.swift; sourceTree = "<group>"; };
+		15DF92482FD21CE9007A87F8 /* ItemEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemEditorView.swift; sourceTree = "<group>"; };
+		15DF924A2FD21CF9007A87F8 /* EquipmentPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EquipmentPanel.swift; sourceTree = "<group>"; };
+		15DF924C2FD21D20007A87F8 /* MapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapView.swift; sourceTree = "<group>"; };
+		15DF924E2FD21D33007A87F8 /* TarotTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TarotTabView.swift; sourceTree = "<group>"; };
+		15DF92512FD21FD8007A87F8 /* TarotCardEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TarotCardEditorView.swift; sourceTree = "<group>"; };
+		15DF92542FD220C5007A87F8 /* TarotCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TarotCardView.swift; sourceTree = "<group>"; };
+		15DF925D2FD22463007A87F8 /* MilestonePopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MilestonePopupView.swift; sourceTree = "<group>"; };
+		15DF925F2FD227B5007A87F8 /* ZoomedLocationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomedLocationView.swift; sourceTree = "<group>"; };
+		15DF92612FD22BEC007A87F8 /* SparkleEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SparkleEffect.swift; sourceTree = "<group>"; };
+		15DF926D2FD246DF007A87F8 /* InstrumentModSlotView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstrumentModSlotView.swift; sourceTree = "<group>"; };
+		15DF92702FD2471B007A87F8 /* InstrumentModsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstrumentModsTabView.swift; sourceTree = "<group>"; };
+		15DF92722FD24728007A87F8 /* InstrumentModPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstrumentModPickerView.swift; sourceTree = "<group>"; };
+		15DF92962FD250E4007A87F8 /* DemotionPopupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemotionPopupView.swift; sourceTree = "<group>"; };
+		15DF929A2FD2582F007A87F8 /* InstrumentModHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstrumentModHeader.swift; sourceTree = "<group>"; };
+		15DF929C2FD2621E007A87F8 /* AppRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRootView.swift; sourceTree = "<group>"; };
+		15DF92A62FD26713007A87F8 /* ClarityTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClarityTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		15DF92BE2FD2DCB3007A87F8 /* PartyLobbyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartyLobbyView.swift; sourceTree = "<group>"; };
+		15DF92C02FD2DCD4007A87F8 /* DungeonMasterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DungeonMasterView.swift; sourceTree = "<group>"; };
+		15DF92C22FD2DDCC007A87F8 /* Clarity.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Clarity.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		15DF92C32FD2DDD5007A87F8 /* Clarity-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Clarity-Info.plist"; sourceTree = "<group>"; };
+		15DF92C42FD2E7DF007A87F8 /* PartyStatusIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartyStatusIndicator.swift; sourceTree = "<group>"; };
+		15DF92C62FD2F27D007A87F8 /* DungeonMasterDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DungeonMasterDetailView.swift; sourceTree = "<group>"; };
+		15DF92C92FD309B6007A87F8 /* PROJECT_STRUCTURE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = PROJECT_STRUCTURE.md; sourceTree = "<group>"; };
+		15DF92CF2FD30FDB007A87F8 /* DatabaseRecoveryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseRecoveryView.swift; sourceTree = "<group>"; };
+		15DF92D22FD31269007A87F8 /* TODO.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = TODO.md; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		15DF91E12FD21640007A87F8 /* Core */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Core;
+			sourceTree = "<group>";
+		};
+		15DF92A72FD26713007A87F8 /* ClarityTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ClarityTests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		15DF91DC2FD21640007A87F8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		15DF92A32FD26713007A87F8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		15DF91D62FD21640007A87F8 = {
+			isa = PBXGroup;
+			children = (
+				15DF92C32FD2DDD5007A87F8 /* Clarity-Info.plist */,
+				15DF91E22FD21640007A87F8 /* ClarityApp.swift */,
+				15DF929C2FD2621E007A87F8 /* AppRootView.swift */,
+				15DF92A02FD26575007A87F8 /* Resources */,
+				15DF92C82FD309A1007A87F8 /* ForAi */,
+				15DF91EF2FD2172B007A87F8 /* Theme */,
+				15DF91EE2FD216F7007A87F8 /* Views */,
+				15DF91E12FD21640007A87F8 /* Core */,
+				15DF91F22FD2175E007A87F8 /* Utils */,
+				15DF92A62FD26713007A87F8 /* ClarityTests.xctest */,
+				15DF92A72FD26713007A87F8 /* ClarityTests */,
+				15DF92C22FD2DDCC007A87F8 /* Clarity.app */,
+			);
+			sourceTree = "<group>";
+		};
+		15DF91EE2FD216F7007A87F8 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				15DF91E42FD21640007A87F8 /* ContentView.swift */,
+				15DF92BD2FD2DCAD007A87F8 /* Party */,
+				15DF91F82FD217E9007A87F8 /* Map */,
+				15DF91F72FD217E2007A87F8 /* Tarot */,
+				15DF91F62FD217C5007A87F8 /* CharacterSheet */,
+				15DF91F52FD2179F007A87F8 /* CharacterCreation */,
+				15DF91F42FD21795007A87F8 /* Shared */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		15DF91EF2FD2172B007A87F8 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				15DF92182FD219CE007A87F8 /* DSColors.swift */,
+				15DF92192FD219EC007A87F8 /* DSModifiers.swift */,
+				15DF91F32FD21781007A87F8 /* Components */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		15DF91F22FD2175E007A87F8 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				15DF922B2FD21AC9007A87F8 /* ImageCompressor.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		15DF91F32FD21781007A87F8 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				15DF921C2FD21A14007A87F8 /* CornerOrnaments.swift */,
+				15DF921B2FD21A0D007A87F8 /* DSSectionHeader.swift */,
+				15DF921A2FD219FF007A87F8 /* DSdivider.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		15DF91F42FD21795007A87F8 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				15DF92CF2FD30FDB007A87F8 /* DatabaseRecoveryView.swift */,
+				1521C05C2FD3D7EC00FD2981 /* LockedComponents.swift */,
+				15DF92612FD22BEC007A87F8 /* SparkleEffect.swift */,
+				15DF92302FD21C60007A87F8 /* DSHPButton.swift */,
+				15DF922E2FD21C55007A87F8 /* DSBadge.swift */,
+				15DF922C2FD21ADB007A87F8 /* AvatarView.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		15DF91F52FD2179F007A87F8 /* CharacterCreation */ = {
+			isa = PBXGroup;
+			children = (
+				15DF921D2FD21A25007A87F8 /* CharacterCreationView.swift */,
+				15DF92002FD2185E007A87F8 /* Steps */,
+				15DF91FF2FD2184F007A87F8 /* Components */,
+			);
+			path = CharacterCreation;
+			sourceTree = "<group>";
+		};
+		15DF91F62FD217C5007A87F8 /* CharacterSheet */ = {
+			isa = PBXGroup;
+			children = (
+				15DF92322FD21C6F007A87F8 /* CharacterSheetView.swift */,
+				15DF926F2FD246ED007A87F8 /* InstrumentMods */,
+				15DF925C2FD2244A007A87F8 /* Components */,
+				15DF91FE2FD2183B007A87F8 /* Equipment */,
+				15DF91FD2FD21832007A87F8 /* Inventory */,
+				15DF91FC2FD21828007A87F8 /* Stress */,
+				15DF91FB2FD21820007A87F8 /* Skills */,
+				15DF91FA2FD21819007A87F8 /* Stats */,
+				15DF91F92FD2180B007A87F8 /* Sections */,
+			);
+			path = CharacterSheet;
+			sourceTree = "<group>";
+		};
+		15DF91F72FD217E2007A87F8 /* Tarot */ = {
+			isa = PBXGroup;
+			children = (
+				15DF92542FD220C5007A87F8 /* TarotCardView.swift */,
+				15DF92512FD21FD8007A87F8 /* TarotCardEditorView.swift */,
+				15DF924E2FD21D33007A87F8 /* TarotTabView.swift */,
+			);
+			path = Tarot;
+			sourceTree = "<group>";
+		};
+		15DF91F82FD217E9007A87F8 /* Map */ = {
+			isa = PBXGroup;
+			children = (
+				15DF925F2FD227B5007A87F8 /* ZoomedLocationView.swift */,
+				15DF924C2FD21D20007A87F8 /* MapView.swift */,
+			);
+			path = Map;
+			sourceTree = "<group>";
+		};
+		15DF91F92FD2180B007A87F8 /* Sections */ = {
+			isa = PBXGroup;
+			children = (
+				1521C0962FD3EC7700FD2981 /* PartyMembersDrawer.swift */,
+				15DF92382FD21C97007A87F8 /* TabSection.swift */,
+				15DF92362FD21C8E007A87F8 /* HPSection.swift */,
+				15DF92342FD21C83007A87F8 /* CharacterHeaderSection.swift */,
+			);
+			path = Sections;
+			sourceTree = "<group>";
+		};
+		15DF91FA2FD21819007A87F8 /* Stats */ = {
+			isa = PBXGroup;
+			children = (
+				15DF923E2FD21CB2007A87F8 /* DSCombatStatsView.swift */,
+				15DF923C2FD21CA8007A87F8 /* StatsTabView.swift */,
+				15DF923A2FD21CA1007A87F8 /* DSStatCard.swift */,
+			);
+			path = Stats;
+			sourceTree = "<group>";
+		};
+		15DF91FB2FD21820007A87F8 /* Skills */ = {
+			isa = PBXGroup;
+			children = (
+				15DF92402FD21CBF007A87F8 /* SkillsTabView.swift */,
+			);
+			path = Skills;
+			sourceTree = "<group>";
+		};
+		15DF91FC2FD21828007A87F8 /* Stress */ = {
+			isa = PBXGroup;
+			children = (
+				15DF92422FD21CCB007A87F8 /* StressTrackerView.swift */,
+			);
+			path = Stress;
+			sourceTree = "<group>";
+		};
+		15DF91FD2FD21832007A87F8 /* Inventory */ = {
+			isa = PBXGroup;
+			children = (
+				15DF92482FD21CE9007A87F8 /* ItemEditorView.swift */,
+				15DF92462FD21CDF007A87F8 /* InventoryItemRow.swift */,
+				15DF92442FD21CD6007A87F8 /* InventoryTabView.swift */,
+			);
+			path = Inventory;
+			sourceTree = "<group>";
+		};
+		15DF91FE2FD2183B007A87F8 /* Equipment */ = {
+			isa = PBXGroup;
+			children = (
+				15DF924A2FD21CF9007A87F8 /* EquipmentPanel.swift */,
+			);
+			path = Equipment;
+			sourceTree = "<group>";
+		};
+		15DF91FF2FD2184F007A87F8 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				15DF92272FD21AA4007A87F8 /* PointBuyRow.swift */,
+				15DF921F2FD21A37007A87F8 /* RaceCard.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		15DF92002FD2185E007A87F8 /* Steps */ = {
+			isa = PBXGroup;
+			children = (
+				15DF92292FD21AB4007A87F8 /* NameStepView.swift */,
+				15DF92252FD21A95007A87F8 /* StatsStepView.swift */,
+				15DF92232FD21A88007A87F8 /* ClassStepView.swift */,
+				15DF92212FD21A42007A87F8 /* RaceStepView.swift */,
+			);
+			path = Steps;
+			sourceTree = "<group>";
+		};
+		15DF925C2FD2244A007A87F8 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				15DF925D2FD22463007A87F8 /* MilestonePopupView.swift */,
+				15DF92962FD250E4007A87F8 /* DemotionPopupView.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		15DF926F2FD246ED007A87F8 /* InstrumentMods */ = {
+			isa = PBXGroup;
+			children = (
+				15DF929A2FD2582F007A87F8 /* InstrumentModHeader.swift */,
+				15DF92722FD24728007A87F8 /* InstrumentModPickerView.swift */,
+				15DF92702FD2471B007A87F8 /* InstrumentModsTabView.swift */,
+				15DF926D2FD246DF007A87F8 /* InstrumentModSlotView.swift */,
+			);
+			path = InstrumentMods;
+			sourceTree = "<group>";
+		};
+		15DF92A02FD26575007A87F8 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				15DF92A12FD2658A007A87F8 /* Sounds */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		15DF92A12FD2658A007A87F8 /* Sounds */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Sounds;
+			sourceTree = "<group>";
+		};
+		15DF92BD2FD2DCAD007A87F8 /* Party */ = {
+			isa = PBXGroup;
+			children = (
+				1521C0A22FD58D1300FD2981 /* RestEffectOverlayView.swift */,
+				1521C0A02FD58BA900FD2981 /* RestVoteOverlayView.swift */,
+				15DF92C62FD2F27D007A87F8 /* DungeonMasterDetailView.swift */,
+				15DF92C42FD2E7DF007A87F8 /* PartyStatusIndicator.swift */,
+				15DF92C02FD2DCD4007A87F8 /* DungeonMasterView.swift */,
+				15DF92BE2FD2DCB3007A87F8 /* PartyLobbyView.swift */,
+			);
+			path = Party;
+			sourceTree = "<group>";
+		};
+		15DF92C82FD309A1007A87F8 /* ForAi */ = {
+			isa = PBXGroup;
+			children = (
+				15DF92C92FD309B6007A87F8 /* PROJECT_STRUCTURE.md */,
+				15DF92D22FD31269007A87F8 /* TODO.md */,
+			);
+			path = ForAi;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		15DF91DE2FD21640007A87F8 /* Clarity */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 15DF91EA2FD21641007A87F8 /* Build configuration list for PBXNativeTarget "Clarity" */;
+			buildPhases = (
+				15DF91DB2FD21640007A87F8 /* Sources */,
+				15DF91DC2FD21640007A87F8 /* Frameworks */,
+				15DF91DD2FD21640007A87F8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				15DF91E12FD21640007A87F8 /* Core */,
+			);
+			name = Clarity;
+			packageProductDependencies = (
+			);
+			productName = Clarity;
+			productReference = 15DF92C22FD2DDCC007A87F8 /* Clarity.app */;
+			productType = "com.apple.product-type.application";
+		};
+		15DF92A52FD26713007A87F8 /* ClarityTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 15DF92AC2FD26713007A87F8 /* Build configuration list for PBXNativeTarget "ClarityTests" */;
+			buildPhases = (
+				15DF92A22FD26713007A87F8 /* Sources */,
+				15DF92A32FD26713007A87F8 /* Frameworks */,
+				15DF92A42FD26713007A87F8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				15DF92AB2FD26713007A87F8 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				15DF92A72FD26713007A87F8 /* ClarityTests */,
+			);
+			name = ClarityTests;
+			packageProductDependencies = (
+			);
+			productName = ClarityTests;
+			productReference = 15DF92A62FD26713007A87F8 /* ClarityTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		15DF91D72FD21640007A87F8 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2650;
+				LastUpgradeCheck = 2650;
+				TargetAttributes = {
+					15DF91DE2FD21640007A87F8 = {
+						CreatedOnToolsVersion = 26.5;
+					};
+					15DF92A52FD26713007A87F8 = {
+						CreatedOnToolsVersion = 26.5;
+						TestTargetID = 15DF91DE2FD21640007A87F8;
+					};
+				};
+			};
+			buildConfigurationList = 15DF91DA2FD21640007A87F8 /* Build configuration list for PBXProject "Clarity" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 15DF91D62FD21640007A87F8;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 15DF91D62FD21640007A87F8;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				15DF91DE2FD21640007A87F8 /* Clarity */,
+				15DF92A52FD26713007A87F8 /* ClarityTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		15DF91DD2FD21640007A87F8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		15DF92A42FD26713007A87F8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		15DF91DB2FD21640007A87F8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				15DF92582FD223C7007A87F8 /* DSModifiers.swift in Sources */,
+				15DF92202FD21A37007A87F8 /* RaceCard.swift in Sources */,
+				15DF92C72FD2F27D007A87F8 /* DungeonMasterDetailView.swift in Sources */,
+				15DF921E2FD21A25007A87F8 /* CharacterCreationView.swift in Sources */,
+				15DF92282FD21AA4007A87F8 /* PointBuyRow.swift in Sources */,
+				15DF929D2FD26225007A87F8 /* AppRootView.swift in Sources */,
+				15DF92502FD21DF5007A87F8 /* DSColors.swift in Sources */,
+				15DF91E52FD21640007A87F8 /* ContentView.swift in Sources */,
+				15DF924F2FD21D33007A87F8 /* TarotTabView.swift in Sources */,
+				15DF92D02FD30FDB007A87F8 /* DatabaseRecoveryView.swift in Sources */,
+				15DF92592FD223E2007A87F8 /* ImageCompressor.swift in Sources */,
+				15DF92242FD21A88007A87F8 /* ClassStepView.swift in Sources */,
+				15DF92262FD21A95007A87F8 /* StatsStepView.swift in Sources */,
+				15DF924D2FD21D20007A87F8 /* MapView.swift in Sources */,
+				15DF92452FD21CD6007A87F8 /* InventoryTabView.swift in Sources */,
+				15DF929B2FD2582F007A87F8 /* InstrumentModHeader.swift in Sources */,
+				15DF92472FD21CDF007A87F8 /* InventoryItemRow.swift in Sources */,
+				1521C0972FD3EC7700FD2981 /* PartyMembersDrawer.swift in Sources */,
+				15DF92972FD250E4007A87F8 /* DemotionPopupView.swift in Sources */,
+				15DF92C52FD2E7DF007A87F8 /* PartyStatusIndicator.swift in Sources */,
+				15DF92C12FD2DCD4007A87F8 /* DungeonMasterView.swift in Sources */,
+				15DF92412FD21CBF007A87F8 /* SkillsTabView.swift in Sources */,
+				15DF92712FD2471B007A87F8 /* InstrumentModsTabView.swift in Sources */,
+				15DF92602FD227B5007A87F8 /* ZoomedLocationView.swift in Sources */,
+				15DF92BF2FD2DCB3007A87F8 /* PartyLobbyView.swift in Sources */,
+				15DF92562FD222D9007A87F8 /* CornerOrnaments.swift in Sources */,
+				15DF92522FD21FD8007A87F8 /* TarotCardEditorView.swift in Sources */,
+				15DF92622FD22BEC007A87F8 /* SparkleEffect.swift in Sources */,
+				15DF926E2FD246DF007A87F8 /* InstrumentModSlotView.swift in Sources */,
+				15DF92D32FD3128A007A87F8 /* TODO.md in Sources */,
+				15DF92492FD21CE9007A87F8 /* ItemEditorView.swift in Sources */,
+				15DF92392FD21C97007A87F8 /* TabSection.swift in Sources */,
+				15DF922F2FD21C55007A87F8 /* DSBadge.swift in Sources */,
+				15DF923B2FD21CA1007A87F8 /* DSStatCard.swift in Sources */,
+				15DF91E32FD21640007A87F8 /* ClarityApp.swift in Sources */,
+				15DF923D2FD21CA8007A87F8 /* StatsTabView.swift in Sources */,
+				15DF922D2FD21ADB007A87F8 /* AvatarView.swift in Sources */,
+				15DF92312FD21C60007A87F8 /* DSHPButton.swift in Sources */,
+				15DF92372FD21C8E007A87F8 /* HPSection.swift in Sources */,
+				15DF925E2FD22463007A87F8 /* MilestonePopupView.swift in Sources */,
+				15DF924B2FD21CF9007A87F8 /* EquipmentPanel.swift in Sources */,
+				15DF92552FD220C5007A87F8 /* TarotCardView.swift in Sources */,
+				15DF92332FD21C6F007A87F8 /* CharacterSheetView.swift in Sources */,
+				15DF923F2FD21CB2007A87F8 /* DSCombatStatsView.swift in Sources */,
+				1521C0A12FD58BA900FD2981 /* RestVoteOverlayView.swift in Sources */,
+				15DF92572FD222DF007A87F8 /* DSSectionHeader.swift in Sources */,
+				15DF922A2FD21AB4007A87F8 /* NameStepView.swift in Sources */,
+				15DF92352FD21C83007A87F8 /* CharacterHeaderSection.swift in Sources */,
+				15DF92432FD21CCB007A87F8 /* StressTrackerView.swift in Sources */,
+				1521C05D2FD3D7FC00FD2981 /* LockedComponents.swift in Sources */,
+				15DF92732FD24728007A87F8 /* InstrumentModPickerView.swift in Sources */,
+				15DF92222FD21A42007A87F8 /* RaceStepView.swift in Sources */,
+				1521C0A32FD58D1300FD2981 /* RestEffectOverlayView.swift in Sources */,
+				15DF92532FD22075007A87F8 /* DSdivider.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		15DF92A22FD26713007A87F8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		15DF92AB2FD26713007A87F8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 15DF91DE2FD21640007A87F8 /* Clarity */;
+			targetProxy = 15DF92AA2FD26713007A87F8 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		15DF91E82FD21641007A87F8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = RT6AHH48GK;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		15DF91E92FD21641007A87F8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = RT6AHH48GK;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		15DF91EB2FD21641007A87F8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RT6AHH48GK;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Clarity-Info.plist";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Clarity использует локальную сеть для синхронизации персонажей между устройствами во время игры.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.1;
+				PRODUCT_BUNDLE_IDENTIFIER = Arca.Clarity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		15DF91EC2FD21641007A87F8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RT6AHH48GK;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Clarity-Info.plist";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Clarity использует локальную сеть для синхронизации персонажей между устройствами во время игры.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.1;
+				PRODUCT_BUNDLE_IDENTIFIER = Arca.Clarity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		15DF92AD2FD26713007A87F8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RT6AHH48GK;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Arca.ClarityTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Clarity.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Clarity";
+			};
+			name = Debug;
+		};
+		15DF92AE2FD26713007A87F8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RT6AHH48GK;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Arca.ClarityTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Clarity.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Clarity";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		15DF91DA2FD21640007A87F8 /* Build configuration list for PBXProject "Clarity" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				15DF91E82FD21641007A87F8 /* Debug */,
+				15DF91E92FD21641007A87F8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		15DF91EA2FD21641007A87F8 /* Build configuration list for PBXNativeTarget "Clarity" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				15DF91EB2FD21641007A87F8 /* Debug */,
+				15DF91EC2FD21641007A87F8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		15DF92AC2FD26713007A87F8 /* Build configuration list for PBXNativeTarget "ClarityTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				15DF92AD2FD26713007A87F8 /* Debug */,
+				15DF92AE2FD26713007A87F8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 15DF91D72FD21640007A87F8 /* Project object */;
+}
