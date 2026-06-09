@@ -235,17 +235,20 @@ final class PartyManager: NSObject, ObservableObject {
     func initiateRestVote(type: RestType, from character: DNDCharacter) {
         if type == .short && !gameRules.canShortRest { return }
         if type == .long && !gameRules.canLongRest { return }
-        
-        // ✅ ЕСЛИ Я ДМ: формирую eligibleVoterIDs сам и рассылаю всем
+
         if role == .dungeonMaster {
+            // ДМ инициирует: голосуют ТОЛЬКО игроки (без ДМ-а)
             var eligibleIDs: Set<UUID> = []
-            // Добавляем себя (ДМ)
-            let dmID = UUID(uuidString: "00000000-0000-0000-0000-000000000000")!
-            eligibleIDs.insert(dmID)
-            // Добавляем всех connected игроков
             for member in partyMembers where member.isConnected {
                 eligibleIDs.insert(member.id)
             }
+            
+            guard !eligibleIDs.isEmpty else {
+                log("⚠️ Нет игроков для голосования")
+                return
+            }
+            
+            let dmID = UUID(uuidString: "00000000-0000-0000-0000-000000000000")!
             
             let message = PartyMessage.restVoteRequest(
                 initiatorID: dmID,
@@ -255,48 +258,39 @@ final class PartyManager: NSObject, ObservableObject {
             )
             send(message)
             
+            // ДМ НЕ голосует, только модерирует
             restVotingManager.startSession(
                 initiatorID: dmID,
                 initiatorName: "Мастер",
                 restType: type,
-                eligibleVoterIDs: eligibleIDs
+                eligibleVoterIDs: eligibleIDs,
+                initiatorAutoVote: false  // ✅ ДМ не голосует
             )
             
-            // Если голосующих нет (только ДМ) — сразу применяем
-            if eligibleIDs.count == 1 {
-                let result = restVotingManager.registerVote(voterID: dmID, accepted: true)
-                if case .success(let restType, let name) = result {
-                    send(.restStarted(restType: restType))
-                    decrementRestCounter(restType: restType)
-                    restVotingManager.startEffect(restType: restType, initiatorName: name)
-                }
-            }
-            
         } else {
-            // ✅ ЕСЛИ Я ИГРОК: создаём локальную сессию СРАЗУ
-            // Это гарантирует что плашка появится моментально
+            // ✅ ИГРОК инициирует: создаём сессию СРАЗУ, не дожидаясь ответа ДМ-а
+            // eligibleIDs пока только [свой ID] — обновится когда придёт restVoteRequest
+            let preliminaryEligibleIDs: Set<UUID> = [character.id]
             
-            // Предварительно формируем eligibleIDs (только себя)
-            // Когда придёт restVoteRequest от ДМ-а, список будет обновлён
-            var eligibleIDs: Set<UUID> = [character.id]
-            
-            let message = PartyMessage.requestRestVote(
+            // Отправляем запрос ДМ-у
+            let request = PartyMessage.requestRestVote(
                 restType: type,
                 requesterID: character.id,
                 requesterName: character.displayName
             )
-            send(message)
+            send(request)
             log("📨 Запросил у ДМ-а начать голосование за \(type.displayName)")
             
-            // ✅ СРАЗУ создаём локальную сессию с initiatorAutoVote=true
-            // Инициатор автоматически голосует ЗА
+            // ✅ СРАЗУ создаём локальную сессию — плашка появится моментально
             restVotingManager.startSession(
                 initiatorID: character.id,
                 initiatorName: character.displayName,
                 restType: type,
-                eligibleVoterIDs: eligibleIDs,
-                initiatorAutoVote: true  // ✅ Я проголосовал ЗА автоматически
+                eligibleVoterIDs: preliminaryEligibleIDs,
+                initiatorAutoVote: true  // ✅ Я как инициатор голосую ЗА автоматически
             )
+            
+            log("🎯 Локальная сессия создана: плашка появится, мой голос учтён")
         }
     }
         func sendRestVote(accepted: Bool, from character: DNDCharacter) {

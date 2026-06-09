@@ -181,37 +181,57 @@ extension PartyManager {
     private func handleRequestRestVote(restType: RestType, requesterID: UUID, requesterName: String) {
         guard role == .dungeonMaster else { return }
         
-        // ✅ ДМ НЕ участвует — формирует список ТОЛЬКО из игроков
+        // ✅ ДМ НЕ участвует в голосовании — только игроки
         var eligibleIDs: Set<UUID> = []
         for member in partyMembers where member.isConnected {
             eligibleIDs.insert(member.id)
         }
         
-        // Если нет игроков (странная ситуация) — отклоняем
+        // Если нет игроков — отклоняем
         guard !eligibleIDs.isEmpty else {
             log("⚠️ Запрос голосования отклонён: нет игроков")
             return
         }
         
+        // ✅ Проверяем что инициатор реально подключен (защита от невалидных запросов)
+        guard eligibleIDs.contains(requesterID) else {
+            log("⚠️ Инициатор \(requesterName) не в списке подключённых игроков")
+            return
+        }
+        
         log("🎲 ДМ формирует голосование по запросу \(requesterName): \(eligibleIDs.count) игроков")
         
-        // Рассылаем restVoteRequest всем (ДМ не голосует, только рассылает)
+        // Рассылаем restVoteRequest всем игрокам
         let message = PartyMessage.restVoteRequest(
             initiatorID: requesterID,
             initiatorName: requesterName,
             restType: restType,
-            eligibleVoterIDs: eligibleIDs  // только игроки, без ДМ
+            eligibleVoterIDs: eligibleIDs
         )
         send(message)
         
-        // ДМ ведёт локальный подсчёт, но НЕ голосует
+        // ✅ ДМ создаёт локальную сессию С ГОЛОСОМ ИНИЦИАТОРА (ЗА)
+        // Это ключевое исправление: инициатор всегда голосует ЗА свой запрос
         restVotingManager.startSession(
             initiatorID: requesterID,
             initiatorName: requesterName,
             restType: restType,
             eligibleVoterIDs: eligibleIDs,
-            initiatorAutoVote: false  // ✅ ДМ не голосует, даже локально
+            initiatorAutoVote: true  // ✅ Голос инициатора засчитан
         )
+        
+        log("🗳️ ДМ: сессия создана, голос инициатора учтён: 1/\(eligibleIDs.count)")
+        
+        // Проверяем: вдруг в партии только 1 игрок (инициатор) — тогда сразу успех
+        let result = restVotingManager.checkIfCompleted()
+        if case .success(let completedRestType, let name) = result {
+            send(.restStarted(restType: completedRestType))
+            decrementRestCounter(restType: completedRestType)
+            if let dmCharacter = selectedCharacter {
+                applyRestEffectImmediately(to: dmCharacter, type: completedRestType)
+            }
+            restVotingManager.startEffect(restType: completedRestType, initiatorName: name)
+        }
     }
     // MARK: - Helpers
 
@@ -371,32 +391,41 @@ extension PartyManager {
         let isInitiator = (selectedCharacter?.id == initiatorID)
         
         if isInitiator {
-            // ✅ Я ИНИЦИАТОР: уже создал сессию локально в initiateRestVote
-            // Теперь просто ОБНОВЛЯЕМ eligibleVoterIDs на актуальный список от ДМ-а
-            if var session = restVotingManager.activeRestVote {
-                // Сохраняем уже отданные голоса (мой голос ЗА)
-                let existingVotes = session.votes
-                session.eligibleVoterIDs = eligibleVoterIDs
-                session.votes = existingVotes
-                restVotingManager.activeRestVote = session
-                
-                log("🔄 Инициатор: обновил eligibleVoterIDs с \(existingVotes.count) до \(eligibleVoterIDs.count)")
-                
-                // Проверяем: вдруг уже все проголосовали (если партия из 1 игрока)
-                if existingVotes.count >= eligibleVoterIDs.count {
-                    let allAccepted = existingVotes.values.allSatisfy { $0 }
-                    if allAccepted {
-                        let result: RestVotingManager.VoteResult = .success(session.restType, session.initiatorName)
-                        restVotingManager.activeRestVote = nil
-                        // Обработка успеха произойдёт в sendRestVote
-                    }
-                }
+            // ✅ Я ИНИЦИАТОР: у меня уже есть локальная сессия с моим голосом ЗА
+            // Просто ОБНОВЛЯЕМ eligibleVoterIDs на актуальный список от ДМ-а
+            guard var session = restVotingManager.activeRestVote else {
+                log("⚠️ Инициатор: локальная сессия не найдена, создаём заново")
+                // Fallback: создаём сессию заново
+                restVotingManager.startSession(
+                    initiatorID: initiatorID,
+                    initiatorName: initiatorName,
+                    restType: restType,
+                    eligibleVoterIDs: eligibleVoterIDs,
+                    initiatorAutoVote: true
+                )
+                return
             }
+            
+            // Сохраняем мой уже отданный голос ЗА
+            let myExistingVote = session.votes[initiatorID]
+            
+            // Обновляем eligibleIDs
+            session.eligibleVoterIDs = eligibleVoterIDs
+            
+            // Восстанавливаем мой голос (если он был)
+            if let vote = myExistingVote {
+                session.votes[initiatorID] = vote
+            } else {
+                session.votes[initiatorID] = true  // На всякий случай
+            }
+            
+            restVotingManager.activeRestVote = session
+            log("🔄 Инициатор: обновил eligibleVoterIDs с 1 до \(eligibleVoterIDs.count), мой голос сохранён")
             return
         }
         
-        // ✅ Я НЕ инициатор — создаём сессию с нуля
-        if selectedCharacter != nil || role == .dungeonMaster {
+        // ✅ Я НЕ инициатор — создаём сессию с нуля (как обычный голосующий)
+        if selectedCharacter != nil {
             restVotingManager.startSession(
                 initiatorID: initiatorID,
                 initiatorName: initiatorName,

@@ -133,6 +133,26 @@ final class RestVotingManager {
 
         return .inProgress
     }
+    
+    /// Проверяет, завершилось ли голосование (все проголосовали).
+    /// Не регистрирует новый голос — только проверяет текущее состояние.
+    func checkIfCompleted() -> VoteResult {
+        guard let session = activeRestVote else { return .inProgress }
+        
+        if session.votes.count >= session.totalVoters {
+            let allAccepted = session.votes.values.allSatisfy { $0 }
+            if allAccepted {
+                let result: VoteResult = .success(session.restType, session.initiatorName)
+                activeRestVote = nil
+                return result
+            } else {
+                activeRestVote = nil
+                return .failed
+            }
+        }
+        
+        return .inProgress
+    }
 
     /// Регистрирует голос в активной сессии
     /// - Returns: результат голосования, если сессия завершена

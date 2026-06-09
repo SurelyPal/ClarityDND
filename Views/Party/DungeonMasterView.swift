@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct DungeonMasterView: View {
-    @StateObject private var partyManager = PartyManager.shared
+    @ObservedObject private var partyManager = PartyManager.shared
     
     var body: some View {
         ZStack {
