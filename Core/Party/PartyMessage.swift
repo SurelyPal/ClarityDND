@@ -47,6 +47,7 @@ enum PartyMessage: Codable {
         background: String,
         alignment: DNDAlignment
     )
+    
     case playerLeft(characterID: UUID)
     case partyList(members: [PartyMember])
     

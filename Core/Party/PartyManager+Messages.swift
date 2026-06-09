@@ -81,38 +81,15 @@ extension PartyManager {
 
     // MARK: - Синхронизация
 
-    func syncBasic(_ character: DNDCharacter) {
-        guard role == .player,
-              case .connected = connectionState,
-              let session = session,
-              !session.connectedPeers.isEmpty else { return }
-
-        let now = Date()
-        // ✅ Увеличен throttling с 0.5 до 1.0 секунды
-        if now.timeIntervalSince(lastBasicSyncTime) < basicSyncThrottle {
-            scheduleThrottledSync(for: character)
-            return
-        }
-
-        lastBasicSyncTime = now
-
-        let message = PartyMessage.characterUpdated(
-            characterID: character.id,
-            currentHP: character.currentHP,
-            maxHP: character.hitPoints,
-            level: character.level,
-            stress: character.stress,
-            rerollPoints: character.rerollPoints,
-            timestamp: Date()  // ✅ Добавлено
-        )
-        send(message)
-    }
-
     func syncFull(_ character: DNDCharacter) {
         guard role == .player,
               case .connected = connectionState else { return }
         syncBasic(character)
+        // ✅ Принудительная синхронизация — обходим throttling
+            
         sendCharacterDetails(for: character)
+        // ✅ ДОБАВЛЕНО: логирование
+            log("📤 syncFull: HP=\(character.currentHP)/\(character.hitPoints), level=\(character.level), inventory=\(character.inventory.count)")
     }
 
     func requestFullSync() async {
@@ -127,7 +104,7 @@ extension PartyManager {
         try? await Task.sleep(for: .milliseconds(500))
     }
 
-    private func scheduleThrottledSync(for character: DNDCharacter) {
+  /* private func scheduleThrottledSync(for character: DNDCharacter) {
         throttledSyncTask?.cancel()
 
         let characterID = character.id
@@ -140,7 +117,7 @@ extension PartyManager {
         throttledSyncTask = Task { [weak self] in
             // ✅ Увеличен debounce с 0.5 до 1.0 секунды для стабильности
             let elapsed = Date().timeIntervalSince(self?.lastBasicSyncTime ?? .distantPast)
-            let remaining = (self?.basicSyncThrottle ?? 1.0) - elapsed
+            let remaining = (self?.basicSyncThrottle ?? 0.9) - elapsed
 
             if remaining > 0 {
                 try? await Task.sleep(for: .seconds(remaining))
@@ -161,7 +138,7 @@ extension PartyManager {
             )
             self.send(message)
         }
-    }
+    } */
 
     // MARK: - Broadcast
 
@@ -243,7 +220,7 @@ extension PartyManager {
 extension PartyManager {
     func receiveMessage(_ data: Data, from peerID: MCPeerID) {
         log("📥 Получено \(data.count) байт от \(peerID.displayName)")
-
+        
         do {
             let message = try JSONDecoder().decode(PartyMessage.self, from: data)
             handle(message: message, from: peerID)
@@ -251,85 +228,85 @@ extension PartyManager {
             log("📥 ❌ Ошибка декодирования: \(error)")
         }
     }
-
+    
     private func handle(message: PartyMessage, from peerID: MCPeerID) {
         switch message {
         case .playerJoined(let charID, let name, let raceRaw, let cls, let level, let currentHP, let maxHP, let avatarData):
             handlePlayerJoined(charID: charID, peerID: peerID, name: name, raceRaw: raceRaw, cls: cls, level: level, currentHP: currentHP, maxHP: maxHP, avatarData: avatarData)
-
+            
         case .characterDetails(let charID, let stats, let rerollPoints, let inventory, let skillProficiencies, let background, let alignment):
             handleCharacterDetails(charID: charID, stats: stats, rerollPoints: rerollPoints, inventory: inventory, skillProficiencies: skillProficiencies, background: background, alignment: alignment)
-
+            
         case .characterUpdated(let charID, let currentHP, let maxHP, let level, let stress, let rerollPoints, let timestamp):
             handleCharacterUpdated(charID: charID, currentHP: currentHP, maxHP: maxHP, level: level, stress: stress, rerollPoints: rerollPoints, timestamp: timestamp)
-
+            
         case .partyList(let members):
             handlePartyList(members: members)
-
+            
         case .playerLeft(let charID):
             partyMembers.removeAll { $0.id == charID }
             savePartyState()
             
             // 🆕 Игрок запросил начать голосование — ДМ формирует список и рассылает
         case .requestRestVote(let restType, let requesterID, let requesterName):
-                handleRequestRestVote(restType: restType, requesterID: requesterID, requesterName: requesterName)
+            handleRequestRestVote(restType: restType, requesterID: requesterID, requesterName: requesterName)
             
         case .restVoteRequest(let initiatorID, let initiatorName, let restType, let eligibleVoterIDs, let initialVotes):
             handleRestVoteRequest(initiatorID: initiatorID, initiatorName: initiatorName, restType: restType, eligibleVoterIDs: eligibleVoterIDs, initialVotes: initialVotes)
-
+            
         case .restVoteResponse(let voterID, _, let accepted):
             handleRestVoteResponse(voterID: voterID, accepted: accepted)
-
+            
         case .restStarted(let restType):
             handleRestStarted(restType: restType)
-
+            
         case .restVoteFailed(let reason):
             log("❌ Голосование отменено: \(reason)")
             restVotingManager.cancelSession()
-
+            
         case .restsReset:
             handleRestsReset()
-
+            
         case .requestSync:
             if let char = selectedCharacter { syncFull(char) }
-        
+            
             // ✅ Heartbeat: ДМ отвечает на запросы игрока
         case .heartbeatRequest(let timestamp):
-                // ДМ отвечает на heartbeat
-                if role == .dungeonMaster {
-                    send(.heartbeatResponse(timestamp: timestamp))
-                }
-                
+            // ДМ отвечает на heartbeat
+            if role == .dungeonMaster {
+                send(.heartbeatResponse(timestamp: timestamp))
+            }
+            
         case .heartbeatResponse(let timestamp):
-                // Игрок получил ответ от ДМ-а
-                if role == .player {
-                    lastHeartbeatReceived = Date()
-                    missedHeartbeats = 0
-                    // Не логируем каждый heartbeat чтобы не спамить
-                }
-                
+            // Игрок получил ответ от ДМ-а
+            if role == .player {
+                lastHeartbeatReceived = Date()
+                missedHeartbeats = 0
+                // Не логируем каждый heartbeat чтобы не спамить
+            }
+            
             // ✅ ДМ явно уведомил об остановке хоста
         case .hostStopped:
-                if role == .player {
-                    log("🛑 ДМ остановил хост")
-                    handleHostLost()
-                }
-        
-
+            if role == .player {
+                log("🛑 ДМ остановил хост")
+                handleHostLost()
+            }
+            
+            
         case .ping: send(.pong)
         case .pong, .requestCharacterSync: break
             
         }
     }
-
+    
     // MARK: - Message Handlers (приватные)
-
+    
     private func handlePlayerJoined(charID: UUID, peerID: MCPeerID, name: String, raceRaw: String, cls: String, level: Int, currentHP: Int, maxHP: Int, avatarData: Data?) {
         guard role == .dungeonMaster else { return }
         guard peerID.displayName != self.localPeerID.displayName else { return }
-
+        
         let race = Race(rawValue: raceRaw) ?? .human
-
+        
         let member = PartyMember(
             id: charID,
             peerID: peerID,
@@ -342,27 +319,27 @@ extension PartyManager {
             stress: 0,
             avatarData: avatarData
         )
-
+        
         // ✅ Защита от дубликатов: проверяем по ID
-            if let idx = partyMembers.firstIndex(where: { $0.id == charID }) {
-                // Игрок уже есть — ОБНОВЛЯЕМ
-                var newMembers = partyMembers
-                newMembers[idx] = member
-                partyMembers = newMembers
-                log("🔄 handlePlayerJoined: обновлён существующий \(member.name)")
-            } else {
-                // Новый игрок
-                partyMembers.append(member)
-                log("➕ handlePlayerJoined: добавлен \(member.name)")
+        if let idx = partyMembers.firstIndex(where: { $0.id == charID }) {
+            // Игрок уже есть — ОБНОВЛЯЕМ
+            var newMembers = partyMembers
+            newMembers[idx] = member
+            partyMembers = newMembers
+            log("🔄 handlePlayerJoined: обновлён существующий \(member.name)")
+        } else {
+            // Новый игрок
+            partyMembers.append(member)
+            log("➕ handlePlayerJoined: добавлен \(member.name)")
         }
         savePartyState()
         broadcastPartyList()
     }
-
+    
     private func handleCharacterDetails(charID: UUID, stats: AbilityScores, rerollPoints: Int, inventory: [InventoryItem], skillProficiencies: [String], background: String, alignment: DNDAlignment) {
         guard role == .dungeonMaster else { return }
         guard let idx = partyMembers.firstIndex(where: { $0.id == charID }) else { return }
-
+        
         var updatedMember = partyMembers[idx]
         updatedMember.stats = stats
         updatedMember.rerollPoints = rerollPoints
@@ -370,27 +347,27 @@ extension PartyManager {
         updatedMember.skillProficiencies = skillProficiencies
         updatedMember.background = background
         updatedMember.alignment = alignment
-
+        
         var newMembers = partyMembers
         newMembers[idx] = updatedMember
         partyMembers = newMembers
-
+        
         savePartyState()
         broadcastPartyList()
     }
-
+    
     private func handleCharacterUpdated(charID: UUID, currentHP: Int, maxHP: Int, level: Int, stress: Int, rerollPoints: Int, timestamp: Date) {
         guard role == .dungeonMaster else { return }
         guard let idx = partyMembers.firstIndex(where: { $0.id == charID }) else { return }
-
-        // ✅ ВЕРСИОНИРОВАНИЕ: игнорируем устаревшие сообщения
+        
+        // ✅ ЗАЩИТА: игнорируем устаревшие обновления
         if let lastUpdate = lastUpdateTime[charID], timestamp <= lastUpdate {
-            log("⏰ Игнорируем устаревшее обновление от \(charID) (timestamp: \(timestamp))")
+            log("⏰ Игнорируем устаревшее обновление от \(charID): \(timestamp) <= \(lastUpdate)")
             return
         }
         
         lastUpdateTime[charID] = timestamp
-
+        
         var updatedMember = partyMembers[idx]
         updatedMember.currentHP = currentHP
         updatedMember.maxHP = maxHP
@@ -398,29 +375,29 @@ extension PartyManager {
         updatedMember.stress = stress
         updatedMember.rerollPoints = rerollPoints
         updatedMember.lastSeen = Date()
-
+        
         var newMembers = partyMembers
         newMembers[idx] = updatedMember
         partyMembers = newMembers
-
+        
         savePartyState()
         broadcastPartyList()
     }
-
+    
     private func handlePartyList(members: [PartyMember]) {
         guard role == .player else { return }
         
         log("📥 handlePartyList: получено \(members.count) игроков")
-            for (i, member) in members.enumerated() {
-                log("   [\(i)] \(member.name) — connected=\(member.isConnected), id=\(member.id.uuidString.prefix(8))")
-            }
+        for (i, member) in members.enumerated() {
+            log("   [\(i)] \(member.name) — connected=\(member.isConnected), id=\(member.id.uuidString.prefix(8))")
+        }
         
         // ✅ УМНЫЙ MERGE: защищаемся от race condition
-            // Если пришёл пустой список — НЕ обнуляем локальный (это явно ошибка timing)
-            if members.isEmpty {
-                log("⚠️ Получен пустой partyList — сохраняем локальный список (\(partyMembers.count) игроков)")
-                return
-            }
+        // Если пришёл пустой список — НЕ обнуляем локальный (это явно ошибка timing)
+        if members.isEmpty {
+            log("⚠️ Получен пустой partyList — сохраняем локальный список (\(partyMembers.count) игроков)")
+            return
+        }
         
         // ✅ УМНЫЙ MERGE:
         // 1. Все игроки из incoming — актуальные (берём как есть)
@@ -435,7 +412,7 @@ extension PartyManager {
             mergedMembers.append(incomingMember)
         }
         
-            
+        
         // Проверяем локальных игроков, которых нет в incoming
         for localMember in self.partyMembers {
             if !incomingIDs.contains(localMember.id) {
@@ -455,25 +432,25 @@ extension PartyManager {
         }
         
         // Для непустого списка — применяем с проверкой изменений
-            let oldCount = self.partyMembers.count
-            let newCount = members.count
-            
-            self.partyMembers = members
-            
-            if oldCount != newCount {
-                log("📋 partyList применён: было \(oldCount), стало \(newCount) игроков")
-            } else {
-                log("📋 partyList: количество не изменилось (\(newCount))")
+        let oldCount = self.partyMembers.count
+        let newCount = members.count
+        
+        self.partyMembers = members
+        
+        if oldCount != newCount {
+            log("📋 partyList применён: было \(oldCount), стало \(newCount) игроков")
+        } else {
+            log("📋 partyList: количество не изменилось (\(newCount))")
         }
     }
-
+    
     private func handleRestVoteResponse(voterID: UUID, accepted: Bool) {
         guard role == .dungeonMaster else { return }
         
         // ✅ Добавляем голос игрока в локальную сессию ДМ-а
         let result = restVotingManager.registerVote(voterID: voterID, accepted: accepted)
         log("📥 Голос от игрока \(voterID): \(accepted ? "ЗА" : "ПРОТИВ"), результат: \(result)")
-
+        
         switch result {
         case .success(let restType, let initiatorName):
             // Все игроки проголосовали ЗА — применяем отдых
@@ -486,15 +463,15 @@ extension PartyManager {
             }
             
             restVotingManager.startEffect(restType: restType, initiatorName: initiatorName)
-
+            
         case .failed:
             send(.restVoteFailed(reason: "Кто-то проголосовал против"))
-
+            
         case .inProgress:
             break
         }
     }
-
+    
     private func handleRestStarted(restType: RestType) {
         log("🎉 Отдых \(restType.displayName) начался для всех!")
         restVotingManager.cancelSession()
@@ -508,12 +485,12 @@ extension PartyManager {
         // Визуальный эффект (анимация)
         restVotingManager.startEffect(restType: restType, initiatorName: "партии")
     }
-
+    
     private func handleRestsReset() {
         guard role == .player else { return }
         gameRules.resetRests()
     }
-
+    
     private func decrementRestCounter(restType: RestType) {
         if restType == .short {
             gameRules.shortRestsAvailable -= 1
@@ -523,7 +500,7 @@ extension PartyManager {
         saveGameRules(gameRules)
     }
     // MARK: - Обработка запроса голосования от игрока
-
+    
     private func handleRequestRestVote(restType: RestType, requesterID: UUID, requesterName: String) {
         guard role == .dungeonMaster else { return }
         
@@ -580,5 +557,82 @@ extension PartyManager {
             }
             restVotingManager.startEffect(restType: completedRestType, initiatorName: name)
         }
+    }
+    // MARK: - Принудительная синхронизация
+    
+    /// Принудительная синхронизация (обходит throttling).
+    /// Используется при критичных изменениях: level up, demotion, смена класса.
+    func syncBasic(_ character: DNDCharacter) {
+        guard role == .player,
+              case .connected = connectionState,
+              let session = session,
+              !session.connectedPeers.isEmpty else { return }
+
+        // ✅ DEBOUNCE: отменяем предыдущую отложенную задачу
+        throttledSyncTask?.cancel()
+        
+        // Захватываем текущие значения для отложенной отправки
+        let characterID = character.id
+        let currentHP = character.currentHP
+        let maxHP = character.hitPoints
+        let level = character.level
+        let stress = character.stress
+        let rerollPoints = character.rerollPoints
+        
+        // ✅ Создаём новую отложенную задачу (debounce 0.5 сек)
+        throttledSyncTask = Task { [weak self] in
+            // Ждём 0.5 секунды тишины
+            try? await Task.sleep(for: .seconds(0.5))
+            
+            guard !Task.isCancelled, let self = self else { return }
+            
+            // Проверяем что всё ещё подключены
+            guard case .connected = self.connectionState else { return }
+            
+            self.lastBasicSyncTime = Date()
+            
+            let message = PartyMessage.characterUpdated(
+                characterID: characterID,
+                currentHP: currentHP,
+                maxHP: maxHP,
+                level: level,
+                stress: stress,
+                rerollPoints: rerollPoints,
+                timestamp: Date()
+            )
+            self.send(message)
+            
+            self.log("📤 syncBasic (debounced): HP=\(currentHP)/\(maxHP), level=\(level)")
+        }
+    }
+    /// Принудительная синхронизация (обходит debounce).
+    /// Используется при критичных изменениях: level up, demotion, смена класса.
+    func forceSyncBasic(_ character: DNDCharacter) {
+        guard role == .player,
+              case .connected = connectionState,
+              let session = session,
+              !session.connectedPeers.isEmpty else { return }
+        
+        // ✅ КРИТИЧНО: отменяем отложенную задачу чтобы она не перезаписала свежие данные
+        throttledSyncTask?.cancel()
+        throttledSyncTask = nil
+        
+        // Сбрасываем throttling
+        lastBasicSyncTime = .distantPast
+        
+        let message = PartyMessage.characterUpdated(
+            characterID: character.id,
+            currentHP: character.currentHP,
+            maxHP: character.hitPoints,
+            level: character.level,
+            stress: character.stress,
+            rerollPoints: character.rerollPoints,
+            timestamp: Date()
+        )
+        send(message)
+        
+        lastBasicSyncTime = Date()
+        
+        log("📤 forceSyncBasic: HP=\(character.currentHP)/\(character.hitPoints), level=\(character.level)")
     }
 }

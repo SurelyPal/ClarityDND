@@ -167,12 +167,13 @@ extension DNDCharacter {
 extension DNDCharacter {
     /// Повышает уровень персонажа.
     /// 🔑 ВАЖНО: увеличивает и МАКСИМУМ (hitPoints), и ТЕКУЩЕЕ (currentHP)
-    func levelUp(hpBonus: Int = Constants.Character.hpPerLevel) {
+    func levelUp() {
         level += 1
-        hitPoints += hpBonus
-        currentHP += hpBonus  // 🔑 НОВОЕ: текущее HP тоже растёт
-    }
-}
+        hitPoints += 5
+        currentHP = hitPoints  // ✅ HP восстанавливается до максимума при level up
+        
+        print("🎯 levelUp(): level=\(level), hitPoints=\(hitPoints), currentHP=\(currentHP)")
+    }}
 
 // MARK: - Codable (для миграции с UserDefaults)
 

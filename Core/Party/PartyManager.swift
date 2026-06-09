@@ -72,10 +72,11 @@ final class PartyManager: NSObject, ObservableObject {
     // ✅ Хранилище для троттлинга синхронизации
     // (extension не может содержать stored properties, поэтому переносим сюда)
     var lastBasicSyncTime: Date = .distantPast
-    let basicSyncThrottle: TimeInterval = 1.0
+    let basicSyncThrottle: TimeInterval = 0.3
     var throttledSyncTask: Task<Void, Never>?
     var lastBroadcastTime: Date = .distantPast
-    let broadcastThrottle: TimeInterval = 1.5
+    let broadcastThrottle: TimeInterval = 0.5
+    
     // ✅ Heartbeat: активная проверка связи с ДМ-ом
     var heartbeatTimer: Timer?
     var lastHeartbeatReceived: Date = .distantPast
@@ -83,6 +84,10 @@ final class PartyManager: NSObject, ObservableObject {
     let heartbeatTimeout: TimeInterval = 10.0
     var missedHeartbeats: Int = 0
     let maxMissedHeartbeats: Int = 3
+    var lastHPBroadcastTime: Date = .distantPast
+    var lastFullBroadcastTime: Date = .distantPast
+   
+    
 
     // MARK: - Init
 

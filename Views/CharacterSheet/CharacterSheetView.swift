@@ -113,6 +113,7 @@ struct CharacterSheetView: View {
                     onDemote: {
                         demotionRewards = MilestoneLibrary.rewards(for: character.level)
                         showingDemotePopup = true
+                        store.update(character, changed: .full)
                     }
                 )
                 
@@ -346,12 +347,17 @@ struct CharacterSheetView: View {
             ) {
                 character.levelUp()
                 currentHP = character.hitPoints
-                store.update(character)
+                
+                // ✅ ИСПРАВЛЕНО: явное указание .full для синхронизации level up
+                // Это отправляет ВСЕ данные включая новый maxHP и level
+                store.update(character, changed: .full)
+                PartyManager.shared.forceSyncBasic(character)
                 showingMilestonePopup = false
+                
+                print("🎯 Level up: \(character.displayName) → level=\(character.level), HP=\(character.currentHP)/\(character.hitPoints)")
             }
         }
     }
-
     // MARK: - @ViewBuilder: Overlay отката уровня
     
     @ViewBuilder
@@ -466,9 +472,11 @@ struct CharacterSheetView: View {
     }
 
     // MARK: - Откат уровня
-    
+   
     private func performDemotion() {
         guard character.level > 1 else { return }
+        
+        print("📉 DEMOTION НАЧАЛО: HP=\(currentHP)/\(character.hitPoints), level=\(character.level)")
         
         withAnimation(.spring(response: 0.4)) {
             character.level -= 1
@@ -476,15 +484,26 @@ struct CharacterSheetView: View {
             let newMaxHP = max(1, character.hitPoints - 5)
             character.hitPoints = newMaxHP
             
+            let oldHP = currentHP
             currentHP = min(currentHP, newMaxHP)
             currentHP = max(1, currentHP)
+            
+            print("📉 DEMOTION ИЗМЕНЕНИЕ: oldHP=\(oldHP), newHP=\(currentHP), newMaxHP=\(newMaxHP)")
             
             SoundManager.shared.play(.demotion, haptic: .warning)
             
             store.update(character, changed: .full)
+            
+            print("📉 DEMOTION ПОСЛЕ STORE: HP=\(currentHP)/\(character.hitPoints)")
+        }
+        
+        // ✅ ВАЖНО: добавляем задержку перед сетевой синхронизацией
+        // Это гарантирует что store.update полностью завершится
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            print("📉 DEMOTION СИНХРОНИЗАЦИЯ: HP=\(self.currentHP)/\(self.character.hitPoints)")
+            PartyManager.shared.forceSyncBasic(self.character)
         }
     }
-
     // MARK: - Текст ошибки для alert
     
     @ViewBuilder
