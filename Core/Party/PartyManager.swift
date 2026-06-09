@@ -76,7 +76,7 @@ final class PartyManager: NSObject, ObservableObject {
     var throttledSyncTask: Task<Void, Never>?
     var lastBroadcastTime: Date = .distantPast
     let broadcastThrottle: TimeInterval = 0.5
-    
+    var throttledBroadcastTask: Task<Void, Never>?
     // ✅ Heartbeat: активная проверка связи с ДМ-ом
     var heartbeatTimer: Timer?
     var lastHeartbeatReceived: Date = .distantPast

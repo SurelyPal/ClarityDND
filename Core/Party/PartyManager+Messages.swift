@@ -148,20 +148,31 @@ extension PartyManager {
               !session.connectedPeers.isEmpty else { return }
 
         let now = Date()
-        guard now.timeIntervalSince(lastBroadcastTime) >= broadcastThrottle else {
-            log("⏸️ broadcastPartyList пропущен (throttle): \(partyMembers.count) игроков")
+        if now.timeIntervalSince(lastBroadcastTime) < broadcastThrottle {
+            // ✅ Откладываем через throttledBroadcastTask
+            throttledBroadcastTask?.cancel()
+            
+            throttledBroadcastTask = Task { [weak self] in
+                guard let self = self else { return }
+                let elapsed = Date().timeIntervalSince(self.lastBroadcastTime)
+                let remaining = self.broadcastThrottle - elapsed
+                
+                if remaining > 0 {
+                    try? await Task.sleep(for: .seconds(remaining))
+                }
+                
+                guard !Task.isCancelled else { return }
+                
+                self.lastBroadcastTime = Date()
+                self.send(PartyMessage.partyList(members: self.partyMembers))
+            }
             return
         }
 
         lastBroadcastTime = now
         
-        // 🆕 ДИАГНОСТИКА: логируем что отправляем
-        log("📤 broadcastPartyList: \(partyMembers.count) игроков")
-        for (i, member) in partyMembers.enumerated() {
-            log("   [\(i)] \(member.name) — connected=\(member.isConnected), id=\(member.id)")
-        }
-        
         send(PartyMessage.partyList(members: partyMembers))
+        log("📤 broadcastPartyList: \(partyMembers.count) игроков")
     }
     // MARK: - Обработка запроса голосования от игрока
 
@@ -360,13 +371,14 @@ extension PartyManager {
         guard role == .dungeonMaster else { return }
         guard let idx = partyMembers.firstIndex(where: { $0.id == charID }) else { return }
         
-        // ✅ ЗАЩИТА: игнорируем устаревшие обновления
         if let lastUpdate = lastUpdateTime[charID], timestamp <= lastUpdate {
-            log("⏰ Игнорируем устаревшее обновление от \(charID): \(timestamp) <= \(lastUpdate)")
             return
         }
         
         lastUpdateTime[charID] = timestamp
+
+        // ✅ Запоминаем СТАРЫЙ level для сравнения
+        let oldLevel = partyMembers[idx].level
         
         var updatedMember = partyMembers[idx]
         updatedMember.currentHP = currentHP
@@ -375,13 +387,23 @@ extension PartyManager {
         updatedMember.stress = stress
         updatedMember.rerollPoints = rerollPoints
         updatedMember.lastSeen = Date()
-        
+
         var newMembers = partyMembers
         newMembers[idx] = updatedMember
         partyMembers = newMembers
-        
+
         savePartyState()
-        broadcastPartyList()
+        
+        // ✅ Если level изменился — принудительный broadcast (обходит throttling)
+        if oldLevel != level {
+            log("🎯 Level изменился: \(oldLevel) → \(level), принудительный broadcast")
+            forceBroadcastPartyList()
+        } else {
+            // Обычный broadcast с throttling
+            broadcastPartyList()
+        }
+        
+        log("📥 Обновлён игрок \(updatedMember.name): HP=\(currentHP)/\(maxHP), level=\(level)")
     }
     
     private func handlePartyList(members: [PartyMember]) {
@@ -634,5 +656,27 @@ extension PartyManager {
         lastBasicSyncTime = Date()
         
         log("📤 forceSyncBasic: HP=\(character.currentHP)/\(character.hitPoints), level=\(character.level)")
+    }
+    // MARK: - Принудительный broadcast (обходит throttling)
+
+    /// Принудительный broadcast всего partyList (обходит throttling).
+    /// Используется при критичных изменениях: level up, demotion.
+    func forceBroadcastPartyList() {
+        guard role == .dungeonMaster,
+              let session = session,
+              !session.connectedPeers.isEmpty else { return }
+        
+        // Отменяем отложенные задачи
+        throttledBroadcastTask?.cancel()
+        throttledBroadcastTask = nil
+        
+        // Сбрасываем throttling
+        lastBroadcastTime = .distantPast
+        
+        send(PartyMessage.partyList(members: partyMembers))
+        
+        lastBroadcastTime = Date()
+        
+        log("📤 forceBroadcastPartyList: \(partyMembers.count) игроков")
     }
 }
