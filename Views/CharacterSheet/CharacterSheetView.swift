@@ -10,7 +10,7 @@ import SwiftUI
 struct CharacterSheetView: View {
     @State private var showEditBlockedAlert = false
     @ObservedObject private var partyManager = PartyManager.shared
-
+    
     @EnvironmentObject var store: CharacterStore
     @State var character: DNDCharacter
     @State private var currentHP: Int
@@ -27,12 +27,12 @@ struct CharacterSheetView: View {
     // 🆕 Состояния для отката уровня (перенесено из CharacterHeaderSection)
     @State private var showingDemotePopup = false
     @State private var demotionRewards: [MilestoneReward] = []
-
+    
     init(character: DNDCharacter) {
         self._character = State(initialValue: character)
         self._currentHP = State(initialValue: character.currentHP)
     }
-
+    
     // MARK: - Проверка прав редактирования
     
     private var canEditCharacter: Bool {
@@ -50,7 +50,7 @@ struct CharacterSheetView: View {
             return false
         }
     }
-
+    
     // MARK: - Главный body (композиция)
     
     var body: some View {
@@ -98,7 +98,7 @@ struct CharacterSheetView: View {
             handleConnectionStateChange(newState)
         }
     }
-
+    
     // MARK: - @ViewBuilder: Основной скролл-контент
     
     @ViewBuilder
@@ -126,394 +126,408 @@ struct CharacterSheetView: View {
                     showEditBlockedAlert: $showEditBlockedAlert
                 )
                 .equatable()
-
+                
                 StressSection(character: $character, canEdit: canEditCharacter)
                     .equatable()
-
+                
                 TabSection(character: $character, selectedTab: $selectedTab, canEdit: canEditCharacter)
                     .equatable()
-
+                
                 if case .connected = partyManager.connectionState {
                     restButtonsSection
                 }
             }
             .padding(.bottom, 40)
         }
-    }
-
-    // MARK: - @ViewBuilder: Кнопки отдыха
-    
-    @ViewBuilder
-    private var restButtonsSection: some View {
-        VStack(spacing: 12) {
-            DSdivider()
-                .padding(.horizontal, 40)
-
-            HStack(spacing: 12) {
-                shortRestButton
-                longRestButton
+        
+        // 🆕 PULL-TO-REFRESH: потяни вниз для переподключения к партии
+        .refreshable {
+            SoundManager.shared.play(.equip, haptic: .light)
+            let success = await partyManager.reconnect()
+            
+            if success {
+                // Успешное переподключение — синхронизируем данные
+                if partyManager.role == .player {
+                    partyManager.syncFull(character)
+                }
             }
-            .padding(.horizontal, 16)
-
-            Text("Доступно: \(partyManager.gameRules.shortRestsAvailable) коротких / \(partyManager.gameRules.longRestsAvailable) долгих")
-                .font(.system(size: 10))
-                .foregroundColor(Color.dsTextDim)
-                .padding(.top, 4)
         }
-        .padding(.bottom, 20)
+        
+        .scrollDisabled(isDraggingHorizontally || isDrawerOpen)
     }
-
-    private var shortRestButton: some View {
-        Button {
-            if partyManager.gameRules.canShortRest {
+        // MARK: - @ViewBuilder: Кнопки отдыха
+        
+        @ViewBuilder
+        private var restButtonsSection: some View {
+            VStack(spacing: 12) {
+                DSdivider()
+                    .padding(.horizontal, 40)
+                
+                HStack(spacing: 12) {
+                    shortRestButton
+                    longRestButton
+                }
+                .padding(.horizontal, 16)
+                
+                Text("Доступно: \(partyManager.gameRules.shortRestsAvailable) коротких / \(partyManager.gameRules.longRestsAvailable) долгих")
+                    .font(.system(size: 10))
+                    .foregroundColor(Color.dsTextDim)
+                    .padding(.top, 4)
+            }
+            .padding(.bottom, 20)
+        }
+        
+        private var shortRestButton: some View {
+            Button {
+                if partyManager.gameRules.canShortRest {
+                    SoundManager.shared.play(.equip, haptic: .medium)
+                    partyManager.initiateRestVote(type: .short, from: character)
+                } else {
+                    PlatformCompatibility.hapticNotification(.warning)
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "moon.zzz.fill")
+                        .font(.system(size: 11))
+                    Text("Короткий отдых")
+                        .font(.system(size: 12, weight: .medium))
+                    
+                    if !partyManager.gameRules.canShortRest {
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 8))
+                    }
+                }
+                .foregroundColor(partyManager.gameRules.canShortRest ? Color.dsBackground : Color.dsTextDim)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(partyManager.gameRules.canShortRest ? Color.dsBlue : Color.dsSurfaceAlt.opacity(0.5))
+                .cornerRadius(4)
+                .opacity(partyManager.gameRules.canShortRest ? 1.0 : 0.6)
+            }
+            .buttonStyle(.plain)
+        }
+        
+        private var longRestButton: some View {
+            Button {
                 SoundManager.shared.play(.equip, haptic: .medium)
-                partyManager.initiateRestVote(type: .short, from: character)
+                partyManager.initiateRestVote(type: .long, from: character)
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "bed.double.fill")
+                        .font(.system(size: 11))
+                    Text("Долгий отдых")
+                        .font(.system(size: 12, weight: .medium))
+                    
+                    if !partyManager.gameRules.canLongRest {
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 8))
+                    }
+                }
+                .foregroundColor(partyManager.gameRules.canLongRest ? Color.dsBackground : Color.dsTextDim)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(partyManager.gameRules.canLongRest ? Color.dsGold : Color.dsSurfaceAlt)
+                .cornerRadius(4)
+            }
+            .buttonStyle(.plain)
+            .disabled(!partyManager.gameRules.canLongRest)
+        }
+        
+        // MARK: - @ViewBuilder: Drawer затемнение
+        
+        @ViewBuilder
+        private var drawerDimmer: some View {
+            if isDrawerOpen {
+                Color.black.opacity(0.5)
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+                    .onTapGesture {
+                        withAnimation(.spring(response: 0.4)) {
+                            isDrawerOpen = false
+                        }
+                    }
+            }
+        }
+        
+        // MARK: - @ViewBuilder: Drawer с членами партии
+        
+        @ViewBuilder
+        private var partyDrawer: some View {
+            PartyMembersDrawer(
+                partyManager: partyManager,
+                isOpen: $isDrawerOpen,
+                members: partyManager.partyMembers
+            ) { member in
+                selectedMember = member
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    isDrawerOpen = false
+                }
+            }
+            .frame(width: 280)
+            .offset(x: drawerOffsetX)
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: isDrawerOpen)
+            .allowsHitTesting(isDrawerOpen || drawerDragOffset < 0)
+            .zIndex(1000)
+            .transition(.move(edge: .trailing))
+        }
+        
+        private var drawerOffsetX: CGFloat {
+#if os(iOS)
+            let screenWidth = UIScreen.main.bounds.width
+#elseif os(macOS)
+            let screenWidth = NSScreen.main?.frame.width ?? 1024
+#else
+            let screenWidth: CGFloat = 1024
+#endif
+            
+            if isDrawerOpen {
+                return drawerDragOffset
             } else {
-                PlatformCompatibility.hapticNotification(.warning)
+                return (screenWidth / 2 + 140) + drawerDragOffset
             }
-        } label: {
-            HStack(spacing: 6) {
-                Image(systemName: "moon.zzz.fill")
-                    .font(.system(size: 11))
-                Text("Короткий отдых")
-                    .font(.system(size: 12, weight: .medium))
-
-                if !partyManager.gameRules.canShortRest {
-                    Image(systemName: "lock.fill")
-                        .font(.system(size: 8))
+        }
+        
+        // MARK: - @ViewBuilder: Toolbar
+        
+        @ToolbarContentBuilder
+        private var toolbarContent: some ToolbarContent {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                HStack(spacing: 16) {
+                    drawerToggleButton
+                    mapButton
                 }
             }
-            .foregroundColor(partyManager.gameRules.canShortRest ? Color.dsBackground : Color.dsTextDim)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .background(partyManager.gameRules.canShortRest ? Color.dsBlue : Color.dsSurfaceAlt.opacity(0.5))
-            .cornerRadius(4)
-            .opacity(partyManager.gameRules.canShortRest ? 1.0 : 0.6)
         }
-        .buttonStyle(.plain)
-    }
-
-    private var longRestButton: some View {
-        Button {
-            SoundManager.shared.play(.equip, haptic: .medium)
-            partyManager.initiateRestVote(type: .long, from: character)
-        } label: {
-            HStack(spacing: 6) {
-                Image(systemName: "bed.double.fill")
-                    .font(.system(size: 11))
-                Text("Долгий отдых")
-                    .font(.system(size: 12, weight: .medium))
-
-                if !partyManager.gameRules.canLongRest {
-                    Image(systemName: "lock.fill")
-                        .font(.system(size: 8))
+        
+        private var drawerToggleButton: some View {
+            Button {
+                withAnimation(.spring(response: 0.4)) {
+                    isDrawerOpen.toggle()
+                }
+            } label: {
+                ZStack(alignment: .topTrailing) {
+                    Image(systemName: "person.3.fill")
+                        .foregroundColor(Color.dsGold)
+                        .font(.system(size: 16))
+                    
+                    if !partyManager.partyMembers.isEmpty {
+                        Text("\(partyManager.partyMembers.count)")
+                            .font(.system(size: 8, weight: .bold))
+                            .foregroundColor(Color.dsBackground)
+                            .padding(3)
+                            .background(Color.dsGold)
+                            .clipShape(Circle())
+                            .offset(x: 6, y: -6)
+                    }
                 }
             }
-            .foregroundColor(partyManager.gameRules.canLongRest ? Color.dsBackground : Color.dsTextDim)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .background(partyManager.gameRules.canLongRest ? Color.dsGold : Color.dsSurfaceAlt)
-            .cornerRadius(4)
         }
-        .buttonStyle(.plain)
-        .disabled(!partyManager.gameRules.canLongRest)
-    }
-
-    // MARK: - @ViewBuilder: Drawer затемнение
-    
-    @ViewBuilder
-    private var drawerDimmer: some View {
-        if isDrawerOpen {
-            Color.black.opacity(0.5)
-                .ignoresSafeArea()
-                .transition(.opacity)
-                .onTapGesture {
+        
+        private var mapButton: some View {
+            Button(action: { showingMap = true }) {
+                Image(systemName: "map")
+                    .foregroundColor(Color.dsGold)
+            }
+        }
+        
+        // MARK: - @ViewBuilder: Sheet с деталями члена партии
+        
+        @ViewBuilder
+        private func memberDetailSheet(member: PartyMember) -> some View {
+            NavigationStack {
+                DungeonMasterDetailView(memberID: member.id)
+                    .environmentObject(partyManager)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button("Закрыть") {
+                                selectedMember = nil
+                            }
+                            .foregroundColor(Color.dsGold)
+                        }
+                    }
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
+        }
+        
+        // MARK: - @ViewBuilder: Overlay повышения уровня
+        
+        @ViewBuilder
+        private var milestoneOverlay: some View {
+            if showingMilestonePopup {
+                MilestonePopupView(
+                    newMilestone: character.level + 1,
+                    rewards: MilestoneLibrary.rewards(for: character.level + 1)
+                ) {
+                    character.levelUp()
+                    currentHP = character.hitPoints
+                    
+                    // ✅ ИСПРАВЛЕНО: явное указание .full для синхронизации level up
+                    // Это отправляет ВСЕ данные включая новый maxHP и level
+                    store.update(character, changed: .full)
+                    PartyManager.shared.forceSyncBasic(character)
+                    showingMilestonePopup = false
+                    
+                    print("🎯 Level up: \(character.displayName) → level=\(character.level), HP=\(character.currentHP)/\(character.hitPoints)")
+                }
+            }
+        }
+        // MARK: - @ViewBuilder: Overlay отката уровня
+        
+        @ViewBuilder
+        private var demoteOverlay: some View {
+            if showingDemotePopup {
+                DemotionPopupView(
+                    currentLevel: character.level,
+                    rewards: demotionRewards,
+                    onConfirm: {
+                        performDemotion()
+                        showingDemotePopup = false
+                    },
+                    onCancel: {
+                        showingDemotePopup = false
+                    }
+                )
+                .transition(.opacity.combined(with: .scale))
+                .zIndex(10000)
+            }
+        }
+        
+        // MARK: - @ViewBuilder: Overlay голосования за отдых
+        
+        @ViewBuilder
+        private var restVoteOverlay: some View {
+            if let voteSession = partyManager.restVotingManager.activeRestVote {
+                RestVoteOverlayView(
+                    session: voteSession,
+                    myVoteSent: partyManager.restVotingManager.myVoteSent,
+                    isDungeonMaster: partyManager.role == .dungeonMaster,
+                    onVote: { accepted in
+                        partyManager.sendRestVote(accepted: accepted, from: character)
+                    },
+                    onCancel: {
+                        partyManager.cancelRestVote()
+                    }
+                )
+                .transition(.scale.combined(with: .opacity))
+                .zIndex(9999)
+            }
+        }
+        
+        // MARK: - @ViewBuilder: Overlay эффекта отдыха
+        
+        @ViewBuilder
+        private var restEffectOverlay: some View {
+            if let effect = partyManager.restVotingManager.activeRestEffect {
+                RestEffectOverlayView(effect: effect) {
+                    partyManager.restVotingManager.activeRestEffect = nil
+                }
+                .zIndex(10000)
+            }
+        }
+        
+        // MARK: - Жест открытия/закрытия drawer'а
+        
+        private var drawerDragGesture: some Gesture {
+            DragGesture(minimumDistance: 20)
+                .onChanged { value in
+                    let horizontal = value.translation.width
+                    let vertical = value.translation.height
+                    let isHorizontalSwipe = abs(horizontal) > abs(vertical) + 10
+                    
+                    if isHorizontalSwipe {
+                        isDraggingHorizontally = true
+                    }
+                    
+                    if isHorizontalSwipe {
+                        if !isDrawerOpen && horizontal < 0 {
+                            drawerDragOffset = max(horizontal, -280)
+                        } else if isDrawerOpen && horizontal > 0 {
+                            drawerDragOffset = min(horizontal, 280)
+                        }
+                    }
+                }
+                .onEnded { value in
+                    let horizontal = value.translation.width
+                    let vertical = value.translation.height
+                    let isHorizontalSwipe = abs(horizontal) > abs(vertical) + 10
+                    
+                    if !isDrawerOpen && isHorizontalSwipe && horizontal < -100 {
+                        withAnimation(.spring(response: 0.4)) { isDrawerOpen = true }
+                    } else if isDrawerOpen && isHorizontalSwipe && horizontal > 100 {
+                        withAnimation(.spring(response: 0.4)) { isDrawerOpen = false }
+                    }
+                    
+                    withAnimation(.spring(response: 0.4)) { drawerDragOffset = 0 }
+                    isDraggingHorizontally = false
+                }
+        }
+        
+        // MARK: - Обработчики onChange
+        
+        private func handleRestEffect(_ newEffect: RestVotingManager.RestEffectEvent?) {
+            // ✅ Эффект уже применён в PartyManager.handleRestStarted
+            // Здесь только логирование (если нужно)
+            guard let effect = newEffect else { return }
+            print("🎬 Визуальный эффект отдыха: \(effect.restType.displayName)")
+        }
+        
+        private func handleConnectionStateChange(_ newState: PartyManager.ConnectionState) {
+            if case .disconnected = newState {
+                if isDrawerOpen {
                     withAnimation(.spring(response: 0.4)) {
                         isDrawerOpen = false
                     }
                 }
-        }
-    }
-
-    // MARK: - @ViewBuilder: Drawer с членами партии
-    
-    @ViewBuilder
-    private var partyDrawer: some View {
-        PartyMembersDrawer(
-            partyManager: partyManager,
-            isOpen: $isDrawerOpen,
-            members: partyManager.partyMembers
-        ) { member in
-            selectedMember = member
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                isDrawerOpen = false
+                if partyManager.lastError != nil {
+                    showEditBlockedAlert = true
+                }
             }
         }
-        .frame(width: 280)
-        .offset(x: drawerOffsetX)
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: isDrawerOpen)
-        .allowsHitTesting(isDrawerOpen || drawerDragOffset < 0)
-        .zIndex(1000)
-        .transition(.move(edge: .trailing))
-    }
-
-    private var drawerOffsetX: CGFloat {
-        #if os(iOS)
-        let screenWidth = UIScreen.main.bounds.width
-        #elseif os(macOS)
-        let screenWidth = NSScreen.main?.frame.width ?? 1024
-        #else
-        let screenWidth: CGFloat = 1024
-        #endif
         
-        if isDrawerOpen {
-            return drawerDragOffset
-        } else {
-            return (screenWidth / 2 + 140) + drawerDragOffset
-        }
-    }
-
-    // MARK: - @ViewBuilder: Toolbar
-    
-    @ToolbarContentBuilder
-    private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .navigationBarTrailing) {
-            HStack(spacing: 16) {
-                drawerToggleButton
-                mapButton
-            }
-        }
-    }
-
-    private var drawerToggleButton: some View {
-        Button {
+        // MARK: - Откат уровня
+        
+        private func performDemotion() {
+            guard character.level > 1 else { return }
+            
+            print("📉 DEMOTION НАЧАЛО: HP=\(currentHP)/\(character.hitPoints), level=\(character.level)")
+            
             withAnimation(.spring(response: 0.4)) {
-                isDrawerOpen.toggle()
-            }
-        } label: {
-            ZStack(alignment: .topTrailing) {
-                Image(systemName: "person.3.fill")
-                    .foregroundColor(Color.dsGold)
-                    .font(.system(size: 16))
-
-                if !partyManager.partyMembers.isEmpty {
-                    Text("\(partyManager.partyMembers.count)")
-                        .font(.system(size: 8, weight: .bold))
-                        .foregroundColor(Color.dsBackground)
-                        .padding(3)
-                        .background(Color.dsGold)
-                        .clipShape(Circle())
-                        .offset(x: 6, y: -6)
-                }
-            }
-        }
-    }
-
-    private var mapButton: some View {
-        Button(action: { showingMap = true }) {
-            Image(systemName: "map")
-                .foregroundColor(Color.dsGold)
-        }
-    }
-
-    // MARK: - @ViewBuilder: Sheet с деталями члена партии
-    
-    @ViewBuilder
-    private func memberDetailSheet(member: PartyMember) -> some View {
-        NavigationStack {
-            DungeonMasterDetailView(memberID: member.id)
-                .environmentObject(partyManager)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Button("Закрыть") {
-                            selectedMember = nil
-                        }
-                        .foregroundColor(Color.dsGold)
-                    }
-                }
-        }
-        .presentationDetents([.large])
-        .presentationDragIndicator(.visible)
-    }
-
-    // MARK: - @ViewBuilder: Overlay повышения уровня
-    
-    @ViewBuilder
-    private var milestoneOverlay: some View {
-        if showingMilestonePopup {
-            MilestonePopupView(
-                newMilestone: character.level + 1,
-                rewards: MilestoneLibrary.rewards(for: character.level + 1)
-            ) {
-                character.levelUp()
-                currentHP = character.hitPoints
+                character.level -= 1
                 
-                // ✅ ИСПРАВЛЕНО: явное указание .full для синхронизации level up
-                // Это отправляет ВСЕ данные включая новый maxHP и level
+                let newMaxHP = max(1, character.hitPoints - 5)
+                character.hitPoints = newMaxHP
+                
+                let oldHP = currentHP
+                currentHP = min(currentHP, newMaxHP)
+                currentHP = max(1, currentHP)
+                
+                print("📉 DEMOTION ИЗМЕНЕНИЕ: oldHP=\(oldHP), newHP=\(currentHP), newMaxHP=\(newMaxHP)")
+                
+                SoundManager.shared.play(.demotion, haptic: .warning)
+                
                 store.update(character, changed: .full)
-                PartyManager.shared.forceSyncBasic(character)
-                showingMilestonePopup = false
                 
-                print("🎯 Level up: \(character.displayName) → level=\(character.level), HP=\(character.currentHP)/\(character.hitPoints)")
+                print("📉 DEMOTION ПОСЛЕ STORE: HP=\(currentHP)/\(character.hitPoints)")
+            }
+            
+            // ✅ ВАЖНО: добавляем задержку перед сетевой синхронизацией
+            // Это гарантирует что store.update полностью завершится
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                print("📉 DEMOTION СИНХРОНИЗАЦИЯ: HP=\(self.currentHP)/\(self.character.hitPoints)")
+                PartyManager.shared.forceSyncBasic(self.character)
             }
         }
-    }
-    // MARK: - @ViewBuilder: Overlay отката уровня
-    
-    @ViewBuilder
-    private var demoteOverlay: some View {
-        if showingDemotePopup {
-            DemotionPopupView(
-                currentLevel: character.level,
-                rewards: demotionRewards,
-                onConfirm: {
-                    performDemotion()
-                    showingDemotePopup = false
-                },
-                onCancel: {
-                    showingDemotePopup = false
-                }
-            )
-            .transition(.opacity.combined(with: .scale))
-            .zIndex(10000)
-        }
-    }
-
-    // MARK: - @ViewBuilder: Overlay голосования за отдых
-    
-    @ViewBuilder
-    private var restVoteOverlay: some View {
-        if let voteSession = partyManager.restVotingManager.activeRestVote {
-            RestVoteOverlayView(
-                session: voteSession,
-                myVoteSent: partyManager.restVotingManager.myVoteSent,
-                isDungeonMaster: partyManager.role == .dungeonMaster,
-                onVote: { accepted in
-                    partyManager.sendRestVote(accepted: accepted, from: character)
-                },
-                onCancel: {
-                    partyManager.cancelRestVote()
-                }
-            )
-            .transition(.scale.combined(with: .opacity))
-            .zIndex(9999)
-        }
-    }
-
-    // MARK: - @ViewBuilder: Overlay эффекта отдыха
-    
-    @ViewBuilder
-    private var restEffectOverlay: some View {
-        if let effect = partyManager.restVotingManager.activeRestEffect {
-            RestEffectOverlayView(effect: effect) {
-                partyManager.restVotingManager.activeRestEffect = nil
-            }
-            .zIndex(10000)
-        }
-    }
-
-    // MARK: - Жест открытия/закрытия drawer'а
-    
-    private var drawerDragGesture: some Gesture {
-        DragGesture(minimumDistance: 20)
-            .onChanged { value in
-                let horizontal = value.translation.width
-                let vertical = value.translation.height
-                let isHorizontalSwipe = abs(horizontal) > abs(vertical) + 10
-
-                if isHorizontalSwipe {
-                    isDraggingHorizontally = true
-                }
-
-                if isHorizontalSwipe {
-                    if !isDrawerOpen && horizontal < 0 {
-                        drawerDragOffset = max(horizontal, -280)
-                    } else if isDrawerOpen && horizontal > 0 {
-                        drawerDragOffset = min(horizontal, 280)
-                    }
-                }
-            }
-            .onEnded { value in
-                let horizontal = value.translation.width
-                let vertical = value.translation.height
-                let isHorizontalSwipe = abs(horizontal) > abs(vertical) + 10
-
-                if !isDrawerOpen && isHorizontalSwipe && horizontal < -100 {
-                    withAnimation(.spring(response: 0.4)) { isDrawerOpen = true }
-                } else if isDrawerOpen && isHorizontalSwipe && horizontal > 100 {
-                    withAnimation(.spring(response: 0.4)) { isDrawerOpen = false }
-                }
-
-                withAnimation(.spring(response: 0.4)) { drawerDragOffset = 0 }
-                isDraggingHorizontally = false
-            }
-    }
-
-    // MARK: - Обработчики onChange
-    
-    private func handleRestEffect(_ newEffect: RestVotingManager.RestEffectEvent?) {
-        // ✅ Эффект уже применён в PartyManager.handleRestStarted
-        // Здесь только логирование (если нужно)
-        guard let effect = newEffect else { return }
-        print("🎬 Визуальный эффект отдыха: \(effect.restType.displayName)")
-    }
-
-    private func handleConnectionStateChange(_ newState: PartyManager.ConnectionState) {
-        if case .disconnected = newState {
-            if isDrawerOpen {
-                withAnimation(.spring(response: 0.4)) {
-                    isDrawerOpen = false
-                }
-            }
-            if partyManager.lastError != nil {
-                showEditBlockedAlert = true
-            }
-        }
-    }
-
-    // MARK: - Откат уровня
-   
-    private func performDemotion() {
-        guard character.level > 1 else { return }
+        // MARK: - Текст ошибки для alert
         
-        print("📉 DEMOTION НАЧАЛО: HP=\(currentHP)/\(character.hitPoints), level=\(character.level)")
-        
-        withAnimation(.spring(response: 0.4)) {
-            character.level -= 1
-            
-            let newMaxHP = max(1, character.hitPoints - 5)
-            character.hitPoints = newMaxHP
-            
-            let oldHP = currentHP
-            currentHP = min(currentHP, newMaxHP)
-            currentHP = max(1, currentHP)
-            
-            print("📉 DEMOTION ИЗМЕНЕНИЕ: oldHP=\(oldHP), newHP=\(currentHP), newMaxHP=\(newMaxHP)")
-            
-            SoundManager.shared.play(.demotion, haptic: .warning)
-            
-            store.update(character, changed: .full)
-            
-            print("📉 DEMOTION ПОСЛЕ STORE: HP=\(currentHP)/\(character.hitPoints)")
-        }
-        
-        // ✅ ВАЖНО: добавляем задержку перед сетевой синхронизацией
-        // Это гарантирует что store.update полностью завершится
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            print("📉 DEMOTION СИНХРОНИЗАЦИЯ: HP=\(self.currentHP)/\(self.character.hitPoints)")
-            PartyManager.shared.forceSyncBasic(self.character)
-        }
-    }
-    // MARK: - Текст ошибки для alert
-    
-    @ViewBuilder
-    private var errorMessage: some View {
-        if let error = partyManager.lastError {
-            Text(error)
-        } else if let reason = partyManager.disconnectReason {
-            Text(reason)
-        } else {
-            Text("Мастер запретил изменять героев вне активной партии.\nПодключитесь к ДМ, чтобы вносить изменения.")
+        @ViewBuilder
+        private var errorMessage: some View {
+            if let error = partyManager.lastError {
+                Text(error)
+            } else if let reason = partyManager.disconnectReason {
+                Text(reason)
+            } else {
+                Text("Мастер запретил изменять героев вне активной партии.\nПодключитесь к ДМ, чтобы вносить изменения.")
         }
     }
 }

@@ -25,7 +25,7 @@ enum RestType: String, Codable, CaseIterable, Sendable {
     }
 }
 
-enum PartyMessage: Codable {
+enum PartyMessage: Codable, Sendable {
     
     case playerJoined(
         characterID: UUID,

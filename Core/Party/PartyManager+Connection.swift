@@ -16,11 +16,13 @@ extension PartyManager: MCSessionDelegate {
         _ session: MCSession,
         peer peerID: MCPeerID,
         didChange state: MCSessionState
-    ) {
-        Task { @MainActor in
-            switch state {
-            case .connected:
-                self.handlePeerConnected(peerID: peerID, session: session)
+        )
+    {
+        Task { @MainActor [weak self] in
+         guard let self = self else { return }
+         switch state {
+         case .connected:
+         self.handlePeerConnected(peerID: peerID, session: session)
             case .connecting:
                 self.log("⏳ Подключение: \(peerID.displayName)")
                 self.connectionState = .connecting(peerName: peerID.displayName)
@@ -37,8 +39,9 @@ extension PartyManager: MCSessionDelegate {
         didReceive data: Data,
         fromPeer peerID: MCPeerID
     ) {
-        Task { @MainActor in
-            self.receiveMessage(data, from: peerID)
+        Task { @MainActor [weak self] in
+         guard let self = self else { return }
+         self.receiveMessage(data, from: peerID)
         }
     }
 
@@ -85,15 +88,17 @@ extension PartyManager: MCSessionDelegate {
 extension PartyManager: MCNearbyServiceAdvertiserDelegate {
 
     nonisolated func advertiser(
-        _ advertiser: MCNearbyServiceAdvertiser,
-        didReceiveInvitationFromPeer peerID: MCPeerID,
-        withContext context: Data?,
-        invitationHandler: @escaping (Bool, MCSession?) -> Void
-    ) {
-        Task { @MainActor in
-            self.log("📥 Приглашение от \(peerID.displayName)")
-            invitationHandler(true, self.session)
-        }
+     _ advertiser: MCNearbyServiceAdvertiser,
+     didReceiveInvitationFromPeer peerID: MCPeerID,
+     withContext context: Data?,
+     invitationHandler: @escaping (Bool, MCSession?) -> Void
+    )
+    {
+     Task { @MainActor [weak self] in
+     guard let self = self else { return }
+     self.log("📥 Приглашение от \(peerID.displayName)")
+     invitationHandler(true, self.session)
+            }
     }
 
     nonisolated func advertiser(
@@ -280,10 +285,11 @@ extension PartyManager {
         missedHeartbeats = 0
 
         heartbeatTimer = Timer.scheduledTimer(withTimeInterval: heartbeatInterval, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.sendHeartbeatRequest()
-            }
-        }
+         guard let self = self else { return }
+         Task { @MainActor [weak self] in
+         self?.sendHeartbeatRequest()
+         }
+    }
 
         log("💓 Heartbeat запущен (интервал: \(heartbeatInterval)с, таймаут: \(heartbeatTimeout)с)")
     }
@@ -340,6 +346,8 @@ extension PartyManager {
         log("🔴 Принудительное отключение: ДМ не отвечает")
     }
 
+    
+    
     /// Обновляет время последнего heartbeat (вызывается при получении ответа)
     func updateLastHeartbeat() {
         lastHeartbeatReceived = Date()

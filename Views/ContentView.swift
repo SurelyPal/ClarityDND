@@ -111,6 +111,8 @@ struct ContentView: View {
     
     // MARK: - Список персонажей
     
+    // MARK: - Список персонажей
+
     private var characterList: some View {
         List {
             ForEach(store.characters) { character in
@@ -124,6 +126,16 @@ struct ContentView: View {
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
+        // 🆕 PULL-TO-REFRESH: потяни вниз для переподключения к партии
+        .refreshable {
+            SoundManager.shared.play(.equip, haptic: .light)
+            let success = await PartyManager.shared.reconnect()
+            
+            if success {
+                // Успешное переподключение — обновляем список партии
+                // (данные уже синхронизированы в PartyManager)
+            }
+        }
     }
 }
 

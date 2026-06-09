@@ -22,7 +22,8 @@ struct DungeonMasterView: View {
                         
                         // 🆕 Кнопка "Новая сессия" (сброс отдыхов)
                         Button {
-                            partyManager.resetSession()
+                         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                         partyManager.resetSession()
                         } label: {
                             HStack(spacing: 8) {
                                 Image(systemName: "arrow.counterclockwise.circle.fill")
@@ -197,10 +198,10 @@ struct DungeonMasterMemberCard: View {
                             .fill(Color.dsSurfaceAlt)
                             .frame(height: 6)
                         RoundedRectangle(cornerRadius: 2)
-                            .fill(hpColor)
-                            .frame(width: geo.size.width * member.hpFraction, height: 6)
-                            .animation(.spring(), value: member.currentHP)
-                    }
+                         .fill(hpColor)
+                         .frame(width: geo.size.width * member.hpFraction, height: 6)
+                         .animation(.spring(response: 0.4, dampingFraction: 0.7), value: member.currentHP)
+                        }
                 }
                 .frame(height: 6)
                 

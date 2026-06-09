@@ -368,6 +368,7 @@ final class PartyManager: NSObject, ObservableObject {
                 ))
             }
         }
+    
         func sendDMVote(accepted: Bool) {
             restVotingManager.markMyVote(accepted)
             let dmID = UUID(uuidString: "00000000-0000-0000-0000-000000000000")!
@@ -442,8 +443,93 @@ final class PartyManager: NSObject, ObservableObject {
 
     func clearError() { self.lastError = nil }
     func clearDisconnectReason() { self.disconnectReason = nil }
+    
 }
-
-// MARK: - MCSessionDelegate (пустой — реализация в PartyManager+Connection.swift)
-// Все методы delegate вынесены в отдельный extension
-
+// MARK: - 🆕 Автопереподключение к партии (Pull-to-Refresh)
+extension PartyManager {
+    
+    /// Пытается переподключиться к партии (вызывается из pull-to-refresh)
+    @MainActor
+    func reconnect() async -> Bool {
+        log("🔄 Попытка переподключения к партии...")
+        
+        // Если уже подключены — ничего не делаем
+        if case .connected = connectionState {
+            log("✅ Уже подключены к партии")
+            return true
+        }
+        
+        // Если мы игрок — пытаемся найти комнату ДМа заново
+        if role == .player {
+            log("🔍 Игрок: запускаем повторный поиск комнаты ДМа")
+            
+            // 🆕 Явно используем self. и точные имена свойств
+            self.session?.disconnect()
+            self.browser?.stopBrowsingForPeers()
+            
+            // Запускаем поиск заново
+            startBrowsingForReconnect()
+            
+            // Ждём 3 секунды, пока Multipeer найдёт пиров
+            try? await Task.sleep(for: .seconds(3))
+            
+            // Проверяем результат
+            if case .connected = connectionState {
+                log("✅ Переподключение успешно!")
+                return true
+            } else {
+                log("❌ Не удалось переподключиться за 3 секунды")
+                return false
+            }
+        }
+        
+        // Если мы ДМ — проверяем/перезапускаем хостинг
+        if role == .dungeonMaster {
+            log("🎲 ДМ: проверяем статус хостинга")
+            
+            if case .hosting = connectionState {
+                log("✅ Хостинг активен")
+                return true
+            } else if !roomCode.isEmpty {
+                log("⚠️ Хостинг не активен — перезапускаем")
+                self.advertiser?.stopAdvertisingPeer()
+                restartHostingForReconnect()
+                try? await Task.sleep(for: .seconds(1))
+                return true
+            }
+        }
+        
+        return false
+    }
+    
+    /// Запускает поиск комнат (для игрока) при переподключении
+    private func startBrowsingForReconnect() {
+        guard role == .player else { return }
+        
+        // 🆕 Создаём новый экземпляр, используя self. и точное имя свойства
+        self.browser = MCNearbyServiceBrowser(
+            peer: localPeerID,
+            serviceType: "clarity-dnd"
+        )
+        self.browser?.delegate = self
+        self.browser?.startBrowsingForPeers()
+        
+        log("🔍 Поиск комнат запущен")
+    }
+    
+    /// Перезапускает хостинг (для ДМа) при переподключении
+    private func restartHostingForReconnect() {
+        guard role == .dungeonMaster, !roomCode.isEmpty else { return }
+        
+        // 🆕 Создаём новый экземпляр, используя self. и точное имя свойства
+        self.advertiser = MCNearbyServiceAdvertiser(
+            peer: localPeerID,
+            discoveryInfo: nil,
+            serviceType: "clarity-dnd"
+        )
+        self.advertiser?.delegate = self
+        self.advertiser?.startAdvertisingPeer()
+        
+        log("🎲 Хостинг перезапущен с кодом: \(roomCode)")
+    }
+}
