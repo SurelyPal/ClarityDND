@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct PartyMembersDrawer: View {
+    @ObservedObject var partyManager: PartyManager
     @Binding var isOpen: Bool
     let members: [PartyMember]
     let onSelect: (PartyMember) -> Void
@@ -60,7 +61,7 @@ struct PartyMembersDrawer: View {
                 } else {
                     ScrollView {
                         VStack(spacing: 10) {
-                            ForEach(members) { member in
+                            ForEach(partyManager.partyMembers) { member in
                                 Button {
                                     onSelect(member)
                                 } label: {

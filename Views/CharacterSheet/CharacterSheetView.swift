@@ -115,6 +115,7 @@ struct CharacterSheetView: View {
                         showingDemotePopup = true
                     }
                 )
+                
                 .equatable()
                 .padding(.top, 30)
                 HPSection(
@@ -238,6 +239,7 @@ struct CharacterSheetView: View {
     @ViewBuilder
     private var partyDrawer: some View {
         PartyMembersDrawer(
+            partyManager: partyManager,
             isOpen: $isDrawerOpen,
             members: partyManager.partyMembers
         ) { member in

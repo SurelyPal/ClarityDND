@@ -19,7 +19,16 @@ final class PartyManager: NSObject, ObservableObject {
     // MARK: - Published State
     @Published var role: Role = .player
     @Published var localPeerName: String = PlatformCompatibility.deviceName
-    @Published var partyMembers: [PartyMember] = []
+    @Published var partyMembers: [PartyMember] = [] {
+        didSet {
+            log("🔄 partyMembers изменён: было \(oldValue.count), стало \(partyMembers.count)")
+            if partyMembers.count != oldValue.count {
+                for (i, member) in partyMembers.enumerated() {
+                    log("   [\(i)] \(member.name) — connected=\(member.isConnected)")
+                }
+            }
+        }
+    }
     @Published var connectionState: ConnectionState = .disconnected
     @Published var roomCode: String = ""
     @Published var gameRules: GameRules = .default
@@ -63,10 +72,17 @@ final class PartyManager: NSObject, ObservableObject {
     // ✅ Хранилище для троттлинга синхронизации
     // (extension не может содержать stored properties, поэтому переносим сюда)
     var lastBasicSyncTime: Date = .distantPast
-    let basicSyncThrottle: TimeInterval = 0.8
+    let basicSyncThrottle: TimeInterval = 1.0
     var throttledSyncTask: Task<Void, Never>?
     var lastBroadcastTime: Date = .distantPast
-    let broadcastThrottle: TimeInterval = 1.0
+    let broadcastThrottle: TimeInterval = 1.5
+    // ✅ Heartbeat: активная проверка связи с ДМ-ом
+    var heartbeatTimer: Timer?
+    var lastHeartbeatReceived: Date = .distantPast
+    let heartbeatInterval: TimeInterval = 3.0
+    let heartbeatTimeout: TimeInterval = 10.0
+    var missedHeartbeats: Int = 0
+    let maxMissedHeartbeats: Int = 3
 
     // MARK: - Init
 
@@ -135,6 +151,10 @@ final class PartyManager: NSObject, ObservableObject {
     }
 
     func stopHosting() {
+        send(.hostStopped)
+            
+            cleanupConnection(reason: "ДМ остановил хост")
+    
         self.advertiser?.stopAdvertisingPeer()
         self.advertiser = nil
         self.session?.disconnect()

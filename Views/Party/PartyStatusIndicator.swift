@@ -145,11 +145,18 @@ struct PartyStatusIndicator: View {
             if partyManager.role == .dungeonMaster {
                 Image(systemName: "crown.fill")
                     .font(.system(size: 10))
-                    .foregroundColor(Color.dsSoul)
+                    .foregroundColor(Color.dsGold)
             } else {
-                Image(systemName: "person.fill.checkmark")
-                    .font(.system(size: 10))
-                    .foregroundColor(.dsEstus)
+                // ✅ Показываем warning если heartbeat пропущен
+                if partyManager.missedHeartbeats > 0 {
+                    Image(systemName: "wifi.exclamationmark")
+                        .font(.system(size: 10))
+                        .foregroundColor(.orange)
+                } else {
+                    Image(systemName: "person.fill.checkmark")
+                        .font(.system(size: 10))
+                        .foregroundColor(.green)
+                }
             }
         }
     }
@@ -187,7 +194,12 @@ struct PartyStatusIndicator: View {
             if partyManager.role == .dungeonMaster {
                 Text("Партия · \(partyManager.partyMembers.count)")
             } else {
-                Text("В партии")
+                if partyManager.missedHeartbeats > 0 {
+                    Text("Связь теряется...")
+                        .foregroundColor(.orange)
+                } else {
+                    Text("В партии")
+                }
             }
         }
     }

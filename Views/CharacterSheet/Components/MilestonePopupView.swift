@@ -273,6 +273,7 @@ struct MilestonePopupView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             onConfirm()
         }
+    
     }
 }
 

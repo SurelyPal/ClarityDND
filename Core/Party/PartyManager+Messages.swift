@@ -292,9 +292,33 @@ extension PartyManager {
 
         case .requestSync:
             if let char = selectedCharacter { syncFull(char) }
+        
+            // ✅ Heartbeat: ДМ отвечает на запросы игрока
+        case .heartbeatRequest(let timestamp):
+                // ДМ отвечает на heartbeat
+                if role == .dungeonMaster {
+                    send(.heartbeatResponse(timestamp: timestamp))
+                }
+                
+        case .heartbeatResponse(let timestamp):
+                // Игрок получил ответ от ДМ-а
+                if role == .player {
+                    lastHeartbeatReceived = Date()
+                    missedHeartbeats = 0
+                    // Не логируем каждый heartbeat чтобы не спамить
+                }
+                
+            // ✅ ДМ явно уведомил об остановке хоста
+        case .hostStopped:
+                if role == .player {
+                    log("🛑 ДМ остановил хост")
+                    handleHostLost()
+                }
+        
 
         case .ping: send(.pong)
         case .pong, .requestCharacterSync: break
+            
         }
     }
 
@@ -387,15 +411,16 @@ extension PartyManager {
         guard role == .player else { return }
         
         log("📥 handlePartyList: получено \(members.count) игроков")
-        for (i, member) in members.enumerated() {
-            log("   [\(i)] \(member.name) — connected=\(member.isConnected), id=\(member.id.uuidString.prefix(8))")
-        }
+            for (i, member) in members.enumerated() {
+                log("   [\(i)] \(member.name) — connected=\(member.isConnected), id=\(member.id.uuidString.prefix(8))")
+            }
         
-        // ✅ КРИТИЧЕСКАЯ ЗАЩИТА: пустой список = race condition
-        if members.isEmpty {
-            log("⚠️ Получен пустой partyList — ИГНОРИРУЕМ (сохраняем \(partyMembers.count) локальных)")
-            return
-        }
+        // ✅ УМНЫЙ MERGE: защищаемся от race condition
+            // Если пришёл пустой список — НЕ обнуляем локальный (это явно ошибка timing)
+            if members.isEmpty {
+                log("⚠️ Получен пустой partyList — сохраняем локальный список (\(partyMembers.count) игроков)")
+                return
+            }
         
         // ✅ УМНЫЙ MERGE:
         // 1. Все игроки из incoming — актуальные (берём как есть)
@@ -410,6 +435,7 @@ extension PartyManager {
             mergedMembers.append(incomingMember)
         }
         
+            
         // Проверяем локальных игроков, которых нет в incoming
         for localMember in self.partyMembers {
             if !incomingIDs.contains(localMember.id) {
@@ -428,13 +454,16 @@ extension PartyManager {
             }
         }
         
-        let oldCount = self.partyMembers.count
-        let newCount = mergedMembers.count
-        
-        // Применяем только если реально изменилось
-        if oldCount != newCount || self.partyMembers.map(\.id) != mergedMembers.map(\.id) {
-            self.partyMembers = mergedMembers
-            log("📋 partyList применён: было \(oldCount), стало \(newCount) игроков (\(members.count) online)")
+        // Для непустого списка — применяем с проверкой изменений
+            let oldCount = self.partyMembers.count
+            let newCount = members.count
+            
+            self.partyMembers = members
+            
+            if oldCount != newCount {
+                log("📋 partyList применён: было \(oldCount), стало \(newCount) игроков")
+            } else {
+                log("📋 partyList: количество не изменилось (\(newCount))")
         }
     }
 

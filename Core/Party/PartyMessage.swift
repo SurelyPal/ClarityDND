@@ -69,6 +69,12 @@ enum PartyMessage: Codable {
         voterName: String,
         accepted: Bool
     )
+    // ✅ Heartbeat сообщения
+    case heartbeatRequest(timestamp: Date)
+    case heartbeatResponse(timestamp: Date)
+    
+    // ✅ Явное уведомление об остановке хоста (для graceful shutdown)
+    case hostStopped
     case restStarted(restType: RestType)
     case restVoteFailed(reason: String)
     case restsReset
