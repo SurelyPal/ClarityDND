@@ -1,3 +1,11 @@
+//
+//  PlatformCompatibility.swift
+//  Clarity
+//
+//  Created by KEBAB on 09.06.2026.
+//
+
+
 import Foundation
 #if os(iOS)
 import UIKit

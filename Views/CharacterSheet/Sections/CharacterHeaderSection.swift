@@ -10,16 +10,14 @@ import PhotosUI
 
 struct CharacterHeaderSection: View, Equatable {
     @Binding var character: DNDCharacter
-    @Binding var currentHP: Int  // 🆕 Добавлено для performDemotion
+    @Binding var currentHP: Int
     let canEdit: Bool
     let onLevelUp: () -> Void
-    @EnvironmentObject var store: CharacterStore  // 🆕 Добавлено для performDemotion
-    
+    let onDemote: () -> Void  // ✅ НОВЫЙ: callback для отката
+
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var showPhotoPicker = false
-    @State private var showingDemotePopup = false  // 🆕 Заменило showLevelDownConfirmation
-    @State private var demotionRewards: [MilestoneReward] = []  // 🆕 Добавлено
-    
+
     static func == (lhs: CharacterHeaderSection, rhs: CharacterHeaderSection) -> Bool {
         lhs.character.name == rhs.character.name &&
         lhs.character.race == rhs.character.race &&
@@ -30,7 +28,7 @@ struct CharacterHeaderSection: View, Equatable {
         lhs.character.avatarData == rhs.character.avatarData &&
         lhs.canEdit == rhs.canEdit
     }
-    
+
     var body: some View {
         VStack(spacing: 14) {
             HStack(alignment: .top, spacing: 14) {
@@ -44,7 +42,7 @@ struct CharacterHeaderSection: View, Equatable {
                     
                     if canEdit {
                         Button {
-                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            PlatformCompatibility.hapticNotification(.success)  // ✅ Кроссплатформенно
                             showPhotoPicker = true
                         } label: {
                             Image(systemName: "camera.fill")
@@ -90,12 +88,12 @@ struct CharacterHeaderSection: View, Equatable {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
-                // СПРАВА: Кнопки вехи (повышение + понижение)
+                // СПРАВА: Кнопки вехи (повышение + понижение) + замок
                 VStack(spacing: 8) {
                     // Кнопка ПОВЫШЕНИЯ вехи
                     if !character.isMaxLevel {
                         Button(action: {
-                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                            PlatformCompatibility.hapticNotification(.success)  // ✅ Кроссплатформенно
                             withAnimation(.spring(response: 0.4)) {
                                 onLevelUp()
                             }
@@ -121,14 +119,11 @@ struct CharacterHeaderSection: View, Equatable {
                         .disabled(!canEdit)
                     }
                     
-                    // 🆕 Кнопка ОТКАТА (перенесена из CharacterSheetView)
+                    // Кнопка ОТКАТА
                     if character.level > 1 {
                         Button {
-                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                            demotionRewards = MilestoneLibrary.rewards(for: character.level)
-                            withAnimation(.spring(response: 0.4)) {
-                                showingDemotePopup = true
-                            }
+                            PlatformCompatibility.hapticNotification(.success)  // ✅ Кроссплатформенно
+                            onDemote()  // ✅ Вызываем callback
                         } label: {
                             Image(systemName: "arrow.uturn.backward.circle")
                                 .font(.system(size: 28))
@@ -138,8 +133,8 @@ struct CharacterHeaderSection: View, Equatable {
                         .disabled(!canEdit)
                     }
                     
-                    // Замок если нельзя редактировать
-                    if !canEdit && (character.level > 1 || !character.isMaxLevel) {
+                    // ✅ ИСПРАВЛЕНО: Замок показывается ВСЕГДА когда нельзя редактировать
+                    if !canEdit {
                         Image(systemName: "lock.fill")
                             .font(.system(size: 10))
                             .foregroundColor(Color.dsTextDim)
@@ -162,77 +157,40 @@ struct CharacterHeaderSection: View, Equatable {
                 await loadSelectedPhoto(newItem)
             }
         }
-        // 🆕 Popup отката уровня (перенесён из CharacterSheetView)
-        .overlay {
-            if showingDemotePopup {
-                DemotionPopupView(
-                    currentLevel: character.level,
-                    rewards: demotionRewards,
-                    onConfirm: {
-                        performDemotion()
-                        showingDemotePopup = false
-                    },
-                    onCancel: {
-                        showingDemotePopup = false
-                    }
-                )
-                .transition(.opacity.combined(with: .scale))
-                .zIndex(1000)
-            }
-        }
     }
-    
-    // MARK: - 🆕 Откат уровня (перенесён из CharacterSheetView)
-    
-    private func performDemotion() {
-        withAnimation(.spring(response: 0.4)) {
-            character.level -= 1
-            
-            // 📉 Уменьшаем МАКСИМУМ HP на 5 (но не ниже 1)
-            let newMaxHP = max(1, character.hitPoints - 5)
-            character.hitPoints = newMaxHP
-            
-            // Если игрок был ранен — сохраняем его состояние (но не ниже 1)
-            // Если был полностью здоров — опускаем до нового максимума
-            currentHP = min(currentHP, newMaxHP)
-            currentHP = max(1, currentHP)
-            
-            // 💀 Звук и визуальный эффект отката
-            SoundManager.shared.play(.demotion, haptic: .warning)
-            
-            store.update(character, changed: .full)
-        }
-    }
-    
+
     // MARK: - Бейджи
-    
+
     @ViewBuilder
     private var badgeViews: some View {
         DSBadge(text: character.race.rawValue, color: .dsBlue)
         DSBadge(text: character.characterClass.rawValue, color: .dsGoldDim)
         DSBadge(text: "ВЕХА \(character.level)", color: .dsRed)
         
+        // ✅ Бейдж инструмента теперь использует тот же DSBadge, что и остальные
         if let instrumentName = character.instrument,
            let type = InstrumentType.from(name: instrumentName) {
-            HStack(spacing: 4) {
+            HStack(spacing: 3) {
                 Image(systemName: type.sfSymbol)
-                    .font(.system(size: 9))
+                    .font(.system(size: 7))
                 Text(instrumentName)
+                    .font(.system(size: 8, weight: .medium))
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(type.accentColor.opacity(0.12))
+            .tracking(1)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 3)
             .foregroundColor(type.accentColor)
+            .background(type.accentColor.opacity(0.12))
             .cornerRadius(2)
             .overlay(
                 RoundedRectangle(cornerRadius: 2)
-                    .stroke(type.accentColor.opacity(0.3), lineWidth: 0.5)
+                    .stroke(type.accentColor.opacity(0.4), lineWidth: 0.5)
             )
         }
     }
-    
+
     // MARK: - Загрузка выбранного фото
-    
+
     private func loadSelectedPhoto(_ item: PhotosPickerItem?) async {
         guard let item = item else { return }
         
@@ -258,9 +216,9 @@ struct CharacterHeaderSection: View, Equatable {
             print("⚠️ Ошибка загрузки фото: \(error)")
         }
     }
-    
+
     // MARK: - Сжатие изображения
-    
+
     #if os(iOS)
     private func compressImage(_ image: UIImage, maxSize: CGFloat) -> Data? {
         let size = image.size
@@ -304,12 +262,12 @@ struct CharacterHeaderSection: View, Equatable {
 
 struct FlowLayout: Layout {
     var spacing: CGFloat = 8
-    
+
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let result = layout(proposal: proposal, subviews: subviews)
         return result.size
     }
-    
+
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         let result = layout(proposal: proposal, subviews: subviews)
         for (index, subview) in subviews.enumerated() {
@@ -320,7 +278,7 @@ struct FlowLayout: Layout {
             subview.place(at: point, anchor: .topLeading, proposal: proposal)
         }
     }
-    
+
     private func layout(proposal: ProposedViewSize, subviews: Subviews) -> (frames: [CGRect], size: CGSize) {
         let maxWidth = proposal.width ?? .infinity
         var frames: [CGRect] = []

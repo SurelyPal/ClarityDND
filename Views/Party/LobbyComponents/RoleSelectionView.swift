@@ -5,14 +5,6 @@
 //  Created by KEBAB on 09.06.2026.
 //
 
-
-//
-//  RoleSelectionView.swift
-//  Clarity
-//
-//  Created by Refactor on 09.06.2026.
-//
-
 import SwiftUI
 
 struct RoleSelectionView: View {

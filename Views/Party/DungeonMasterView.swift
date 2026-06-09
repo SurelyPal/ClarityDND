@@ -55,12 +55,13 @@ struct DungeonMasterView: View {
         .navigationTitle("Экран Мастера")
         .navigationBarTitleDisplayMode(.inline)
         // 🆕 Overlay голосования за отдых (ДМ тоже голосует)
+        // 🆕 Overlay голосования за отдых (ДМ тоже голосует)
         .overlay {
-            if let voteSession = partyManager.activeRestVote {
+            if let voteSession = partyManager.restVotingManager.activeRestVote {
                 RestVoteOverlayView(
                     session: voteSession,
-                    myVoteSent: partyManager.myVoteSent,
-                    isDungeonMaster: true,  // ДМ всегда ДМ
+                    myVoteSent: partyManager.restVotingManager.myVoteSent,
+                    isDungeonMaster: true,
                     onVote: { accepted in
                         if let dmCharacter = partyManager.selectedCharacter {
                             partyManager.sendRestVote(accepted: accepted, from: dmCharacter)
@@ -78,9 +79,18 @@ struct DungeonMasterView: View {
         }
         // 🆕 Overlay эффекта отдыха
         .overlay {
-            if let effect = partyManager.activeRestEffect {
+            if let effect = partyManager.restVotingManager.activeRestEffect {
                 RestEffectOverlayView(effect: effect) {
-                    partyManager.activeRestEffect = nil
+                    partyManager.restVotingManager.activeRestEffect = nil  // ✅ Исправлено
+                }
+                .zIndex(10000)
+            }
+        }
+        // 🆕 Overlay эффекта отдыха
+        .overlay {
+            if let effect = partyManager.restVotingManager.activeRestEffect {
+                RestEffectOverlayView(effect: effect) {
+                    partyManager.restVotingManager.activeRestEffect = nil
                 }
                 .zIndex(10000)
             }

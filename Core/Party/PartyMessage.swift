@@ -37,14 +37,7 @@ enum PartyMessage: Codable {
         maxHP: Int,
         avatarData: Data?
     )
-    case characterUpdated(
-        characterID: UUID,
-        currentHP: Int,
-        maxHP: Int,
-        level: Int,
-        stress: Int,
-        rerollPoints: Int
-    )
+    case characterUpdated(characterID: UUID, currentHP: Int, maxHP: Int, level: Int, stress: Int, rerollPoints: Int, timestamp: Date)
     case characterDetails(
         characterID: UUID,
         stats: AbilityScores,
@@ -64,6 +57,12 @@ enum PartyMessage: Codable {
         restType: RestType,
         eligibleVoterIDs: Set<UUID>
     )
+    case requestRestVote(
+        restType: RestType,
+        requesterID: UUID,
+        requesterName: String
+    )
+    // 🆕 НОВОЕ: Игрок запрашивает у ДМ-а начать голосование
     case restVoteResponse(
         voterID: UUID,
         voterName: String,

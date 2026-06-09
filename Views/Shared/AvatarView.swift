@@ -2,9 +2,8 @@
 //  AvatarView.swift
 //  Clarity
 //
-//  Created by KEBAB on 04.06.2026.
+//  Created by Refactor on 09.06.2026.
 //
-
 
 import SwiftUI
 
@@ -12,7 +11,7 @@ struct AvatarView: View {
     let avatarData: Data?
     let race: Race
     var size: CGFloat = 90
-    
+
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 4)
@@ -22,23 +21,40 @@ struct AvatarView: View {
                     RoundedRectangle(cornerRadius: 4)
                         .stroke(Color.dsBorderBright, lineWidth: 1)
                 )
-            
-            if let data = avatarData, let uiImage = UIImage(data: data) {
-                Image(uiImage: uiImage)
+
+            if let data = avatarData, let image = PlatformImage(data: data) {
+                Image(platformImage: image)
                     .resizable()
                     .scaledToFill()
                     .frame(width: size - 8, height: size - 8)
                     .clipShape(RoundedRectangle(cornerRadius: 3))
             } else {
-                // ✅ SF Symbol вместо emoji
                 Image(systemName: race.icon)
                     .font(.system(size: size * 0.45))
                     .foregroundColor(Color.dsGold)
             }
             
-            CornerOrnaments(size: size * 0.22)
-                .frame(width: size, height: size)
+            // ❌ УДАЛЕНО: CornerOrnaments больше не отображаются
         }
     }
 }
 
+// MARK: - Platform Compatibility
+
+#if os(iOS)
+typealias PlatformImage = UIImage
+
+extension Image {
+    init(platformImage: UIImage) {
+        self.init(uiImage: platformImage)
+    }
+}
+#elseif os(macOS)
+typealias PlatformImage = NSImage
+
+extension Image {
+    init(platformImage: NSImage) {
+        self.init(nsImage: platformImage)
+    }
+}
+#endif

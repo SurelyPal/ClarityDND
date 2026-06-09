@@ -2,7 +2,7 @@
 //  ConnectingView.swift
 //  Clarity
 //
-//  Created by Refactor on 09.06.2026.
+//  Created by KEBAB on 09.06.2026.
 //
 
 import SwiftUI

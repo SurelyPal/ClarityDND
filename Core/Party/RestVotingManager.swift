@@ -2,6 +2,14 @@
 //  RestVotingManager.swift
 //  Clarity
 //
+//  Created by KEBAB on 09.06.2026.
+//
+
+
+//
+//  RestVotingManager.swift
+//  Clarity
+//
 //  Created by Refactor on 09.06.2026.
 //
 
@@ -46,20 +54,84 @@ final class RestVotingManager {
     // MARK: - Vote Lifecycle
 
     /// Создаёт новую сессию голосования
+    /// - Parameters:
+    ///   - initiatorAutoVote: если true — инициатор автоматически голосует ЗА (для игроков).
+    ///                        если false — инициатор не голосует (для ДМ, который только модератор)
     func startSession(
         initiatorID: UUID,
         initiatorName: String,
         restType: RestType,
-        eligibleVoterIDs: Set<UUID>
+        eligibleVoterIDs: Set<UUID>,
+        initiatorAutoVote: Bool = true
     ) {
+        var initialVotes: [UUID: Bool] = [:]
+        
+        if initiatorAutoVote, eligibleVoterIDs.contains(initiatorID) {
+            // Инициатор — один из голосующих, ставим его голос ЗА
+            initialVotes[initiatorID] = true
+            myVoteSent = true
+        } else {
+            // Инициатор — не голосующий (например, ДМ)
+            myVoteSent = nil
+        }
+        
         activeRestVote = RestVoteSession(
             initiatorID: initiatorID,
             initiatorName: initiatorName,
             restType: restType,
-            votes: [initiatorID: true], // Инициатор голосует ЗА
+            votes: initialVotes,
             eligibleVoterIDs: eligibleVoterIDs
         )
-        myVoteSent = true
+        
+        // ✅ ПРОВЕРКА: если все eligible уже проголосовали — завершаем сразу
+        if let session = activeRestVote,
+           session.votes.count >= session.totalVoters,
+           session.totalVoters > 0 {
+            let allAccepted = session.votes.values.allSatisfy { $0 }
+            if allAccepted {
+                // В этом случае завершение произойдёт через registerVote
+                // Но если инициатор единственный и уже проголосовал — нужно форсировать
+                let result = registerVote(voterID: initiatorID, accepted: true, allowDuplicate: true)
+                if case .success = result {
+                    // Успех обработан в registerVote
+                }
+            }
+        }
+    }
+    
+    /// Регистрирует голос в активной сессии
+    /// - Parameters:
+    ///   - allowDuplicate: если true — разрешает повторную регистрацию (для форсирования завершения)
+    func registerVote(voterID: UUID, accepted: Bool, allowDuplicate: Bool = false) -> VoteResult {
+        guard var session = activeRestVote else { return .inProgress }
+        
+        // Проверка: имеет ли этот voter право голоса
+        guard session.eligibleVoterIDs.contains(voterID) else {
+            return .inProgress
+        }
+        
+        // Защита от дубликатов (кроме форсированного случая)
+        if !allowDuplicate, session.votes[voterID] != nil {
+            return .inProgress
+        }
+        
+        session.votes[voterID] = accepted
+        activeRestVote = session
+
+        // Проверяем: все проголосовали?
+        if session.votes.count >= session.totalVoters {
+            let allAccepted = session.votes.values.allSatisfy { $0 }
+            if allAccepted {
+                let result: VoteResult = .success(session.restType, session.initiatorName)
+                activeRestVote = nil
+                return result
+            } else {
+                activeRestVote = nil
+                return .failed
+            }
+        }
+
+        return .inProgress
     }
 
     /// Регистрирует голос в активной сессии

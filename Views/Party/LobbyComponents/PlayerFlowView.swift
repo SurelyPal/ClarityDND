@@ -15,9 +15,8 @@ struct PlayerFlowView: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            if isLoadingCharacters {
-                characterSelection
-            } else if store.characters.isEmpty {
+            // ✅ Исправлена логика: показываем пустой экран только когда загрузка завершена
+            if !isLoadingCharacters && store.characters.isEmpty {
                 emptyCharacterList
             } else {
                 characterSelection
@@ -42,6 +41,8 @@ struct PlayerFlowView: View {
         }
     }
     
+    // MARK: - Пустой список
+    
     private var emptyCharacterList: some View {
         VStack(spacing: 16) {
             Image(systemName: "person.crop.circle.badge.exclamationmark")
@@ -58,18 +59,39 @@ struct PlayerFlowView: View {
         .padding(30)
     }
     
+    // MARK: - Выбор персонажа
+    
     private var characterSelection: some View {
         VStack(spacing: 12) {
             HStack {
                 Text("ВЫБЕРИТЕ ГЕРОЯ")
-                    .font(.system(size: 10)).tracking(2)
+                    .font(.system(size: 10))
+                    .tracking(2)
                     .foregroundColor(Color.dsTextDim)
                 Spacer()
             }
             
             if isLoadingCharacters {
+                // ✅ Скелетон встроен прямо сюда (нет внешних зависимостей)
                 ForEach(0..<3, id: \.self) { _ in
-                    SkeletonCharacterRow()
+                    HStack(spacing: 12) {
+                        Circle()
+                            .fill(Color.dsSurfaceAlt)
+                            .frame(width: 48, height: 48)
+                        
+                        VStack(alignment: .leading, spacing: 6) {
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(Color.dsSurfaceAlt)
+                                .frame(width: 120, height: 12)
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(Color.dsSurfaceAlt)
+                                .frame(width: 180, height: 10)
+                        }
+                        Spacer()
+                    }
+                    .padding(12)
+                    .background(Color.dsSurfaceAlt.opacity(0.5))
+                    .cornerRadius(6)
                 }
             } else {
                 ForEach(store.characters) { char in

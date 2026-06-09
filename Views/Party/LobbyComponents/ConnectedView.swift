@@ -29,6 +29,26 @@ struct ConnectedView: View {
             .background(Color.dsSurfaceAlt)
             .cornerRadius(6)
 
+            // 🆕 Кнопка перехода на экран мастера (только для ДМ)
+            if partyManager.role == .dungeonMaster {
+                NavigationLink {
+                    DungeonMasterView()
+                        .environmentObject(partyManager)
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "eye.fill")
+                        Text("Экран мастера")
+                    }
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(Color.dsBackground)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(Color.dsGold)
+                    .cornerRadius(6)
+                }
+                .buttonStyle(.plain)
+            }
+
             Button {
                 PlatformCompatibility.hapticNotification(.warning)
                 partyManager.leaveRoom()
@@ -50,31 +70,5 @@ struct ConnectedView: View {
             }
             .buttonStyle(.plain)
         }
-    }
-}
-
-// MARK: - SkeletonLoader для списка персонажей
-
-struct SkeletonCharacterRow: View {
-    var body: some View {
-        HStack(spacing: 12) {
-            Circle()
-                .fill(Color.dsSurfaceAlt)
-                .frame(width: 48, height: 48)
-
-            VStack(alignment: .leading, spacing: 6) {
-                RoundedRectangle(cornerRadius: 3)
-                    .fill(Color.dsSurfaceAlt)
-                    .frame(width: 120, height: 12)
-                RoundedRectangle(cornerRadius: 3)
-                    .fill(Color.dsSurfaceAlt)
-                    .frame(width: 180, height: 10)
-            }
-
-            Spacer()
-        }
-        .padding(12)
-        .background(Color.dsSurfaceAlt.opacity(0.5))
-        .cornerRadius(6)
     }
 }

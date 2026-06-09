@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct RestVoteOverlayView: View {
+    
     let session: PartyManager.RestVoteSession
     let myVoteSent: Bool?
     let isDungeonMaster: Bool  // 🆕

@@ -2,6 +2,14 @@
 //  IconHelper.swift
 //  Clarity
 //
+//  Created by KEBAB on 09.06.2026.
+//
+
+
+//
+//  IconHelper.swift
+//  Clarity
+//
 //  Created by Refactor on 09.06.2026.
 //
 

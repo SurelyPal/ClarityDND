@@ -5,14 +5,6 @@
 //  Created by KEBAB on 09.06.2026.
 //
 
-
-//
-//  SearchingView.swift
-//  Clarity
-//
-//  Created by Refactor on 09.06.2026.
-//
-
 import SwiftUI
 
 struct SearchingView: View {

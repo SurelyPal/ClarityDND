@@ -34,8 +34,8 @@ struct PartyStatusIndicator: View {
                         .stroke(borderColor, lineWidth: 1)
                 )
                 .shadow(
-                    color: isConnected ? glowColor.opacity(pulse * 0.6) : .clear,
-                    radius: 8
+                    color: isConnected ? glowColor.opacity(pulse * 0.9) : .clear,  // ✅ Было 0.6
+                    radius: 10  // ✅ Было 8
                 )
             }
             .buttonStyle(.plain)
@@ -124,17 +124,17 @@ struct PartyStatusIndicator: View {
         case .selectingCharacter:
             Image(systemName: "person.crop.circle.badge.questionmark")
                 .font(.system(size: 10))
-                .foregroundColor(Color.dsGold)
+                .foregroundColor(Color.dsSoul)
             
         case .configuringRules:
             Image(systemName: "gearshape.fill")
                 .font(.system(size: 10))
-                .foregroundColor(Color.dsGold)
+                .foregroundColor(Color.dsSoul)
             
         case .hosting:
             Image(systemName: "crown.fill")
                 .font(.system(size: 10))
-                .foregroundColor(Color.dsGold)
+                .foregroundColor(Color.dsSoul)
             
         case .searching, .connecting:
             ProgressView()
@@ -145,11 +145,11 @@ struct PartyStatusIndicator: View {
             if partyManager.role == .dungeonMaster {
                 Image(systemName: "crown.fill")
                     .font(.system(size: 10))
-                    .foregroundColor(Color.dsGold)
+                    .foregroundColor(Color.dsSoul)
             } else {
                 Image(systemName: "person.fill.checkmark")
                     .font(.system(size: 10))
-                    .foregroundColor(.green)
+                    .foregroundColor(.dsEstus)
             }
         }
     }
@@ -212,10 +212,10 @@ struct PartyStatusIndicator: View {
             return Color.dsTextDim
             
         case .configuringRules:
-            return Color.dsGold
+            return Color.dsSoul
             
         case .hosting, .connected:
-            return partyManager.role == .dungeonMaster ? Color.dsGold : .white
+            return partyManager.role == .dungeonMaster ? Color.dsSoul : .white
             
         case .disconnected:
             return showDisconnectError ? Color.dsRed : Color.dsTextDim
@@ -225,53 +225,53 @@ struct PartyStatusIndicator: View {
     private var backgroundColor: Color {
         switch partyManager.connectionState {
         case .selectingCharacter:
-            return Color.dsGold.opacity(0.1)
+            return Color.dsSoul.opacity(0.25)  // ✅ Было 0.1
             
         case .configuringRules:
-            return Color.dsGold.opacity(0.15)
+            return Color.dsSoul.opacity(0.30)  // ✅ Было 0.15
             
         case .hosting:
-            return Color.dsGold.opacity(0.15)
+            return Color.dsSoul.opacity(0.30)  // ✅ Было 0.15
             
         case .connected:
             return partyManager.role == .dungeonMaster
-            ? Color.dsGold.opacity(0.15)
-            : Color.green.opacity(0.15)
+            ? Color.dsSoul.opacity(0.30)       // ✅ Было 0.15
+            : Color.dsEstus.opacity(0.30)        // ✅ Было 0.15
             
         case .searching, .connecting:
             return Color.dsSurfaceAlt
             
         case .disconnected:
-            return showDisconnectError ? Color.dsRed.opacity(0.15) : Color.dsSurfaceAlt
+            return showDisconnectError ? Color.dsRed.opacity(0.30) : Color.dsSurfaceAlt  // ✅ Было 0.15
         }
     }
     
     private var borderColor: Color {
         switch partyManager.connectionState {
         case .selectingCharacter:
-            return Color.dsGold.opacity(0.4)
+            return Color.dsSoul.opacity(0.7)  // ✅ Было 0.4
             
         case .configuringRules:
-            return Color.dsGold.opacity(0.5)
+            return Color.dsSoul.opacity(0.8)  // ✅ Было 0.5
             
         case .hosting:
-            return Color.dsGold.opacity(0.5)
+            return Color.dsSoul.opacity(0.8)  // ✅ Было 0.5
             
         case .connected:
             return partyManager.role == .dungeonMaster
-            ? Color.dsGold.opacity(0.5)
-            : Color.green.opacity(0.5)
+            ? Color.dsSoul.opacity(0.8)       // ✅ Было 0.5
+            : Color.dsEstus.opacity(0.8)        // ✅ Было 0.5
             
         case .searching, .connecting:
             return Color.dsBorder
             
         case .disconnected:
-            return showDisconnectError ? Color.dsRed.opacity(0.5) : Color.clear
+            return showDisconnectError ? Color.dsRed.opacity(0.8) : Color.clear  // ✅ Было 0.5
         }
     }
     
     private var glowColor: Color {
-        partyManager.role == .dungeonMaster ? Color.dsGold : .green
+        partyManager.role == .dungeonMaster ? Color.dsSoul : .dsEstus
     }
 }
 
@@ -296,7 +296,7 @@ struct ConnectionDetailsSheet: View {
                     Text("✦ СТАТУС ПОДКЛЮЧЕНИЯ ✦")
                         .font(.system(size: 14, weight: .medium))
                         .tracking(2)
-                        .foregroundColor(Color.dsGold)
+                        .foregroundColor(Color.dsSoul)
                     
                     Spacer()
                     
@@ -379,8 +379,8 @@ struct ConnectionDetailsSheet: View {
     
     private var connectionStatusColor: Color {
         switch connectionState {
-        case .connected: return .green
-        case .connecting, .searching: return Color.dsGold
+        case .connected: return .dsEstus
+        case .connecting, .searching: return Color.dsSoul
         case .disconnected: return Color.dsRed
         default: return Color.dsTextDim
         }
@@ -411,7 +411,7 @@ struct DetailRow: View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 14))
-                .foregroundColor(Color.dsGold)
+                .foregroundColor(Color.dsSoul)
                 .frame(width: 24)
             
             VStack(alignment: .leading, spacing: 2) {

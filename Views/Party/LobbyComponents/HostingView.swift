@@ -2,14 +2,6 @@
 //  HostingView.swift
 //  Clarity
 //
-//  Created by KEBAB on 09.06.2026.
-//
-
-
-//
-//  HostingView.swift
-//  Clarity
-//
 //  Created by Refactor on 09.06.2026.
 //
 
@@ -75,6 +67,24 @@ struct HostingView: View {
                     .cornerRadius(6)
                 }
             }
+
+            // 🆕 Кнопка перехода на экран мастера
+            NavigationLink {
+                DungeonMasterView()
+                    .environmentObject(partyManager)
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "eye.fill")
+                    Text("Экран мастера")
+                }
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(Color.dsBackground)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(Color.dsGold)
+                .cornerRadius(6)
+            }
+            .buttonStyle(.plain)
 
             Button {
                 PlatformCompatibility.hapticNotification(.warning)
