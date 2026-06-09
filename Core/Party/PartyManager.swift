@@ -63,10 +63,10 @@ final class PartyManager: NSObject, ObservableObject {
     // ✅ Хранилище для троттлинга синхронизации
     // (extension не может содержать stored properties, поэтому переносим сюда)
     var lastBasicSyncTime: Date = .distantPast
-    let basicSyncThrottle: TimeInterval = 1.0
+    let basicSyncThrottle: TimeInterval = 0.8
     var throttledSyncTask: Task<Void, Never>?
     var lastBroadcastTime: Date = .distantPast
-    let broadcastThrottle: TimeInterval = 1.5
+    let broadcastThrottle: TimeInterval = 1.0
 
     // MARK: - Init
 
@@ -164,6 +164,16 @@ final class PartyManager: NSObject, ObservableObject {
         }
 
         didTryAutoReconnect = true
+        
+        // ✅ ОЧИСТКА: удаляем устаревших offline игроков перед переподключением
+            // Это предотвращает конфликт между старыми данными и новым списком от ДМ-а
+            let onlineMembers = partyMembers.filter { $0.isConnected }
+            if onlineMembers.count < partyMembers.count {
+                let removedCount = partyMembers.count - onlineMembers.count
+                partyMembers = onlineMembers
+                log("🧹 Очищено \(removedCount) offline игроков перед автопереподключением")
+            }
+        
         log("🔄 Автопереподключение с персонажем: \(character.displayName)")
 
         self.role = .player
@@ -299,7 +309,7 @@ final class PartyManager: NSObject, ObservableObject {
         func sendRestVote(accepted: Bool, from character: DNDCharacter) {
             restVotingManager.markMyVote(accepted)
             
-            // ✅ ДОБАВЛЕНО: обновляем локальную сессию — игрок видит свой голос в счётчике
+            // ДОБАВЛЕНО: обновляем локальную сессию — игрок видит свой голос в счётчике
             // registerVote добавит голос в activeRestVote.votes и проверит завершение
             let localResult = restVotingManager.registerVote(voterID: character.id, accepted: accepted)
             log("🗳️ Локальный голос: \(character.displayName) = \(accepted ? "ЗА" : "ПРОТИВ"), результат: \(localResult)")

@@ -171,9 +171,19 @@ extension PartyManager {
               !session.connectedPeers.isEmpty else { return }
 
         let now = Date()
-        guard now.timeIntervalSince(lastBroadcastTime) >= broadcastThrottle else { return }
+        guard now.timeIntervalSince(lastBroadcastTime) >= broadcastThrottle else {
+            log("⏸️ broadcastPartyList пропущен (throttle): \(partyMembers.count) игроков")
+            return
+        }
 
         lastBroadcastTime = now
+        
+        // 🆕 ДИАГНОСТИКА: логируем что отправляем
+        log("📤 broadcastPartyList: \(partyMembers.count) игроков")
+        for (i, member) in partyMembers.enumerated() {
+            log("   [\(i)] \(member.name) — connected=\(member.isConnected), id=\(member.id)")
+        }
+        
         send(PartyMessage.partyList(members: partyMembers))
     }
     // MARK: - Обработка запроса голосования от игрока
@@ -309,12 +319,17 @@ extension PartyManager {
             avatarData: avatarData
         )
 
-        if let idx = partyMembers.firstIndex(where: { $0.id == charID }) {
-            var newMembers = partyMembers
-            newMembers[idx] = member
-            partyMembers = newMembers
-        } else {
-            partyMembers.append(member)
+        // ✅ Защита от дубликатов: проверяем по ID
+            if let idx = partyMembers.firstIndex(where: { $0.id == charID }) {
+                // Игрок уже есть — ОБНОВЛЯЕМ
+                var newMembers = partyMembers
+                newMembers[idx] = member
+                partyMembers = newMembers
+                log("🔄 handlePlayerJoined: обновлён существующий \(member.name)")
+            } else {
+                // Новый игрок
+                partyMembers.append(member)
+                log("➕ handlePlayerJoined: добавлен \(member.name)")
         }
         savePartyState()
         broadcastPartyList()
@@ -370,8 +385,57 @@ extension PartyManager {
 
     private func handlePartyList(members: [PartyMember]) {
         guard role == .player else { return }
-        self.partyMembers = members
-        log("📋 Получен список партии: \(members.count) игроков")
+        
+        log("📥 handlePartyList: получено \(members.count) игроков")
+        for (i, member) in members.enumerated() {
+            log("   [\(i)] \(member.name) — connected=\(member.isConnected), id=\(member.id.uuidString.prefix(8))")
+        }
+        
+        // ✅ КРИТИЧЕСКАЯ ЗАЩИТА: пустой список = race condition
+        if members.isEmpty {
+            log("⚠️ Получен пустой partyList — ИГНОРИРУЕМ (сохраняем \(partyMembers.count) локальных)")
+            return
+        }
+        
+        // ✅ УМНЫЙ MERGE:
+        // 1. Все игроки из incoming — актуальные (берём как есть)
+        // 2. Локальные игроки, которых НЕТ в incoming — помечаем как offline (но НЕ удаляем)
+        // 3. Это защищает от неполных broadcast'ов при throttling
+        
+        var mergedMembers: [PartyMember] = []
+        let incomingIDs = Set(members.map { $0.id })
+        
+        // Добавляем всех incoming игроков (они актуальные)
+        for incomingMember in members {
+            mergedMembers.append(incomingMember)
+        }
+        
+        // Проверяем локальных игроков, которых нет в incoming
+        for localMember in self.partyMembers {
+            if !incomingIDs.contains(localMember.id) {
+                // Игрок был локально, но ДМ его не видит в сети
+                if localMember.isConnected {
+                    // Помечаем как offline, но НЕ удаляем (защита от временных race conditions)
+                    var offlineMember = localMember
+                    offlineMember.isConnected = false
+                    offlineMember.lastSeen = Date()
+                    mergedMembers.append(offlineMember)
+                    log("🔴 \(localMember.name) помечен как offline (нет в списке ДМ-а)")
+                } else {
+                    // Уже offline — сохраняем как есть
+                    mergedMembers.append(localMember)
+                }
+            }
+        }
+        
+        let oldCount = self.partyMembers.count
+        let newCount = mergedMembers.count
+        
+        // Применяем только если реально изменилось
+        if oldCount != newCount || self.partyMembers.map(\.id) != mergedMembers.map(\.id) {
+            self.partyMembers = mergedMembers
+            log("📋 partyList применён: было \(oldCount), стало \(newCount) игроков (\(members.count) online)")
+        }
     }
 
     private func handleRestVoteResponse(voterID: UUID, accepted: Bool) {

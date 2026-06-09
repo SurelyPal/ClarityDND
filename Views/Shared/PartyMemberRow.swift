@@ -28,7 +28,7 @@ struct PartyMemberRow: View {
                 HStack(spacing: 6) {
                     Text(member.name)
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(member.isConnected ? Color.dsText : Color.dsTextDim)
+                        .foregroundColor(member.isConnected ? Color.dsText : Color.dsTextDim.opacity(0.6))  // ✅ Более бледный для offline
                     
                     if !member.isConnected {
                         Text("ОФЛАЙН")
@@ -44,7 +44,7 @@ struct PartyMemberRow: View {
                 
                 Text("\(member.race.rawValue) · \(member.characterClass)")
                     .font(.system(size: 11))
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(Color.dsTextDim.opacity(member.isConnected ? 1.0 : 0.5))  // ✅ Бледнее для offline
             }
             
             Spacer()
@@ -66,7 +66,7 @@ struct PartyMemberRow: View {
             }
         }
         .padding(.vertical, 8)
-        .opacity(member.isConnected ? 1.0 : 0.6)
+        .opacity(member.isConnected ? 1.0 : 0.7)  // ✅ Было 0.6, стало 0.7 — offline видно, но приглушён
     }
     
     private var hpColor: Color {
