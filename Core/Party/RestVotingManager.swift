@@ -62,16 +62,18 @@ final class RestVotingManager {
         initiatorName: String,
         restType: RestType,
         eligibleVoterIDs: Set<UUID>,
-        initiatorAutoVote: Bool = true
+        initiatorAutoVote: Bool = true,
+        initialVotes: [UUID: Bool] = [:]
     ) {
-        var initialVotes: [UUID: Bool] = [:]
+        var votes = initialVotes
         
-        if initiatorAutoVote, eligibleVoterIDs.contains(initiatorID) {
-            // Инициатор — один из голосующих, ставим его голос ЗА
-            initialVotes[initiatorID] = true
+        // Если initiatorAutoVote и инициатор в eligibleIDs — добавляем его голос
+        if initiatorAutoVote, eligibleVoterIDs.contains(initiatorID), votes[initiatorID] == nil {
+            votes[initiatorID] = true
             myVoteSent = true
         } else {
-            // Инициатор — не голосующий (например, ДМ)
+            // Проверяем: есть ли мой голос в initialVotes (для не-инициаторов)
+            // myVoteSent остаётся nil — пользователь ещё не голосовал
             myVoteSent = nil
         }
         
@@ -79,24 +81,9 @@ final class RestVotingManager {
             initiatorID: initiatorID,
             initiatorName: initiatorName,
             restType: restType,
-            votes: initialVotes,
+            votes: votes,
             eligibleVoterIDs: eligibleVoterIDs
         )
-        
-        // ✅ ПРОВЕРКА: если все eligible уже проголосовали — завершаем сразу
-        if let session = activeRestVote,
-           session.votes.count >= session.totalVoters,
-           session.totalVoters > 0 {
-            let allAccepted = session.votes.values.allSatisfy { $0 }
-            if allAccepted {
-                // В этом случае завершение произойдёт через registerVote
-                // Но если инициатор единственный и уже проголосовал — нужно форсировать
-                let result = registerVote(voterID: initiatorID, accepted: true, allowDuplicate: true)
-                if case .success = result {
-                    // Успех обработан в registerVote
-                }
-            }
-        }
     }
     
     /// Регистрирует голос в активной сессии

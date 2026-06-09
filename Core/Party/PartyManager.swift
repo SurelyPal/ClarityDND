@@ -250,11 +250,13 @@ final class PartyManager: NSObject, ObservableObject {
             
             let dmID = UUID(uuidString: "00000000-0000-0000-0000-000000000000")!
             
+            // 🆕 ДМ НЕ голосует, поэтому initialVotes пустой
             let message = PartyMessage.restVoteRequest(
                 initiatorID: dmID,
                 initiatorName: "Мастер",
                 restType: type,
-                eligibleVoterIDs: eligibleIDs
+                eligibleVoterIDs: eligibleIDs,
+                initialVotes: [:]  // 🆕 Пустой — ДМ не голосует
             )
             send(message)
             
@@ -264,7 +266,8 @@ final class PartyManager: NSObject, ObservableObject {
                 initiatorName: "Мастер",
                 restType: type,
                 eligibleVoterIDs: eligibleIDs,
-                initiatorAutoVote: false  // ✅ ДМ не голосует
+                initiatorAutoVote: false,
+                initialVotes: [:]  // 🆕 Пустой
             )
             
         } else {

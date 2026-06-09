@@ -55,7 +55,8 @@ enum PartyMessage: Codable {
         initiatorID: UUID,
         initiatorName: String,
         restType: RestType,
-        eligibleVoterIDs: Set<UUID>
+        eligibleVoterIDs: Set<UUID>,
+        initialVotes: [UUID: Bool]
     )
     case requestRestVote(
         restType: RestType,
