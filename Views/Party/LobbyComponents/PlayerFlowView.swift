@@ -2,48 +2,123 @@
 //  PlayerFlowView.swift
 //  Clarity
 //
-//  Created by Refactor on 09.06.2026.
-//
-
+import SwiftData
 import SwiftUI
 
 struct PlayerFlowView: View {
+    
+    // MARK: - Свойства
+    
     @ObservedObject var partyManager: PartyManager
     @EnvironmentObject var store: CharacterStore
-    @State private var selectedCharacter: DNDCharacter?
+    
     @State private var isLoadingCharacters = true
+    
+    // MARK: - Body
     
     var body: some View {
         VStack(spacing: 20) {
-            // ✅ Исправлена логика: показываем пустой экран только когда загрузка завершена
-            if !isLoadingCharacters && store.characters.isEmpty {
-                emptyCharacterList
+            
+            // Заголовок
+            VStack(spacing: 8) {
+                Text("🗡️").font(.system(size: 40))
+                Text("ВЫБЕРИТЕ ГЕРОЯ")
+                    .font(.system(size: 10))
+                    .tracking(2)
+                    .foregroundColor(Color.dsTextDim)
+                Text("Кто отправится в путь?")
+                    .font(.system(size: 18, weight: .light))
+                    .foregroundColor(Color.dsGold)
+            }
+            .padding(.top, 10)
+            
+            DSdivider().padding(.horizontal, 40)
+            
+            // Список персонажей или пустое состояние
+            if isLoadingCharacters {
+                loadingState
+            } else if store.characters.isEmpty {
+                emptyState
             } else {
-                characterSelection
+                characterList
             }
             
+            Spacer()
+            
+            // Кнопка "Найти партию" (появляется только когда выбран персонаж)
+            if !isLoadingCharacters && partyManager.selectedCharacter != nil {
+                Button {
+                    guard let char = partyManager.selectedCharacter else { return }
+                    
+                    #if os(iOS)
+                    UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                    #endif
+                    
+                    partyManager.startSearching(with: char)
+                    
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "antenna.radiowaves.left.and.right")
+                        Text("НАЙТИ ПАРИЮ")
+                            .font(.system(size: 14, weight: .bold))
+                            .tracking(1)
+                    }
+                    .foregroundColor(Color.dsBackground)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(Color.dsGold)
+                    .cornerRadius(6)
+                }
+                .buttonStyle(.plain)
+                .transition(.opacity)
+            } else if !isLoadingCharacters {
+                Text("Выберите героя, чтобы подключиться")
+                    .font(.system(size: 11))
+                    .foregroundColor(Color.dsTextDim)
+            }
+            
+            // Кнопка "Отмена"
             Button {
-                partyManager.leaveRoom()
-                partyManager.clearSelectedCharacter()
+                #if os(iOS)
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                #endif
+                
+                // Возвращаемся к выбору роли, НЕ очищая selectedCharacter агрессивно
+                partyManager.connectionState = .disconnected
+                
             } label: {
                 Text("Отмена")
                     .font(.system(size: 13))
                     .foregroundColor(Color.dsRed)
             }
             .buttonStyle(.plain)
+            .padding(.bottom, 20)
         }
+        .padding(.horizontal, 20)
         .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+            // Небольшая задержка для плавной анимации появления
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     isLoadingCharacters = false
                 }
             }
         }
+        // ⚠️ ВАЖНО: ЗДЕСЬ НЕТ .onDisappear!
+        // Мы НЕ очищаем selectedCharacter и НЕ вызываем leaveRoom() при исчезновении этого View.
+        // Это предотвращает "выбрасывание" обратно при переходе к SearchingView.
     }
     
-    // MARK: - Пустой список
+    // MARK: - Секции UI
     
-    private var emptyCharacterList: some View {
+    private var loadingState: some View {
+        VStack(spacing: 12) {
+            ForEach(0..<3, id: \.self) { _ in  
+                SkeletonCharacterRow()
+            }
+        }
+    }
+    
+    private var emptyState: some View {
         VStack(spacing: 16) {
             Image(systemName: "person.crop.circle.badge.exclamationmark")
                 .font(.system(size: 48))
@@ -51,7 +126,7 @@ struct PlayerFlowView: View {
             Text("У вас нет персонажей")
                 .font(.system(size: 14))
                 .foregroundColor(Color.dsText)
-            Text("Создайте героя в Книге Судеб, чтобы присоединиться к партии")
+            Text("Создайте героя в Книге Судеб,\nчтобы присоединиться к партии")
                 .font(.system(size: 11))
                 .foregroundColor(Color.dsTextDim)
                 .multilineTextAlignment(.center)
@@ -59,48 +134,25 @@ struct PlayerFlowView: View {
         .padding(30)
     }
     
-    // MARK: - Выбор персонажа
-    
-    private var characterSelection: some View {
-        VStack(spacing: 12) {
-            HStack {
-                Text("ВЫБЕРИТЕ ГЕРОЯ")
-                    .font(.system(size: 10))
-                    .tracking(2)
-                    .foregroundColor(Color.dsTextDim)
-                Spacer()
-            }
-            
-            if isLoadingCharacters {
-                // ✅ Скелетон встроен прямо сюда (нет внешних зависимостей)
-                ForEach(0..<3, id: \.self) { _ in
-                    HStack(spacing: 12) {
-                        Circle()
-                            .fill(Color.dsSurfaceAlt)
-                            .frame(width: 48, height: 48)
-                        
-                        VStack(alignment: .leading, spacing: 6) {
-                            RoundedRectangle(cornerRadius: 3)
-                                .fill(Color.dsSurfaceAlt)
-                                .frame(width: 120, height: 12)
-                            RoundedRectangle(cornerRadius: 3)
-                                .fill(Color.dsSurfaceAlt)
-                                .frame(width: 180, height: 10)
-                        }
-                        Spacer()
-                    }
-                    .padding(12)
-                    .background(Color.dsSurfaceAlt.opacity(0.5))
-                    .cornerRadius(6)
-                }
-            } else {
+    private var characterList: some View {
+        ScrollView {
+            VStack(spacing: 12) {
                 ForEach(store.characters) { char in
                     Button {
-                        selectedCharacter = char
+                        #if os(iOS)
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        #endif
+                        
+                        // Устанавливаем выбранного персонажа в PartyManager
                         partyManager.setSelectedCharacter(char)
+                        
                     } label: {
                         HStack(spacing: 12) {
-                            AvatarView(avatarData: char.avatarData, race: char.race, size: 48)
+                            AvatarView(
+                                avatarData: char.avatarData,
+                                race: char.race,
+                                size: 48
+                            )
                             
                             VStack(alignment: .leading, spacing: 3) {
                                 Text(char.displayName)
@@ -123,7 +175,8 @@ struct PlayerFlowView: View {
                                         .foregroundColor(char.hpColor)
                                 }
                                 
-                                if selectedCharacter?.id == char.id {
+                                // Галочка выбранного персонажа
+                                if partyManager.selectedCharacter?.id == char.id {
                                     Image(systemName: "checkmark.circle.fill")
                                         .foregroundColor(Color.dsGold)
                                 } else {
@@ -133,47 +186,33 @@ struct PlayerFlowView: View {
                             }
                         }
                         .padding(12)
-                        .background(selectedCharacter?.id == char.id ? Color.dsGold.opacity(0.1) : Color.dsSurfaceAlt)
+                        .background(
+                            partyManager.selectedCharacter?.id == char.id
+                                ? Color.dsGold.opacity(0.1)
+                                : Color.dsSurfaceAlt
+                        )
                         .overlay(
                             RoundedRectangle(cornerRadius: 6)
-                                .stroke(selectedCharacter?.id == char.id ? Color.dsGold : Color.dsBorder, lineWidth: selectedCharacter?.id == char.id ? 1.5 : 0.5)
+                                .stroke(
+                                    partyManager.selectedCharacter?.id == char.id
+                                        ? Color.dsGold
+                                        : Color.dsBorder,
+                                    lineWidth: partyManager.selectedCharacter?.id == char.id ? 1.5 : 0.5
+                                )
                         )
                         .cornerRadius(6)
                     }
                     .buttonStyle(.plain)
-                    .transition(.asymmetric(
-                        insertion: .opacity.combined(with: .move(edge: .leading)),
-                        removal: .opacity
-                    ))
                 }
-            }
-            
-            if !isLoadingCharacters && selectedCharacter != nil {
-                Button {
-                    guard let char = selectedCharacter else { return }
-                    partyManager.startSearching(with: char)
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "antenna.radiowaves.left.and.right")
-                        Text("Найти партию")
-                    }
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(Color.dsBackground)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(Color.dsGold)
-                    .cornerRadius(6)
-                }
-                .buttonStyle(.plain)
-                .padding(.top, 8)
-                .transition(.opacity)
-            } else if !isLoadingCharacters {
-                Text("Выберите героя, чтобы подключиться")
-                    .font(.system(size: 11))
-                    .foregroundColor(Color.dsTextDim)
-                    .padding(.top, 8)
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: isLoadingCharacters)
     }
+}
+
+// MARK: - Preview
+
+#Preview {
+    PartyLobbyView()
+        .environmentObject(CharacterStore(context: ModelContext(try! ModelContainer(for: DNDCharacter.self))))
+        .preferredColorScheme(.dark)
 }

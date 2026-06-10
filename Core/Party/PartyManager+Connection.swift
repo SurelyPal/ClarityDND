@@ -87,17 +87,48 @@ extension PartyManager: MCSessionDelegate {
 extension PartyManager: MCNearbyServiceAdvertiserDelegate {
 
     nonisolated func advertiser(
-     _ advertiser: MCNearbyServiceAdvertiser,
-     didReceiveInvitationFromPeer peerID: MCPeerID,
-     withContext context: Data?,
-     invitationHandler: @escaping (Bool, MCSession?) -> Void
-    )
-    {
-     Task { @MainActor [weak self] in
-     guard let self = self else { return }
-     self.log("📥 Приглашение от \(peerID.displayName)")
-     invitationHandler(true, self.session)
+        _ advertiser: MCNearbyServiceAdvertiser,
+        didReceiveInvitationFromPeer peerID: MCPeerID,
+        withContext context: Data?,
+        invitationHandler: @escaping (Bool, MCSession?) -> Void
+    ) {
+        Task { @MainActor [weak self] in
+            guard let self = self else {
+                invitationHandler(false, nil)
+                return
             }
+            
+            // 🆕 ВАЖНО: Принимаем приглашения ТОЛЬКО если мы ДМ
+            guard self.role == .dungeonMaster else {
+                self.log("⚠️ Отклоняем приглашение от \(peerID.displayName): мы не ДМ")
+                invitationHandler(false, nil)
+                return
+            }
+            
+            // 🆕 Проверка: уже ли этот пир подключён?
+            if let session = self.session,
+               session.connectedPeers.contains(peerID) {
+                self.log("ℹ️ Пир \(peerID.displayName) уже подключён, отклоняем дубль")
+                invitationHandler(false, nil)
+                return
+            }
+            
+            self.log("📥 Приглашение от \(peerID.displayName) — принимаем")
+            
+            // 🆕 КРИТИЧНО: используем СУЩЕСТВУЮЩИЙ session, а не создаём новый!
+            // Если session нет — создаём его ОДИН раз
+            if self.session == nil {
+                self.session = MCSession(
+                    peer: self.localPeerID,
+                    securityIdentity: nil,
+                    encryptionPreference: .none
+                )
+                self.session?.delegate = self
+            }
+            
+            // Принимаем приглашение с текущим session
+            invitationHandler(true, self.session)
+        }
     }
 
     nonisolated func advertiser(
@@ -126,42 +157,46 @@ extension PartyManager: MCNearbyServiceBrowserDelegate {
         let campaignIDString = info?["campaignID"]
         let campaignName = info?["campaignName"] ?? "Без названия"
         
-        Task { @MainActor in
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
+            
             // Получаем правила игры от ДМа
             if let rulesString = info?["gameRules"],
                let rulesData = rulesString.data(using: .utf8),
                let rules = try? JSONDecoder().decode(GameRules.self, from: rulesData) {
                 self.gameRules = rules
                 self.saveGameRules(rules)
-                self.log("📜 Получены правила от ДМ")
+                self.log("📜 Получены правила от ДМа")
             }
             
             self.log("👀 Найдена комната: \(roomCode) от \(peerID.displayName)")
             
-            // 🆕 ПРОВЕРКА КАМПАНИИ: игрок должен подключаться только к своей кампании
+            // 🆕 МЯГКАЯ ПРОВЕРКА КАМПАНИИ (не блокирует подключение)
             if let selectedChar = self.selectedCharacter {
                 if let charCampaignID = selectedChar.campaignID {
-                    // Персонаж привязан к кампании — проверяем совпадение
+                    // Персонаж привязан к кампании
                     if let roomCampaignIDString = campaignIDString,
                        let roomCampaignID = UUID(uuidString: roomCampaignIDString) {
                         
                         if charCampaignID != roomCampaignID {
-                            self.log("⚠️ Комната '\(campaignName)' не подходит: персонаж привязан к другой кампании")
-                            self.lastError = "Найдена комната '\(campaignName)', но ваш персонаж привязан к другой кампании"
-                            UINotificationFeedbackGenerator().notificationOccurred(.warning)
-                            return // Не подключаемся к этой комнате
+                            self.log("⚠️ Внимание: комната '\(campaignName)' принадлежит другой кампании")
+                            self.log("ℹ️ Попытка подключения всё равно будет выполнена. ДМ решит, пустить ли вас.")
+                            // 🟢 НЕ делаем return! Разрешаем попытку подключения.
+                            // Окончательную проверку сделает ДМ в handlePlayerJoined.
+                        } else {
+                            self.log("✅ Кампания совпадает: '\(campaignName)'")
                         }
-                        
-                        self.log("✅ Кампания совпадает: подключаемся к '\(campaignName)'")
                     } else {
-                        self.log("⚠️ У комнаты нет campaignID — пропускаем")
-                        return
+                        self.log("ℹ️ У комнаты нет campaignID — подключаемся как гость")
                     }
                 } else {
                     self.log("ℹ️ Персонаж не привязан к кампании — подключаемся к любой комнате")
                 }
+            } else {
+                self.log("⚠️ selectedCharacter == nil. Убедитесь, что персонаж выбран перед поиском.")
             }
             
+            // Останавливаем поиск и подключаемся
             browser.stopBrowsingForPeers()
             self.joinRoom(peerID: peerID, roomCode: roomCode)
         }
@@ -180,11 +215,20 @@ extension PartyManager: MCNearbyServiceBrowserDelegate {
         _ browser: MCNearbyServiceBrowser,
         didNotStartBrowsingForPeers error: Error
     ) {
-        Task { @MainActor in
-            let errorMessage = "Не удалось начать поиск партии: \(error.localizedDescription)"
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
+            
+            let errorMessage = "Не удалось начать поиск: \(error.localizedDescription)"
             self.log("⚠️ \(errorMessage)")
+            
+            // 🆕 БЕЗОПАСНО: показываем ошибку, но НЕ меняем connectionState агрессивно
             self.lastError = errorMessage
-            self.connectionState = .disconnected
+            
+            // Только если мы действительно в состоянии поиска — возвращаем к выбору
+            if case .searching = self.connectionState {
+                self.connectionState = .selectingCharacter
+                self.log("ℹ️ Возврат к выбору персонажа после ошибки browser")
+            }
         }
     }
 }

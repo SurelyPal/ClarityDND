@@ -9,7 +9,7 @@ import SwiftUI
 
 struct SearchingView: View {
     @ObservedObject var partyManager: PartyManager
-
+        
     var body: some View {
         VStack(spacing: 20) {
             ZStack {

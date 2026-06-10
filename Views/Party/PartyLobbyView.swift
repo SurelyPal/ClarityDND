@@ -55,6 +55,7 @@ struct PartyLobbyView: View {
     private var currentFlowView: some View {
         switch partyManager.connectionState {
         case .disconnected:
+            
             RoleSelectionView(partyManager: partyManager)
 
         case .selectingCharacter:
