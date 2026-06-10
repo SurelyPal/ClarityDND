@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct DatabaseRecoveryView: View {
-    let state: AppRootView.RecoveryState
+    let state: RecoveryState
     @Environment(\.dismiss) var dismiss
     @State private var isRestoring = false
     @State private var restoreResult: RestoreResult?

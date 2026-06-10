@@ -17,9 +17,18 @@ struct ContentView: View {
     /// Контекст SwiftData из окружения (доступен внутри WindowGroup)
     @Environment(\.modelContext) private var modelContext
     
-    /// Хранилище персонажей (создаётся отложенно, когда context доступен)
-    @State private var store: CharacterStore?
-    
+    /// Хранилище персонажей
+    @StateObject private var store: CharacterStore
+
+    // ✅ Инициализатор для создания store
+    init() {
+        // Создаём временный in-memory container для инициализации
+        let tempContainer = try! ModelContainer(
+            for: DNDCharacter.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+        )
+        _store = StateObject(wrappedValue: CharacterStore(context: tempContainer.mainContext))
+    }
     /// Показать экран создания персонажа
     @State private var showingCreation = false
     
@@ -30,14 +39,9 @@ struct ContentView: View {
             ZStack {
                 Color.dsBackground
                     .ignoresSafeArea()
-                
-                // 🆕 Если CharacterStore создан — показываем основной UI
-                if let store = store {
-                    mainContent(store: store)
-                } else {
-                    // Экран загрузки, пока создаётся CharacterStore
-                    loadingView
-                }
+
+                // ✅ Теперь store всегда создан, просто показываем mainContent
+                mainContent()
             }
             .toolbar {
                 // Слева: кнопка Партии (MultiPeerConnectivity)
@@ -53,7 +57,7 @@ struct ContentView: View {
                         .foregroundColor(Color.dsGold)
                     }
                 }
-                
+
                 // Справа: кнопка создания персонажа
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { showingCreation = true }) {
@@ -61,15 +65,12 @@ struct ContentView: View {
                             .foregroundColor(Color.dsGold)
                             .font(.system(size: 16, weight: .medium))
                     }
-                    .disabled(store == nil)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showingCreation) {
-                if let store = store {
-                    CharacterCreationView()
-                        .environmentObject(store)
-                }
+                CharacterCreationView()
+                    .environmentObject(store)
             }
         }
         .preferredColorScheme(.dark)
@@ -78,34 +79,37 @@ struct ContentView: View {
     // MARK: - Основной контент (когда store готов)
     
     @ViewBuilder
-    private func mainContent(store: CharacterStore) -> some View {
+    private func mainContent() -> some View {
         VStack(spacing: 0) {
-            
             // Заголовок
             VStack(spacing: 4) {
                 Text("✦ КНИГА СУДЕБ ✦")
                     .font(.system(size: 11, weight: .medium))
                     .tracking(4)
                     .foregroundColor(Color.dsGoldDim)
-                
+
                 Text("Герои")
                     .font(.system(size: 28, weight: .light))
                     .foregroundColor(Color.dsGold)
             }
             .padding(.top, 16)
             .padding(.bottom, 12)
-            
+
             DSdivider()
                 .padding(.horizontal, 20)
-            
+
+            // ✅ Теперь SwiftUI видит изменения store.characters
             if store.characters.isEmpty {
                 emptyState
             } else {
-                characterList(store: store)
+                characterList()
             }
         }
         .environmentObject(store)
         .onAppear {
+            // ✅ Подключаем реальный context при первом появлении
+            store.attachContext(modelContext)
+            
             // 🆕 Автопереподключение при запуске приложения
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 PartyManager.shared.tryAutoReconnect(characters: store.characters)
@@ -121,16 +125,16 @@ struct ContentView: View {
                 .progressViewStyle(.circular)
                 .tint(.dsGold)
                 .scaleEffect(1.5)
-            
+
             Text("Открываем книгу судеб...")
                 .font(.system(size: 14))
                 .foregroundColor(.dsTextDim)
                 .tracking(1)
         }
         .onAppear {
-            // Создаём CharacterStore, передавая ему context из SwiftData
-            store = CharacterStore(context: modelContext)
-            print("✅ CharacterStore создан в ContentView")
+            // ✅ Подключаем реальный context к уже созданному store
+            store.attachContext(modelContext)
+            print("✅ Реальный context подключён к CharacterStore в ContentView")
         }
     }
     
@@ -170,7 +174,7 @@ struct ContentView: View {
     
     // MARK: - Список персонажей
     
-    private func characterList(store: CharacterStore) -> some View {
+    private func characterList() -> some View {
         List {
             ForEach(store.characters) { character in
                 NavigationLink(destination: CharacterSheetView(character: character)
@@ -188,7 +192,7 @@ struct ContentView: View {
         .refreshable {
             SoundManager.shared.play(.equip, haptic: .light)
             let success = await PartyManager.shared.reconnect()
-            
+
             if success {
                 print("✅ Успешное переподключение из ContentView")
             }

@@ -21,12 +21,11 @@ final class CharacterStore: ObservableObject {
         fetchAll()
     }
     
-    /// Подменяет временный контекст на реальный из SwiftData.
-    /// Вызывается один раз из AppRootView.onAppear.
-    func attachContext(_ newContext: ModelContext) {
-        self.context = newContext
-        fetchAll()
-    }
+    // ✅ НОВОЕ: Метод для подключения реального context
+        func attachContext(_ newContext: ModelContext) {
+            self.context = newContext
+            fetchAll()
+        }
     
     // MARK: - CRUD
     
