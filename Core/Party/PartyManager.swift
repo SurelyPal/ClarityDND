@@ -17,7 +17,7 @@ final class PartyManager: NSObject, ObservableObject {
     static let shared = PartyManager()
 
     // MARK: - Published State
-    @Published nonisolated(unsafe) var role: Role = .player
+    @Published var role: Role = .player  // ✅ Обычное @Published свойство
     @Published var localPeerName: String = PlatformCompatibility.deviceName
     @Published var partyMembers: [PartyMember] = [] {
         didSet {
@@ -50,7 +50,8 @@ final class PartyManager: NSObject, ObservableObject {
 
     // MARK: - Nested Types
 
-    enum Role { case player, dungeonMaster }
+    enum Role: String, Codable, Sendable, Equatable
+    { case player, dungeonMaster }
 
     enum ConnectionState: Equatable {
         case disconnected
@@ -65,7 +66,7 @@ final class PartyManager: NSObject, ObservableObject {
     // MARK: - Internal & Private State
 
     private let serviceType = "clarity-dnd"
-    let localPeerID: MCPeerID // ✅ Было private → стало internal (видно из extension-файлов)
+    nonisolated let localPeerID: MCPeerID  // ✅ Доступен из любого потока``
     nonisolated(unsafe) var session: MCSession?
     var advertiser: MCNearbyServiceAdvertiser?
     var browser: MCNearbyServiceBrowser?
@@ -96,7 +97,7 @@ final class PartyManager: NSObject, ObservableObject {
     // MARK: - Init
 
     private override init() {
-        self.localPeerID = MCPeerID(displayName: PlatformCompatibility.deviceName)
+        self.localPeerID = MCPeerID(displayName: UIDevice.current.name)
         super.init()
         loadPartyState()
         loadGameRules()

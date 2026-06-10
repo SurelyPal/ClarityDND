@@ -92,16 +92,18 @@ extension PartyManager: MCNearbyServiceAdvertiserDelegate {
         withContext context: Data?,
         invitationHandler: @escaping (Bool, MCSession?) -> Void
     ) {
-        // ✅ Теперь role и session доступны из nonisolated контекста
-        guard self.role == .dungeonMaster else {
-            // ✅ Используем Task для логирования (log() требует MainActor)
-            Task { @MainActor in
-                self.log("⚠️ Отклоняем приглашение от \(peerID.displayName): мы не ДМ")
+        Task { @MainActor in
+            // ✅ Теперь role и session доступны из nonisolated контекста
+            guard self.role == .dungeonMaster
+            else {
+                // ✅ Используем Task для логирования (log() требует MainActor)
+        Task { @MainActor in
+                    self.log("⚠️ Отклоняем приглашение от \(peerID.displayName): мы не ДМ")
+                }
+                invitationHandler(false, nil)
+                return
             }
-            invitationHandler(false, nil)
-            return
         }
-
         if let session = self.session,
            session.connectedPeers.contains(peerID) {
             Task { @MainActor in

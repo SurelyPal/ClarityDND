@@ -7,6 +7,10 @@
 import SwiftData
 import SwiftUI
 
+#if os(macOS)
+import AppKit
+#endif
+
 struct CharacterSheetView: View {
     @State private var showEditBlockedAlert = false
     @ObservedObject private var partyManager = PartyManager.shared
@@ -270,21 +274,21 @@ struct CharacterSheetView: View {
             .transition(.move(edge: .trailing))
         }
         
-        private var drawerOffsetX: CGFloat {
-#if os(iOS)
-            let screenWidth = UIScreen.main.bounds.width
-#elseif os(macOS)
-            let screenWidth = NSScreen.main?.frame.width ?? 1024
-#else
-            let screenWidth: CGFloat = 1024
-#endif
-            
-            if isDrawerOpen {
-                return drawerDragOffset
-            } else {
-                return (screenWidth / 2 + 140) + drawerDragOffset
-            }
+    private var drawerOffsetX: CGFloat {
+        #if os(iOS)
+        let screenWidth = UIScreen.main.bounds.width
+        #elseif os(macOS)
+        let screenWidth = NSScreen.main?.frame.width ?? 1024
+        #else
+        let screenWidth: CGFloat = 1024
+        #endif
+        
+        if isDrawerOpen {
+            return drawerDragOffset
+        } else {
+            return (screenWidth / 2 + 140) + drawerDragOffset
         }
+    }
         
         // MARK: - @ViewBuilder: Toolbar
         

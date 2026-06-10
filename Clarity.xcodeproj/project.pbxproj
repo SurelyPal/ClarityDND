@@ -83,7 +83,6 @@
 		15DF92C52FD2E7DF007A87F8 /* PartyStatusIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92C42FD2E7DF007A87F8 /* PartyStatusIndicator.swift */; };
 		15DF92C72FD2F27D007A87F8 /* DungeonMasterDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92C62FD2F27D007A87F8 /* DungeonMasterDetailView.swift */; };
 		15DF92D02FD30FDB007A87F8 /* DatabaseRecoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92CF2FD30FDB007A87F8 /* DatabaseRecoveryView.swift */; };
-		15DF92D32FD3128A007A87F8 /* TODO.md in Sources */ = {isa = PBXBuildFile; fileRef = 15DF92D22FD31269007A87F8 /* TODO.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -653,7 +652,6 @@
 				15DF92622FD22BEC007A87F8 /* SparkleEffect.swift in Sources */,
 				15DF926E2FD246DF007A87F8 /* InstrumentModSlotView.swift in Sources */,
 				1503D3D42FD7EE370026C5DE /* DMInventorySection.swift in Sources */,
-				15DF92D32FD3128A007A87F8 /* TODO.md in Sources */,
 				15DF92492FD21CE9007A87F8 /* ItemEditorView.swift in Sources */,
 				1503D3C32FD7923E0026C5DE /* ConnectedView.swift in Sources */,
 				15DF92392FD21C97007A87F8 /* TabSection.swift in Sources */,

@@ -302,9 +302,6 @@ extension PartyManager {
         case .restVoteFailed(let reason):
             log("❌ Голосование отменено: \(reason)")
             restVotingManager.cancelSession()
-            
-        case .campaignBinding(let campaignID):  // ✅ НОВОЕ: обработка привязки
-            handleCampaignBinding(campaignID: campaignID)
         
         case .restsReset:
             handleRestsReset()
@@ -319,7 +316,7 @@ extension PartyManager {
                 send(.heartbeatResponse(timestamp: timestamp))
             }
             
-        case .heartbeatResponse(let timestamp):
+        case .heartbeatResponse(_):
             // Игрок получил ответ от ДМ-а
             if role == .player {
                 lastHeartbeatReceived = Date()
@@ -349,7 +346,8 @@ extension PartyManager {
             partyMembers = []
             connectionState = .disconnected
             
-            UINotificationFeedbackGenerator().notificationOccurred(.error)
+            // ✅ КРОССПЛАТФОРМЕННО: используем PlatformCompatibility
+            PlatformCompatibility.hapticNotification(.error)
         case .ping: send(.pong)
         case .pong, .requestCharacterSync: break
             

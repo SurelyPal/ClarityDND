@@ -61,7 +61,7 @@ struct RootView: View {
             if store != nil {
                 PartyStatusIndicator()
                     .padding(.trailing, 16)
-                    .safeAreaPadding(.top, 48)  
+                    .safeAreaPadding(.top, 47)  
             }
         }
         .onAppear {
@@ -77,57 +77,14 @@ struct RootView: View {
     // MARK: - Initialization
     private func initializeStore() {
         // Пытаемся инициализировать store с database recovery
-        do {
+        
             // Попытка 1: используем существующий modelContext
             let newStore = CharacterStore(context: modelContext)
             store = newStore
             recoveryState = .healthy
             print("✅ CharacterStore создан успешно")
-            
-        } catch {
-            print("⚠️ SwiftData: не удалось загрузить БД (\(error))")
-            
-            // 🆕 ШАГ 1: Создаём backup ПЕРЕД удалением
-            let backupURL = DatabaseRecovery.createBackup()
-            
-            // 🆕 ШАГ 2: Удаляем повреждённую БД
-            DatabaseRecovery.deleteCorruptDatabase()
-            
-            // 🆕 ШАГ 3: Создаём новую БД
-            do {
-                let container = try ModelContainer(
-                    for: DNDCharacter.self,
-                    configurations: ModelConfiguration(isStoredInMemoryOnly: false)
-                )
-                let newStore = CharacterStore(context: container.mainContext)
-                store = newStore
-                
-                recoveryState = backupURL != nil
-                    ? .recoveredFromBackup(backupURL: backupURL!)
-                    : .failed("Backup не создан")
-                
-                print("✅ БД восстановлена")
-                
-            } catch {
-                // Последний шанс: in-memory БД
-                print("❌ Критическая ошибка: \(error). Используем in-memory БД.")
-                
-                do {
-                    let container = try ModelContainer(
-                        for: DNDCharacter.self,
-                        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-                    )
-                    let newStore = CharacterStore(context: container.mainContext)
-                    store = newStore
-                    recoveryState = .inMemoryFallback
-                    
-                } catch {
-                    recoveryState = .failed("Не удалось создать даже in-memory БД: \(error.localizedDescription)")
-                }
-            }
-        }
         
-        // Показываем recovery sheet если нужно
+    // Показываем recovery sheet если нужно
         if case .healthy = recoveryState {
             // Всё ок, ничего не делаем
         } else {
