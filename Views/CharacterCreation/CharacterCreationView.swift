@@ -44,12 +44,20 @@ struct CharacterCreationView: View {
                         .padding(.bottom, 30)
                 }
                 .navigationTitle("Новый персонаж")
+                #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarLeading) {
                         backButton
                     }
                 }
+                #elseif os(macOS)
+                .toolbar {
+                    ToolbarItem(placement: .navigation) {
+                        backButton
+                    }
+                }
+                #endif
                 
             }
             .preferredColorScheme(.dark)
@@ -106,12 +114,30 @@ struct StepProgressBar: View {
     
     var body: some View {
         HStack(spacing: 6) {
-            ForEach(0..<totalSteps, id: \.self) { step in
-                Capsule()
-                    .fill(step <= currentStep ? Color.dsGold : Color.dsSurfaceAlt)
-                    .frame(height: 2)
-                    .animation(.easeInOut, value: currentStep)
+            ForEach(0..<totalSteps, id: \.self) { index in
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(index <= currentStep ? Color.dsGold : Color.dsSurfaceAlt)
+                    .frame(height: 4)
             }
         }
     }
 }
+
+// MARK: - Preview
+/*
+#Preview {
+    // Создаём тестовый SwiftData контейнер в памяти (in-memory)
+    // Данные не сохраняются между запусками Preview
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: DNDCharacter.self, configurations: config)
+    let context = container.mainContext
+    
+    // Создаём CharacterStore, передавая ему контекст
+    let store = CharacterStore(context: context)
+    
+    return CharacterCreationView()
+        .environmentObject(store)
+        .modelContainer(container)
+        .preferredColorScheme(.dark)
+}
+*/

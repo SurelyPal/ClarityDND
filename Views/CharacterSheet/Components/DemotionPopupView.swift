@@ -173,7 +173,6 @@ struct DemotionPopupView: View {
                         .background(Color.dsSurfaceAlt)
                         
                         // ─── Кнопки действий ───
-                        // ─── Кнопки действий ───
                         HStack(spacing: 0) {
                             Button(action: cancelAction) {
                                 HStack(spacing: 6) {
@@ -184,11 +183,11 @@ struct DemotionPopupView: View {
                                         .tracking(0.5)
                                 }
                                 .foregroundColor(Color.dsText)
-                                .frame(maxWidth: .infinity, maxHeight: .infinity) // ✅ Добавлено maxHeight
-                                .padding(.vertical, 18) // ✅ Увеличено с 16 до 18
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .padding(.vertical, 18)
                                 .background(Color.dsSurface)
                             }
-                            .frame(maxWidth: .infinity) // ✅ Добавлено на Button
+                            .frame(maxWidth: .infinity)
                             
                             Rectangle()
                                 .fill(Color.dsBorder)
@@ -203,13 +202,13 @@ struct DemotionPopupView: View {
                                         .tracking(0.5)
                                 }
                                 .foregroundColor(.white)
-                                .frame(maxWidth: .infinity, maxHeight: .infinity) // ✅ Добавлено maxHeight
-                                .padding(.vertical, 18) // ✅ Увеличено с 16 до 18
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .padding(.vertical, 18)
                                 .background(Color.dsRed)
                             }
-                            .frame(maxWidth: .infinity) // ✅ Добавлено на Button
+                            .frame(maxWidth: .infinity)
                         }
-                        .frame(height: 54) // ✅ Фиксированная высота секции кнопок
+                        .frame(height: 54)
                         .opacity(showButtons ? 1 : 0)
                         .offset(y: showButtons ? 0 : 20)
                         .animation(
@@ -219,8 +218,8 @@ struct DemotionPopupView: View {
                         )
                     }
                     .frame(
-                        maxWidth: min(geometry.size.width * 0.9, 500), // ✅ Адаптивно: 90% ширины или макс 500pt
-                        maxHeight: geometry.size.height * 0.85 // ✅ Макс 85% высоты экрана
+                        maxWidth: min(geometry.size.width * 0.9, 500),
+                        maxHeight: geometry.size.height * 0.85
                     )
                     .background(
                         RoundedRectangle(cornerRadius: 6)
@@ -346,30 +345,35 @@ struct DarkSparkleEffect: View {
     }
     
     var body: some View {
-        ZStack {
-            ForEach(particles) { particle in
-                Image(systemName: "xmark")
-                    .font(.system(size: particle.size, weight: .bold))
-                    .foregroundColor(Color.dsRed)
-                    .opacity(particle.opacity)
-                    .position(x: particle.x, y: particle.y)
-                    .rotationEffect(.degrees(particle.rotation))
+        GeometryReader { proxy in
+            ZStack {
+                ForEach(particles) { particle in
+                    Image(systemName: "xmark")
+                        .font(.system(size: particle.size, weight: .bold))
+                        .foregroundColor(Color.dsRed)
+                        .opacity(particle.opacity)
+                        .position(x: particle.x, y: particle.y)
+                        .rotationEffect(.degrees(particle.rotation))
+                }
             }
-        }
-        .onChange(of: trigger) { _, newValue in
-            if newValue {
-                generateParticles()
+            .onChange(of: trigger) { _, newValue in
+                if newValue {
+                    generateParticles(containerSize: proxy.size)
+                }
             }
         }
     }
     
-    private func generateParticles() {
+    private func generateParticles(containerSize: CGSize) {
         particles = []
+        
+        let centerX = containerSize.width / 2
+        let centerY = containerSize.height / 2
         
         for i in 0..<15 {
             let particle = Particle(
-                x: UIScreen.main.bounds.width / 2,
-                y: UIScreen.main.bounds.height / 2,
+                x: centerX,
+                y: centerY,
                 size: CGFloat.random(in: 10...18),
                 opacity: 1.0,
                 angle: Double(i) * 24.0,
@@ -379,17 +383,20 @@ struct DarkSparkleEffect: View {
             particles.append(particle)
         }
         
-        for i in 0..<particles.count {
-            let particle = particles[i]
+        // ✅ ИСПРАВЛЕНО: используем ID вместо индекса
+        for particle in particles {
+            let particleID = particle.id
             let radians = particle.angle * .pi / 180
             let targetX = particle.x + CGFloat(cos(radians) * particle.speed)
             let targetY = particle.y + CGFloat(sin(radians) * particle.speed)
             
             withAnimation(.easeOut(duration: 1.2)) {
-                particles[i].x = targetX
-                particles[i].y = targetY
-                particles[i].opacity = 0
-                particles[i].rotation += 360
+                if let currentIndex = particles.firstIndex(where: { $0.id == particleID }) {
+                    particles[currentIndex].x = targetX
+                    particles[currentIndex].y = targetY
+                    particles[currentIndex].opacity = 0
+                    particles[currentIndex].rotation += 360
+                }
             }
         }
         
@@ -397,30 +404,4 @@ struct DarkSparkleEffect: View {
             particles = []
         }
     }
-}
-
-// MARK: - Preview
-#Preview {
-    ZStack {
-        Color.dsBackground.ignoresSafeArea()
-        
-        DemotionPopupView(
-            currentLevel: 3,
-            rewards: [
-                MilestoneReward(
-                    icon: "shield.lefthalf.filled",
-                    title: "Выбор подкласса",
-                    description: "Ваш путь обретает уникальное направление."
-                ),
-                MilestoneReward(
-                    icon: "bolt.fill",
-                    title: "+5 к максимальному HP",
-                    description: "Опыт делает вас выносливее."
-                )
-            ],
-            onConfirm: { print("Confirmed") },
-            onCancel: { print("Cancelled") }
-        )
-    }
-    .preferredColorScheme(.dark)
 }

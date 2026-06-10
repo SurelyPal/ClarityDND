@@ -4,16 +4,36 @@
 //
 //  Created by KEBAB on 05.06.2026.
 //
-
 import Foundation
 import MultipeerConnectivity
+import SwiftUI
 import Combine
 
+#if os(iOS)
+import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
 /// Главный менеджер мультиплеера.
 /// Отвечает ТОЛЬКО за: управление ролью, хостинг/поиск, публичный API.
 /// Остальная логика вынесена в отдельные extensions и RestVotingManager.
 @MainActor
 final class PartyManager: NSObject, ObservableObject {
+    
+    // MARK: - Кроссплатформенное имя устройства
+    /// Возвращает имя устройства для отображения в MultipeerConnectivity.
+    /// - iOS: имя из настроек (UIDevice.current.name)
+    /// - macOS: имя компьютера из системных настроек
+    private static var deviceName: String {
+        #if os(iOS)
+        return UIDevice.current.name
+        #elseif os(macOS)
+        return Host.current().localizedName ?? ProcessInfo.processInfo.hostName
+        #else
+        return "Unknown Device"
+        #endif
+    }
+    
     static let shared = PartyManager()
 
     // MARK: - Published State
@@ -97,7 +117,7 @@ final class PartyManager: NSObject, ObservableObject {
     // MARK: - Init
 
     private override init() {
-        self.localPeerID = MCPeerID(displayName: UIDevice.current.name)
+        self.localPeerID = MCPeerID(displayName: PartyManager.deviceName)
         super.init()
         loadPartyState()
         loadGameRules()

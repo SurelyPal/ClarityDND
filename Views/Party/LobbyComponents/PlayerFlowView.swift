@@ -80,7 +80,7 @@ struct PlayerFlowView: View {
             // Кнопка "Отмена"
             Button {
                 #if os(iOS)
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                PlatformCompatibility.hapticImpact(.light)
                 #endif
                 
                 // Возвращаемся к выбору роли, НЕ очищая selectedCharacter агрессивно
@@ -140,7 +140,7 @@ struct PlayerFlowView: View {
                 ForEach(store.characters) { char in
                     Button {
                         #if os(iOS)
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        PlatformCompatibility.hapticImpact(.light)
                         #endif
                         
                         // Устанавливаем выбранного персонажа в PartyManager

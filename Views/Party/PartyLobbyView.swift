@@ -27,9 +27,12 @@ struct PartyLobbyView: View {
             }
         }
         .preferredColorScheme(.dark)
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationTitle("Партия")
+        .navigationTitle("Лобби партии")
+                #if os(iOS)
+                .navigationBarTitleDisplayMode(.inline)
+                #endif
     }
+    
 
     // MARK: - Header
 

@@ -125,17 +125,17 @@ final class SoundManager {
         #if os(iOS)
         switch type {
         case .light:
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            PlatformCompatibility.hapticImpact(.light)
         case .medium:
-            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            PlatformCompatibility.hapticImpact(.medium)
         case .heavy:
             UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
         case .success:
-            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            PlatformCompatibility.hapticNotification(.success)
         case .warning:
             UINotificationFeedbackGenerator().notificationOccurred(.warning)
         case .error:
-            UINotificationFeedbackGenerator().notificationOccurred(.error)
+            PlatformCompatibility.hapticNotification(.error)
         }
         #elseif os(macOS)
         // На macOS тактильная отдача недоступна - игнорируем

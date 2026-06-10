@@ -68,8 +68,10 @@ struct CharacterSheetView: View {
             partyDrawer
         }
         .navigationTitle(character.displayName)
+        #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        #endif
         .toolbar { toolbarContent }
         .sheet(isPresented: $showingMap) { MapView() }
         .sheet(item: $selectedMember) { member in
@@ -291,16 +293,24 @@ struct CharacterSheetView: View {
     }
         
         // MARK: - @ViewBuilder: Toolbar
-        
-        @ToolbarContentBuilder
-        private var toolbarContent: some ToolbarContent {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                HStack(spacing: 16) {
-                    drawerToggleButton
-                    mapButton
-                }
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        #if os(iOS)
+        ToolbarItem(placement: .navigationBarTrailing) {
+            HStack(spacing: 16) {
+                drawerToggleButton
+                mapButton
             }
         }
+        #elseif os(macOS)
+        ToolbarItem(placement: .primaryAction) {
+            HStack(spacing: 16) {
+                drawerToggleButton
+                mapButton
+            }
+        }
+        #endif
+    }
         
         private var drawerToggleButton: some View {
             Button {
@@ -335,23 +345,34 @@ struct CharacterSheetView: View {
         
         // MARK: - @ViewBuilder: Sheet с деталями члена партии
         
-        @ViewBuilder
-        private func memberDetailSheet(member: PartyMember) -> some View {
-            NavigationStack {
-                DungeonMasterDetailView(memberID: member.id)
-                    .environmentObject(partyManager)
-                    .toolbar {
-                        ToolbarItem(placement: .navigationBarLeading) {
-                            Button("Закрыть") {
-                                selectedMember = nil
-                            }
-                            .foregroundColor(Color.dsGold)
+    @ViewBuilder
+    private func memberDetailSheet(member: PartyMember) -> some View {
+        NavigationStack {
+            DungeonMasterDetailView(memberID: member.id)
+                .environmentObject(partyManager)
+                .toolbar {
+                    #if os(iOS)
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Закрыть") {
+                            selectedMember = nil
                         }
+                        .foregroundColor(Color.dsGold)
                     }
-            }
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
+                    #elseif os(macOS)
+                    ToolbarItem(placement: .navigation) {
+                        Button("Закрыть") {
+                            selectedMember = nil
+                        }
+                        .foregroundColor(Color.dsGold)
+                    }
+                    #endif
+                }
         }
+        #if os(iOS)
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
+        #endif
+    }
         
         // MARK: - @ViewBuilder: Overlay повышения уровня
         

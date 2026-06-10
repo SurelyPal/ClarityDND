@@ -22,7 +22,7 @@ struct DungeonMasterView: View {
                         
                         // 🆕 Кнопка "Новая сессия" (сброс отдыхов)
                         Button {
-                         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                         PlatformCompatibility.hapticImpact(.medium)
                          partyManager.resetSession()
                         } label: {
                             HStack(spacing: 8) {
@@ -49,13 +49,14 @@ struct DungeonMasterView: View {
             }
             // 🆕 Pull-to-refresh для обновления данных партии
             .refreshable {
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                PlatformCompatibility.hapticImpact(.light)
                 await partyManager.requestFullSync()
             }
         }
-        .navigationTitle("Экран Мастера")
+        .navigationTitle("Мастер Подземелий")
+        #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
-        // 🆕 Overlay голосования за отдых (ДМ тоже голосует)
+        #endif
         // 🆕 Overlay голосования за отдых (ДМ тоже голосует)
         .overlay {
             if let voteSession = partyManager.restVotingManager.activeRestVote {

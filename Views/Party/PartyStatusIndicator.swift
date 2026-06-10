@@ -46,7 +46,7 @@ struct PartyStatusIndicator: View {
             .animation(.spring(response: 0.4, dampingFraction: 0.8), value: shouldShow)
             .onLongPressGesture {
                 // ✅ Показываем детали при долгом нажатии
-                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                PlatformCompatibility.hapticImpact(.medium)
                 showDetailsSheet = true
             }
             .onChange(of: partyManager.connectionState) { oldState, newState in
@@ -82,13 +82,13 @@ struct PartyStatusIndicator: View {
         // ✅ Тактильная обратная связь при изменении состояния
         switch newState {
         case .connected:
-            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            PlatformCompatibility.hapticNotification(.success)
             
         case .connecting, .searching:
-            UISelectionFeedbackGenerator().selectionChanged()
+            PlatformCompatibility.hapticSelection(.changed)
             
         case .disconnected:
-            UINotificationFeedbackGenerator().notificationOccurred(.error)
+            PlatformCompatibility.hapticNotification(.error)
             
             // ✅ Показываем ошибку при потере связи (3 секунды)
             if case .connected = oldState {

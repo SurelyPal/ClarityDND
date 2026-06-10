@@ -54,7 +54,9 @@ struct CampaignSelectionView: View {
                 }
             }
             
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Отмена") {
@@ -85,7 +87,7 @@ struct CampaignSelectionView: View {
                 Button("Удалить", role: .destructive) {
                     if let campaign = campaignToDelete {
                         campaignManager.deleteCampaign(campaign)
-                        UINotificationFeedbackGenerator().notificationOccurred(.success)
+                        PlatformCompatibility.hapticNotification(.success)
                     }
                 }
             } message: {
@@ -180,7 +182,7 @@ struct CampaignSelectionView: View {
     /// Кнопка создания новой кампании
     private var createButton: some View {
         Button {
-            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            PlatformCompatibility.hapticImpact(.medium)
             newCampaignName = ""
             showingNewCampaignAlert = true
         } label: {
@@ -223,7 +225,7 @@ struct CampaignSelectionView: View {
         guard !trimmedName.isEmpty else { return }
         
         let campaign = campaignManager.createCampaign(name: trimmedName)
-        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        PlatformCompatibility.hapticNotification(.success)
         
         // Сразу начинаем хостинг новой кампании
         startCampaign(campaign)
@@ -233,7 +235,7 @@ struct CampaignSelectionView: View {
     
     /// Начинает хостинг выбранной кампании
     private func startCampaign(_ campaign: Campaign) {
-        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+        PlatformCompatibility.hapticImpact(.heavy)
         
         // Запускаем хостинг через PartyManager
         partyManager.startHosting(campaign: campaign)
@@ -281,7 +283,7 @@ struct CampaignRowView: View {
                     Spacer()
                     
                     Button {
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        PlatformCompatibility.hapticImpact(.light)
                         showingMenu = true
                     } label: {
                         Image(systemName: "ellipsis.circle")
