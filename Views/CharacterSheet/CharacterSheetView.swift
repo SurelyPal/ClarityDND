@@ -4,7 +4,7 @@
 //
 //  Created by KEBAB on 04.06.2026.
 //
-
+import SwiftData
 import SwiftUI
 
 struct CharacterSheetView: View {
@@ -116,9 +116,8 @@ struct CharacterSheetView: View {
                         store.update(character, changed: .full)
                     }
                 )
-                
                 .equatable()
-                .padding(.top, 30)
+                .padding(.top, 15)
                 HPSection(
                     character: $character,
                     currentHP: $currentHP,
@@ -530,4 +529,129 @@ struct CharacterSheetView: View {
                 Text("Мастер запретил изменять героев вне активной партии.\nПодключитесь к ДМ, чтобы вносить изменения.")
         }
     }
+}
+
+
+// ⚔️ Превью: Воин высокого уровня с низким HP (красный индикатор)
+#Preview("Воин (низкое HP)") {
+    let container = PreviewHelper.makeContainer()
+    let character = PreviewHelper.makeFighter()
+    container.mainContext.insert(character)
+    let store = CharacterStore(context: container.mainContext)
+    
+    return NavigationStack {
+        CharacterSheetView(character: character)
+            .environmentObject(store)
+    }
+    .preferredColorScheme(.dark)
+}
+
+// 🎵 Превью: Бард с инструментом
+#Preview("Бард с лютней") {
+    let container = PreviewHelper.makeContainer()
+    let character = PreviewHelper.makeBard()
+    container.mainContext.insert(character)
+    let store = CharacterStore(context: container.mainContext)
+    
+    return NavigationStack {
+        CharacterSheetView(character: character)
+            .environmentObject(store)
+    }
+    .preferredColorScheme(.dark)
+}
+
+// 🃏 Превью: Мистик с картами таро
+#Preview("Мистик с таро") {
+    let container = PreviewHelper.makeContainer()
+    let character = PreviewHelper.makeMystic()
+    container.mainContext.insert(character)
+    let store = CharacterStore(context: container.mainContext)
+    
+    return NavigationStack {
+        CharacterSheetView(character: character)
+            .environmentObject(store)
+    }
+    .preferredColorScheme(.dark)
+}
+
+// 🏹 Превью: Следопыт (Ranger) — максимальный уровень
+#Preview("Следопыт (max уровень)") {
+    let container = PreviewHelper.makeContainer()
+    let character = PreviewHelper.makeRanger()
+    container.mainContext.insert(character)
+    let store = CharacterStore(context: container.mainContext)
+    
+    return NavigationStack {
+        CharacterSheetView(character: character)
+            .environmentObject(store)
+    }
+    .preferredColorScheme(.dark)
+}
+
+// 🎨 Хелпер для создания тестовых данных
+// MARK: - Previews
+
+#Preview("Базовый персонаж (Плут)") {
+    let container = PreviewHelper.makeContainer()
+    let character = PreviewHelper.makeRogue()
+    container.mainContext.insert(character)
+    let store = CharacterStore(context: container.mainContext)
+    
+    return NavigationStack {
+        CharacterSheetView(character: character)
+            .environmentObject(store)
+    }
+    .preferredColorScheme(.dark)
+}
+
+#Preview("Воин (низкое HP)") {
+    let container = PreviewHelper.makeContainer()
+    let character = PreviewHelper.makeFighter()
+    container.mainContext.insert(character)
+    let store = CharacterStore(context: container.mainContext)
+    
+    return NavigationStack {
+        CharacterSheetView(character: character)
+            .environmentObject(store)
+    }
+    .preferredColorScheme(.dark)
+}
+
+#Preview("Бард с лютней") {
+    let container = PreviewHelper.makeContainer()
+    let character = PreviewHelper.makeBard()
+    container.mainContext.insert(character)
+    let store = CharacterStore(context: container.mainContext)
+    
+    return NavigationStack {
+        CharacterSheetView(character: character)
+            .environmentObject(store)
+    }
+    .preferredColorScheme(.dark)
+}
+
+#Preview("Мистик с таро") {
+    let container = PreviewHelper.makeContainer()
+    let character = PreviewHelper.makeMystic()
+    container.mainContext.insert(character)
+    let store = CharacterStore(context: container.mainContext)
+    
+    return NavigationStack {
+        CharacterSheetView(character: character)
+            .environmentObject(store)
+    }
+    .preferredColorScheme(.dark)
+}
+
+#Preview("Следопыт (max уровень)") {
+    let container = PreviewHelper.makeContainer()
+    let character = PreviewHelper.makeRanger()
+    container.mainContext.insert(character)
+    let store = CharacterStore(context: container.mainContext)
+    
+    return NavigationStack {
+        CharacterSheetView(character: character)
+            .environmentObject(store)
+    }
+    .preferredColorScheme(.dark)
 }

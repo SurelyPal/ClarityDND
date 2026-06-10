@@ -92,7 +92,7 @@ struct ContentView: View {
                     .font(.system(size: 28, weight: .light))
                     .foregroundColor(Color.dsGold)
             }
-            .padding(.top, 16)
+            .padding(.top, 25)
             .padding(.bottom, 12)
 
             DSdivider()

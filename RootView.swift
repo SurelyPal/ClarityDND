@@ -61,7 +61,7 @@ struct RootView: View {
             if store != nil {
                 PartyStatusIndicator()
                     .padding(.trailing, 16)
-                    .padding(.top, 8)
+                    .safeAreaPadding(.top, 48)  
             }
         }
         .onAppear {
