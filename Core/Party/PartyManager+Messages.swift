@@ -45,7 +45,10 @@ extension PartyManager {
 
     func sendJoinMessage(for character: DNDCharacter) {
         guard let session = session, !session.connectedPeers.isEmpty else { return }
-        
+
+        // ✅ Используем pendingCampaignID, если он есть, иначе character.campaignID
+        let effectiveCampaignID = pendingCampaignID ?? character.campaignID
+
         let message = PartyMessage.playerJoined(
             characterID: character.id,
             name: character.displayName,
@@ -55,11 +58,11 @@ extension PartyManager {
             currentHP: character.currentHP,
             maxHP: character.hitPoints,
             avatarData: character.avatarData,
-            campaignID: character.campaignID
+            campaignID: effectiveCampaignID
         )
         send(message)
-        log("📤 playerJoined отправлен для \(character.displayName) (кампания: \(character.campaignID?.uuidString.prefix(8) ?? "nil"))")
-        
+        log("📤 playerJoined отправлен для \(character.displayName) (кампания: \(effectiveCampaignID?.uuidString.prefix(8) ?? "nil"))")
+
         sendCharacterDetails(for: character)
         log("📋 characterDetails отправлен при подключении")
     }
@@ -280,7 +283,9 @@ extension PartyManager {
         case .playerLeft(let charID):
             partyMembers.removeAll { $0.id == charID }
             savePartyState()
-            
+            // ✅ НОВОЕ: Обработка привязки к кампании
+        case .campaignBinding(let campaignID):
+                    handleCampaignBinding(campaignID: campaignID)
             // 🆕 Игрок запросил начать голосование — ДМ формирует список и рассылает
         case .requestRestVote(let restType, let requesterID, let requesterName):
             handleRequestRestVote(restType: restType, requesterID: requesterID, requesterName: requesterName)
@@ -298,6 +303,9 @@ extension PartyManager {
             log("❌ Голосование отменено: \(reason)")
             restVotingManager.cancelSession()
             
+        case .campaignBinding(let campaignID):  // ✅ НОВОЕ: обработка привязки
+            handleCampaignBinding(campaignID: campaignID)
+        
         case .restsReset:
             handleRestsReset()
             
@@ -364,28 +372,26 @@ extension PartyManager {
     ) {
         guard role == .dungeonMaster else { return }
         guard peerID.displayName != self.localPeerID.displayName else { return }
-        
-        // 🆕 ПРОВЕРКА КАМПАНИИ: персонаж должен быть привязан к текущей активной кампании
+
+        // ✅ ИСПРАВЛЕНО: Автоматическая привязка к кампании вместо отклонения
         if let activeCampaignID = currentCampaignID {
-            // Если у персонажа нет campaignID — он не может подключиться
-            guard let characterCampaignID = campaignID else {
-                log("⚠️ Отклонено: \(name) не привязан к кампании")
-                sendRejection(to: peerID, reason: "Персонаж не привязан к кампании")
-                return
+            if let characterCampaignID = campaignID {
+                // У персонажа уже есть campaignID
+                if characterCampaignID != activeCampaignID {
+                    log("⚠️ Отклонено: \(name) привязан к другой кампании")
+                    sendRejection(to: peerID, reason: "Персонаж привязан к другой кампании")
+                    return
+                }
+                log("✅ Кампания совпадает: \(name) может подключиться")
+            } else {
+                // ✅ НОВОЕ: У персонажа нет campaignID — НЕ отклоняем, а принимаем и привязываем
+                log("ℹ️ \(name) не привязан к кампании — принимаем и привязываем автоматически")
+                sendCampaignBinding(to: peerID, campaignID: activeCampaignID)
             }
-            
-            // Если campaignID не совпадает — отклоняем
-            if characterCampaignID != activeCampaignID {
-                log("⚠️ Отклонено: \(name) привязан к другой кампании")
-                sendRejection(to: peerID, reason: "Персонаж привязан к другой кампании")
-                return
-            }
-            
-            log("✅ Кампания совпадает: \(name) может подключиться")
         }
-        
+
         let race = Race(rawValue: raceRaw) ?? .human
-        
+
         let member = PartyMember(
             id: charID,
             peerID: peerID,
@@ -398,7 +404,7 @@ extension PartyManager {
             stress: 0,
             avatarData: avatarData
         )
-        
+
         if let idx = partyMembers.firstIndex(where: { $0.id == charID }) {
             var newMembers = partyMembers
             newMembers[idx] = member
@@ -409,7 +415,7 @@ extension PartyManager {
             log("🎭 ДМ: \(name) в партии (аватар: \(avatarData != nil ? "✅" : "❌"))")
         }
         savePartyState()
-        
+
         broadcastPartyList()
     }
     
@@ -423,6 +429,18 @@ extension PartyManager {
             log("📤 Отправлено отклонение: \(reason)")
         } catch {
             log("❌ Ошибка отправки отклонения: \(error)")
+        }
+    }
+    
+    /// Отправляет игроку команду привязать его персонажа к текущей кампании
+    private func sendCampaignBinding(to peerID: MCPeerID, campaignID: UUID) {
+        let message = PartyMessage.campaignBinding(campaignID: campaignID)
+        do {
+            let data = try JSONEncoder().encode(message)
+            try session?.send(data, toPeers: [peerID], with: .reliable)
+            log("📤 Отправлена привязка к кампании \(campaignID) для \(peerID.displayName)")
+        } catch {
+            log("❌ Ошибка отправки привязки к кампании: \(error)")
         }
     }
     
@@ -658,6 +676,17 @@ extension PartyManager {
             }
             restVotingManager.startEffect(restType: completedRestType, initiatorName: name)
         }
+    }
+    
+    /// Обрабатывает команду от ДМа привязать персонажа к кампании
+    private func handleCampaignBinding(campaignID: UUID) {
+        log("🔗 Получена команда привязки к кампании: \(campaignID)")
+        
+        // ✅ Сохраняем campaignID в UserDefaults для будущих подключений
+        UserDefaults.standard.set(campaignID.uuidString, forKey: "pendingCampaignBinding")
+        self.pendingCampaignID = campaignID
+        
+        log("✅ CampaignID сохранён в UserDefaults: \(campaignID)")
     }
     // MARK: - Принудительная синхронизация
     

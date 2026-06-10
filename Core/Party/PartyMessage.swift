@@ -51,7 +51,8 @@ enum PartyMessage: Codable, Sendable {
     
     case playerLeft(characterID: UUID)
     case partyList(members: [PartyMember])
-    
+    // ✅ НОВОЕ: ДМ отправляет игроку команду привязать персонажа к кампании
+    case campaignBinding(campaignID: UUID)
     // 🆕 ГОЛОСОВАНИЕ ЗА ОТДЫХ
     case restVoteRequest(
         initiatorID: UUID,

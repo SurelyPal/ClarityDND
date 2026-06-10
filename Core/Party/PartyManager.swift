@@ -17,7 +17,7 @@ final class PartyManager: NSObject, ObservableObject {
     static let shared = PartyManager()
 
     // MARK: - Published State
-    @Published var role: Role = .player
+    @Published nonisolated(unsafe) var role: Role = .player
     @Published var localPeerName: String = PlatformCompatibility.deviceName
     @Published var partyMembers: [PartyMember] = [] {
         didSet {
@@ -36,7 +36,7 @@ final class PartyManager: NSObject, ObservableObject {
     @Published var connectionState: ConnectionState = .disconnected
     @Published var roomCode: String = ""
     @Published var gameRules: GameRules = .default
-
+    @Published var pendingCampaignID: UUID? = nil
     @Published var debugLog: String = ""
     @Published var lastError: String? = nil
     @Published var disconnectReason: String? = nil
@@ -66,7 +66,7 @@ final class PartyManager: NSObject, ObservableObject {
 
     private let serviceType = "clarity-dnd"
     let localPeerID: MCPeerID // ✅ Было private → стало internal (видно из extension-файлов)
-    private(set) var session: MCSession?
+    nonisolated(unsafe) var session: MCSession?
     var advertiser: MCNearbyServiceAdvertiser?
     var browser: MCNearbyServiceBrowser?
     private(set) var selectedCharacter: DNDCharacter?
@@ -139,22 +139,30 @@ final class PartyManager: NSObject, ObservableObject {
     func startHosting(campaign: Campaign) {
         log("🎲 Начинаем хостинг кампании: \(campaign.name)")
         UserDefaults.standard.set(campaign.id.uuidString, forKey: "lastActiveCampaignID")
-                
-        // Устанавливаем активную кампанию в менеджере
+
         campaignManager.setActiveCampaign(campaign)
         currentCampaignID = campaign.id
-        
-        // Загружаем данные из кампании (если есть), иначе создаём новые
+
         self.roomCode = campaign.roomCode.isEmpty
             ? Campaign.generateRoomCode()
             : campaign.roomCode
         self.gameRules = campaign.gameRules
         self.partyMembers = campaign.members
-        
-        // Останавливаем старый advertiser, если есть
+
+        // ✅ КРИТИЧНО: Создаём MCSession СРАЗУ, до запуска advertiser!
+        // Это предотвращает таймаут при вызове invitationHandler
+        if self.session == nil {
+            self.session = MCSession(
+                peer: self.localPeerID,
+                securityIdentity: nil,
+                encryptionPreference: .none
+            )
+            self.session?.delegate = self
+            log("✅ MCSession создан для хостинга")
+        }
+
         advertiser?.stopAdvertisingPeer()
-        
-        // Создаём новый advertiser с информацией о кампании
+
         advertiser = MCNearbyServiceAdvertiser(
             peer: localPeerID,
             discoveryInfo: [
@@ -166,10 +174,10 @@ final class PartyManager: NSObject, ObservableObject {
         )
         advertiser?.delegate = self
         advertiser?.startAdvertisingPeer()
-        
+
         connectionState = .hosting(code: roomCode)
         role = .dungeonMaster
-        
+
         log("🎲 Хостинг кампании '\(campaign.name)' с кодом \(roomCode) запущен")
     }
 

@@ -92,42 +92,46 @@ extension PartyManager: MCNearbyServiceAdvertiserDelegate {
         withContext context: Data?,
         invitationHandler: @escaping (Bool, MCSession?) -> Void
     ) {
-        Task { @MainActor [weak self] in
-            guard let self = self else {
-                invitationHandler(false, nil)
-                return
-            }
-            
-            // 🆕 ВАЖНО: Принимаем приглашения ТОЛЬКО если мы ДМ
-            guard self.role == .dungeonMaster else {
+        // ✅ Теперь role и session доступны из nonisolated контекста
+        guard self.role == .dungeonMaster else {
+            // ✅ Используем Task для логирования (log() требует MainActor)
+            Task { @MainActor in
                 self.log("⚠️ Отклоняем приглашение от \(peerID.displayName): мы не ДМ")
-                invitationHandler(false, nil)
-                return
             }
-            
-            // 🆕 Проверка: уже ли этот пир подключён?
-            if let session = self.session,
-               session.connectedPeers.contains(peerID) {
+            invitationHandler(false, nil)
+            return
+        }
+
+        if let session = self.session,
+           session.connectedPeers.contains(peerID) {
+            Task { @MainActor in
                 self.log("ℹ️ Пир \(peerID.displayName) уже подключён, отклоняем дубль")
-                invitationHandler(false, nil)
-                return
             }
-            
+            invitationHandler(false, nil)
+            return
+        }
+
+        Task { @MainActor in
             self.log("📥 Приглашение от \(peerID.displayName) — принимаем")
-            
-            // 🆕 КРИТИЧНО: используем СУЩЕСТВУЮЩИЙ session, а не создаём новый!
-            // Если session нет — создаём его ОДИН раз
-            if self.session == nil {
-                self.session = MCSession(
-                    peer: self.localPeerID,
-                    securityIdentity: nil,
-                    encryptionPreference: .none
-                )
-                self.session?.delegate = self
+        }
+
+        if self.session == nil {
+            self.session = MCSession(
+                peer: self.localPeerID,
+                securityIdentity: nil,
+                encryptionPreference: .none
+            )
+            self.session?.delegate = self
+            Task { @MainActor in
+                self.log("⚠️ Fallback: MCSession создан в advertiser delegate")
             }
-            
-            // Принимаем приглашение с текущим session
-            invitationHandler(true, self.session)
+        }
+
+        invitationHandler(true, self.session)
+        
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
+            self.log("✅ Приглашение от \(peerID.displayName) принято, session передан")
         }
     }
 
