@@ -45,7 +45,7 @@ extension PartyManager {
 
     func sendJoinMessage(for character: DNDCharacter) {
         guard let session = session, !session.connectedPeers.isEmpty else { return }
-
+        
         let message = PartyMessage.playerJoined(
             characterID: character.id,
             name: character.displayName,
@@ -54,12 +54,14 @@ extension PartyManager {
             level: character.level,
             currentHP: character.currentHP,
             maxHP: character.hitPoints,
-            avatarData: character.avatarData
+            avatarData: character.avatarData,
+            campaignID: character.campaignID
         )
         send(message)
-        log("📤 playerJoined отправлен для \(character.displayName)")
-
+        log("📤 playerJoined отправлен для \(character.displayName) (кампания: \(character.campaignID?.uuidString.prefix(8) ?? "nil"))")
+        
         sendCharacterDetails(for: character)
+        log("📋 characterDetails отправлен при подключении")
     }
 
     func sendCharacterDetails(for character: DNDCharacter) {
@@ -242,8 +244,29 @@ extension PartyManager {
     
     private func handle(message: PartyMessage, from peerID: MCPeerID) {
         switch message {
-        case .playerJoined(let charID, let name, let raceRaw, let cls, let level, let currentHP, let maxHP, let avatarData):
-            handlePlayerJoined(charID: charID, peerID: peerID, name: name, raceRaw: raceRaw, cls: cls, level: level, currentHP: currentHP, maxHP: maxHP, avatarData: avatarData)
+        case .playerJoined(
+            let charID,
+            let name,
+            let raceRaw,
+            let cls,
+            let level,
+            let currentHP,
+            let maxHP,
+            let avatarData,
+            let campaignID
+        ):
+            handlePlayerJoined(
+                charID: charID,
+                peerID: peerID,
+                name: name,
+                raceRaw: raceRaw,
+                cls: cls,
+                level: level,
+                currentHP: currentHP,
+                maxHP: maxHP,
+                avatarData: avatarData,
+                campaignID: campaignID
+            )
             
         case .characterDetails(let charID, let stats, let rerollPoints, let inventory, let skillProficiencies, let background, let alignment):
             handleCharacterDetails(charID: charID, stats: stats, rerollPoints: rerollPoints, inventory: inventory, skillProficiencies: skillProficiencies, background: background, alignment: alignment)
@@ -303,7 +326,22 @@ extension PartyManager {
                 handleHostLost()
             }
             
+        case .connectionRejected(let reason):
+            guard role == .player else { return }
             
+            log("❌ Подключение отклонено: \(reason)")
+            lastError = reason
+            
+            // 🆕 Останавливаем соединение, но НЕ присваиваем nil
+            // (так как сеттер session закрыт)
+            session?.disconnect()
+            browser?.stopBrowsingForPeers()
+            
+            // Очищаем состояние подключения
+            partyMembers = []
+            connectionState = .disconnected
+            
+            UINotificationFeedbackGenerator().notificationOccurred(.error)
         case .ping: send(.pong)
         case .pong, .requestCharacterSync: break
             
@@ -312,9 +350,39 @@ extension PartyManager {
     
     // MARK: - Message Handlers (приватные)
     
-    private func handlePlayerJoined(charID: UUID, peerID: MCPeerID, name: String, raceRaw: String, cls: String, level: Int, currentHP: Int, maxHP: Int, avatarData: Data?) {
+    private func handlePlayerJoined(
+        charID: UUID,
+        peerID: MCPeerID,
+        name: String,
+        raceRaw: String,
+        cls: String,
+        level: Int,
+        currentHP: Int,
+        maxHP: Int,
+        avatarData: Data?,
+        campaignID: UUID?
+    ) {
         guard role == .dungeonMaster else { return }
         guard peerID.displayName != self.localPeerID.displayName else { return }
+        
+        // 🆕 ПРОВЕРКА КАМПАНИИ: персонаж должен быть привязан к текущей активной кампании
+        if let activeCampaignID = currentCampaignID {
+            // Если у персонажа нет campaignID — он не может подключиться
+            guard let characterCampaignID = campaignID else {
+                log("⚠️ Отклонено: \(name) не привязан к кампании")
+                sendRejection(to: peerID, reason: "Персонаж не привязан к кампании")
+                return
+            }
+            
+            // Если campaignID не совпадает — отклоняем
+            if characterCampaignID != activeCampaignID {
+                log("⚠️ Отклонено: \(name) привязан к другой кампании")
+                sendRejection(to: peerID, reason: "Персонаж привязан к другой кампании")
+                return
+            }
+            
+            log("✅ Кампания совпадает: \(name) может подключиться")
+        }
         
         let race = Race(rawValue: raceRaw) ?? .human
         
@@ -331,20 +399,31 @@ extension PartyManager {
             avatarData: avatarData
         )
         
-        // ✅ Защита от дубликатов: проверяем по ID
         if let idx = partyMembers.firstIndex(where: { $0.id == charID }) {
-            // Игрок уже есть — ОБНОВЛЯЕМ
             var newMembers = partyMembers
             newMembers[idx] = member
             partyMembers = newMembers
-            log("🔄 handlePlayerJoined: обновлён существующий \(member.name)")
+            log("🔄 Обновлён игрок: \(name)")
         } else {
-            // Новый игрок
             partyMembers.append(member)
-            log("➕ handlePlayerJoined: добавлен \(member.name)")
+            log("🎭 ДМ: \(name) в партии (аватар: \(avatarData != nil ? "✅" : "❌"))")
         }
         savePartyState()
+        
         broadcastPartyList()
+    }
+    
+    /// Отправляет сообщение об отклонении подключения игроку
+    private func sendRejection(to peerID: MCPeerID, reason: String) {
+        let message = PartyMessage.connectionRejected(reason: reason)
+        
+        do {
+            let data = try JSONEncoder().encode(message)
+            try session?.send(data, toPeers: [peerID], with: .reliable)
+            log("📤 Отправлено отклонение: \(reason)")
+        } catch {
+            log("❌ Ошибка отправки отклонения: \(error)")
+        }
     }
     
     private func handleCharacterDetails(charID: UUID, stats: AbilityScores, rerollPoints: Int, inventory: [InventoryItem], skillProficiencies: [String], background: String, alignment: DNDAlignment) {

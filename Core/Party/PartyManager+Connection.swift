@@ -12,17 +12,16 @@ import MultipeerConnectivity
 
 extension PartyManager: MCSessionDelegate {
 
+    // (добавлен параметр peerID)
     nonisolated func session(
         _ session: MCSession,
         peer peerID: MCPeerID,
         didChange state: MCSessionState
-        )
-    {
-        Task { @MainActor [weak self] in
-         guard let self = self else { return }
-         switch state {
-         case .connected:
-         self.handlePeerConnected(peerID: peerID, session: session)
+    ) {
+        Task { @MainActor in
+            switch state {
+            case .connected:
+                self.handlePeerConnected(peerID: peerID, session: session)
             case .connecting:
                 self.log("⏳ Подключение: \(peerID.displayName)")
                 self.connectionState = .connecting(peerName: peerID.displayName)
@@ -124,7 +123,11 @@ extension PartyManager: MCNearbyServiceBrowserDelegate {
         withDiscoveryInfo info: [String: String]?
     ) {
         let roomCode = info?["roomCode"] ?? "???"
+        let campaignIDString = info?["campaignID"]
+        let campaignName = info?["campaignName"] ?? "Без названия"
+        
         Task { @MainActor in
+            // Получаем правила игры от ДМа
             if let rulesString = info?["gameRules"],
                let rulesData = rulesString.data(using: .utf8),
                let rules = try? JSONDecoder().decode(GameRules.self, from: rulesData) {
@@ -132,8 +135,33 @@ extension PartyManager: MCNearbyServiceBrowserDelegate {
                 self.saveGameRules(rules)
                 self.log("📜 Получены правила от ДМ")
             }
-
+            
             self.log("👀 Найдена комната: \(roomCode) от \(peerID.displayName)")
+            
+            // 🆕 ПРОВЕРКА КАМПАНИИ: игрок должен подключаться только к своей кампании
+            if let selectedChar = self.selectedCharacter {
+                if let charCampaignID = selectedChar.campaignID {
+                    // Персонаж привязан к кампании — проверяем совпадение
+                    if let roomCampaignIDString = campaignIDString,
+                       let roomCampaignID = UUID(uuidString: roomCampaignIDString) {
+                        
+                        if charCampaignID != roomCampaignID {
+                            self.log("⚠️ Комната '\(campaignName)' не подходит: персонаж привязан к другой кампании")
+                            self.lastError = "Найдена комната '\(campaignName)', но ваш персонаж привязан к другой кампании"
+                            UINotificationFeedbackGenerator().notificationOccurred(.warning)
+                            return // Не подключаемся к этой комнате
+                        }
+                        
+                        self.log("✅ Кампания совпадает: подключаемся к '\(campaignName)'")
+                    } else {
+                        self.log("⚠️ У комнаты нет campaignID — пропускаем")
+                        return
+                    }
+                } else {
+                    self.log("ℹ️ Персонаж не привязан к кампании — подключаемся к любой комнате")
+                }
+            }
+            
             browser.stopBrowsingForPeers()
             self.joinRoom(peerID: peerID, roomCode: roomCode)
         }
@@ -369,5 +397,73 @@ extension PartyManager {
         session?.disconnect()
         
         log("🧹 Очистка завершена")
+    }
+}
+// MARK: - 🆕 Управление кампаниями
+extension PartyManager {
+    
+    /// Завершает текущую сессию кампании
+    func endCampaignSession() {
+        log("🏁 Завершаем сессию кампании")
+                
+                // Сохраняем финальное состояние
+                savePartyState()
+                
+                // Сбрасываем активную кампанию
+                campaignManager.clearActiveCampaign()
+                currentCampaignID = nil
+                
+                // 🆕 Очищаем ID из UserDefaults
+                UserDefaults.standard.removeObject(forKey: "lastActiveCampaignID")
+        // Сохраняем финальное состояние
+        savePartyState()
+        
+        // Сбрасываем активную кампанию
+        campaignManager.clearActiveCampaign()
+        currentCampaignID = nil
+        
+        // Останавливаем мультиплеер
+        session?.disconnect()
+        advertiser?.stopAdvertisingPeer()
+        browser?.stopBrowsingForPeers()
+        
+        // Очищаем состояние партии
+        partyMembers = []
+        restVotingManager.activeRestVote = nil
+        restVotingManager.myVoteSent = nil
+        restVotingManager.activeRestEffect = nil
+        
+        connectionState = .disconnected
+        disconnectReason = nil
+        lastError = nil
+        
+        log("🏁 Сессия кампании завершена")
+    }
+
+
+    /// Проверяет, может ли персонаж подключиться к текущей кампании
+    /// (не закреплён ли он за другой кампанией)
+    func canCharacterJoin(characterID: UUID) -> Bool {
+        guard let campaignID = currentCampaignID else {
+            return true // Нет активной кампании — можно подключиться
+        }
+        
+        // Проверяем, не закреплён ли персонаж за ДРУГОЙ кампанией
+        let conflictingCampaign = campaignManager.isCharacterAssignedToOtherCampaign(
+            characterID: characterID,
+            excludingCampaignID: campaignID
+        )
+        
+        if let conflict = conflictingCampaign {
+            log("⚠️ Персонаж уже закреплён за кампанией '\(conflict.name)'")
+            return false
+        }
+        
+        return true
+    }
+    
+    /// Возвращает текущую активную кампанию (если есть)
+    var activeCampaign: Campaign? {
+        return campaignManager.activeCampaign
     }
 }

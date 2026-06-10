@@ -115,4 +115,46 @@ final class CharacterStore: ObservableObject {
         UserDefaults.standard.removeObject(forKey: key)
         print("✅ Миграция UserDefaults → SwiftData завершена: перенесено \(oldChars.count) персонажей")
     }
+    // MARK: - 🆕 Работа с кампаниями
+    
+    /// Проверяет, можно ли добавить персонажа в указанную кампанию.
+    /// Возвращает false, если персонаж уже привязан к ДРУГОЙ кампании.
+    func canAddCharacterToCampaign(
+        _ character: DNDCharacter,
+        campaignID: UUID
+    ) -> Bool {
+        // Если персонаж уже в этой кампании — всё ОК
+        if character.campaignID == campaignID {
+            return true
+        }
+        
+        // Если персонаж в ДРУГОЙ кампании — нельзя
+        if let existingCampaignID = character.campaignID,
+           existingCampaignID != campaignID {
+            return false
+        }
+        
+        // Если персонаж не в кампании (nil) — можно добавить
+        return true
+    }
+    
+    /// Привязывает персонажа к указанной кампании
+    func assignCharacter(_ character: DNDCharacter, to campaignID: UUID) {
+        character.campaignID = campaignID
+        // SwiftData автоматически отслеживает изменения @Model объектов
+        print("🔗 Персонаж \(character.name) привязан к кампании")
+    }
+    
+    /// Отвязывает ВСЕХ персонажей от указанной кампании
+    func unassignCharacters(from campaignID: UUID) {
+        for character in characters where character.campaignID == campaignID {
+            character.campaignID = nil
+        }
+        print("🔓 Персонажи отвязаны от кампании")
+    }
+    
+    /// Возвращает всех персонажей, привязанных к указанной кампании
+    func characters(for campaignID: UUID) -> [DNDCharacter] {
+        return characters.filter { $0.campaignID == campaignID }
+    }
 }

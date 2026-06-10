@@ -20,7 +20,7 @@ final class DNDCharacter {
     var level: Int
     var stats: AbilityScores
     var background: String
-    
+    var campaignID: UUID?
     // MARK: - HP
     // 🔑 ВАЖНО: hitPoints = МАКСИМАЛЬНОЕ здоровье
     //           currentHP = ТЕКУЩЕЕ здоровье (уменьшается при уроне)

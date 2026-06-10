@@ -16,15 +16,29 @@ extension PartyManager {
     private static let gameRulesKey = "clarity_game_rules"
     private static let selectedCharacterKey = "clarity_selected_character"
 
-    // MARK: - Party State
-
+    // MARK: - 💾 Сохранение состояния партии между сессиями
+    
+    
     func savePartyState() {
+        // Сохраняем в UserDefaults для быстрого доступа
         do {
             let data = try JSONEncoder().encode(partyMembers)
             UserDefaults.standard.set(data, forKey: Self.partyStateKey)
             log("💾 Состояние партии сохранено: \(partyMembers.count) игроков")
         } catch {
             log("❌ Ошибка сохранения состояния партии: \(error)")
+        }
+        
+        // 🆕 ВАЖНО: Сохраняем в файл активной кампании
+        if let campaignID = currentCampaignID {
+            campaignManager.updateActiveCampaign(
+                members: partyMembers,
+                gameRules: gameRules,
+                roomCode: roomCode
+            )
+            log("💾 Кампания обновлена в файле: \(campaignID.uuidString.prefix(8))")
+        } else {
+            log("ℹ️ Нет активной кампании — файл не обновляется")
         }
     }
 

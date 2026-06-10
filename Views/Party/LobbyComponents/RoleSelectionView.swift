@@ -12,23 +12,22 @@ struct RoleSelectionView: View {
     
     var body: some View {
         VStack(spacing: 16) {
-            Button {
-                partyManager.startHosting()
+            NavigationLink {
+                CampaignSelectionView()
             } label: {
-                VStack(spacing: 12) {
-                    Text("👑").font(.system(size: 40))
-                    Text("МАСТЕР ПАРТИИ")
-                        .font(.system(size: 14, weight: .semibold)).tracking(1.5)
-                        .foregroundColor(Color.dsGold)
-                    Text("Создать комнату и видеть всех игроков в реальном времени")
-                        .font(.system(size: 11))
-                        .foregroundColor(Color.dsTextDim)
-                        .multilineTextAlignment(.center)
+                HStack(spacing: 12) {
+                    Image(systemName: "books.vertical.fill")
+                        .font(.system(size: 16))
+                    
+                    Text("ВЫБРАТЬ КАМПАНИЮ")
+                        .font(.system(size: 14, weight: .bold))
+                        .tracking(1)
                 }
-                .padding(20).frame(maxWidth: .infinity)
-                .background(Color.dsSurface)
-                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.dsGold, lineWidth: 1.5))
-                .cornerRadius(8)
+                .foregroundColor(.dsBackground)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(Color.dsGold)
+                .cornerRadius(4)
             }
             .buttonStyle(.plain)
             

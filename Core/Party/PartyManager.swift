@@ -29,6 +29,10 @@ final class PartyManager: NSObject, ObservableObject {
             }
         }
     }
+    /// Менеджер кампаний
+    let campaignManager = CampaignManager.shared
+    /// ID текущей активной кампании (которую сейчас хостим)
+    @Published var currentCampaignID: UUID?
     @Published var connectionState: ConnectionState = .disconnected
     @Published var roomCode: String = ""
     @Published var gameRules: GameRules = .default
@@ -63,8 +67,8 @@ final class PartyManager: NSObject, ObservableObject {
     private let serviceType = "clarity-dnd"
     let localPeerID: MCPeerID // ✅ Было private → стало internal (видно из extension-файлов)
     private(set) var session: MCSession?
-    private var advertiser: MCNearbyServiceAdvertiser?
-    private var browser: MCNearbyServiceBrowser?
+    var advertiser: MCNearbyServiceAdvertiser?
+    var browser: MCNearbyServiceBrowser?
     private(set) var selectedCharacter: DNDCharacter?
     private var didTryAutoReconnect = false
     // ✅ Хранилище для версионирования (игнорируем устаревшие сообщения)
@@ -96,6 +100,19 @@ final class PartyManager: NSObject, ObservableObject {
         super.init()
         loadPartyState()
         loadGameRules()
+        if let campaignIDString = UserDefaults.standard.string(forKey: "lastActiveCampaignID"),
+                   let campaignID = UUID(uuidString: campaignIDString) {
+                    self.currentCampaignID = campaignID
+                    log("📂 Загружена последняя активная кампания: \(campaignID.uuidString.prefix(8))")
+                    
+                    // Загружаем данные из файла кампании
+                    if let campaign = campaignManager.campaigns.first(where: { $0.id == campaignID }) {
+                        self.partyMembers = campaign.members
+                        self.gameRules = campaign.gameRules
+                        self.roomCode = campaign.roomCode
+                        log("📂 Данные кампании загружены: \(campaign.name)")
+                    }
+                }
     }
 
     deinit {
@@ -118,11 +135,42 @@ final class PartyManager: NSObject, ObservableObject {
 
     // MARK: - 🎲 ДМ API
 
-    func startHosting() {
-        self.role = .dungeonMaster
-        self.partyMembers = []
-        self.connectionState = .configuringRules
-        log("⚙️ ДМ настраивает правила игры")
+    /// Начинает хостинг указанной кампании (вызывается из CampaignSelectionView)
+    func startHosting(campaign: Campaign) {
+        log("🎲 Начинаем хостинг кампании: \(campaign.name)")
+        UserDefaults.standard.set(campaign.id.uuidString, forKey: "lastActiveCampaignID")
+                
+        // Устанавливаем активную кампанию в менеджере
+        campaignManager.setActiveCampaign(campaign)
+        currentCampaignID = campaign.id
+        
+        // Загружаем данные из кампании (если есть), иначе создаём новые
+        self.roomCode = campaign.roomCode.isEmpty
+            ? Campaign.generateRoomCode()
+            : campaign.roomCode
+        self.gameRules = campaign.gameRules
+        self.partyMembers = campaign.members
+        
+        // Останавливаем старый advertiser, если есть
+        advertiser?.stopAdvertisingPeer()
+        
+        // Создаём новый advertiser с информацией о кампании
+        advertiser = MCNearbyServiceAdvertiser(
+            peer: localPeerID,
+            discoveryInfo: [
+                "roomCode": roomCode,
+                "campaignID": campaign.id.uuidString,
+                "campaignName": campaign.name
+            ],
+            serviceType: "clarity-dnd"
+        )
+        advertiser?.delegate = self
+        advertiser?.startAdvertisingPeer()
+        
+        connectionState = .hosting(code: roomCode)
+        role = .dungeonMaster
+        
+        log("🎲 Хостинг кампании '\(campaign.name)' с кодом \(roomCode) запущен")
     }
 
     func applyRulesAndStartHosting(_ rules: GameRules) {

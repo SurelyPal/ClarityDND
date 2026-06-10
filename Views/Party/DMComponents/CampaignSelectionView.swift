@@ -1,3 +1,11 @@
+//
+//  CampaignSelectionView.swift
+//  Clarity
+//
+//  Created by KEBAB on 10.06.2026.
+//
+
+
 import SwiftUI
 
 // MARK: - Экран выбора кампании для ДМа
@@ -45,6 +53,7 @@ struct CampaignSelectionView: View {
                     createButton
                 }
             }
+            
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

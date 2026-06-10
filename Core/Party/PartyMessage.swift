@@ -35,7 +35,8 @@ enum PartyMessage: Codable, Sendable {
         level: Int,
         currentHP: Int,
         maxHP: Int,
-        avatarData: Data?
+        avatarData: Data?,
+        campaignID: UUID?
     )
     case characterUpdated(characterID: UUID, currentHP: Int, maxHP: Int, level: Int, stress: Int, rerollPoints: Int, timestamp: Date)
     case characterDetails(
@@ -85,4 +86,5 @@ enum PartyMessage: Codable, Sendable {
     case requestCharacterSync
     // 🆕 ДМ запрашивает полную синхронизацию от игрока
     case requestSync
+    case connectionRejected(reason: String)
 }

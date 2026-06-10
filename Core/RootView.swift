@@ -1,3 +1,11 @@
+//
+//  RootView.swift
+//  Clarity
+//
+//  Created by KEBAB on 10.06.2026.
+//
+
+
 import SwiftUI
 import SwiftData
 

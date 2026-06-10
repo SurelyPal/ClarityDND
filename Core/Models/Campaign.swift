@@ -5,12 +5,12 @@
 //  Created by KEBAB on 10.06.2026.
 //
 
-
 import Foundation
 
-// MARK: - Модель Кампании (Party Session)
+// MARK: - Модель Кампании (Партии/Сессии)
 
-/// Представляет одну игровую партию/кампанию ДМа
+/// Структура, представляющая одну игровую кампанию ДМа.
+/// Сохраняется как JSON файл в Documents/Campaigns/
 struct Campaign: Identifiable, Codable, Equatable, Sendable {
     
     // MARK: - Свойства
@@ -18,28 +18,28 @@ struct Campaign: Identifiable, Codable, Equatable, Sendable {
     /// Уникальный идентификатор кампании
     let id: UUID
     
-    /// Название кампании (например, "Проклятие Страда", "Затерянные шахты")
+    /// Название кампании (например, "Проклятие Страда")
     var name: String
     
     /// Дата создания кампании
     let createdAt: Date
     
-    /// Дата последнего сохранения/игры
+    /// Дата последней игры/сохранения
     var lastPlayedAt: Date
     
-    /// Код комнаты Multipeer (4 символа)
+    /// Код комнаты Multipeer (6 цифр)
     var roomCode: String
     
     /// Правила игры (счётчики отдыхов и т.д.)
     var gameRules: GameRules
     
-    /// Список участников партии
+    /// Список участников партии (PartyMember)
     var members: [PartyMember]
     
-    /// Активен ли сейчас хостинг этой кампании
+    /// Активна ли сейчас эта кампания (хостится ли)
     var isActive: Bool
     
-    /// Заметки ДМа о кампании
+    /// Заметки ДМа о кампании (для будущих версий)
     var dmNotes: String
     
     // MARK: - Инициализация
@@ -68,17 +68,17 @@ struct Campaign: Identifiable, Codable, Equatable, Sendable {
     
     // MARK: - Вычисляемые свойства
     
-    /// Количество игроков в партии
+    /// Общее количество игроков в партии
     var playerCount: Int {
         return members.count
     }
     
-    /// Количество онлайн-игроков
+    /// Количество онлайн-игроков (подключённых сейчас)
     var onlinePlayerCount: Int {
         return members.filter { $0.isConnected }.count
     }
     
-    /// Форматированная дата последней игры
+    /// Отформатированная дата последней игры (для отображения в UI)
     var formattedLastPlayed: String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ru_RU")
@@ -87,7 +87,7 @@ struct Campaign: Identifiable, Codable, Equatable, Sendable {
         return formatter.string(from: lastPlayedAt)
     }
     
-    /// Краткое описание для UI
+    /// Краткое описание для UI ("3 игр. (2 онлайн)")
     var summary: String {
         let online = onlinePlayerCount
         let total = playerCount
@@ -95,11 +95,11 @@ struct Campaign: Identifiable, Codable, Equatable, Sendable {
     }
 }
 
-// MARK: - Вспомогательные методы
+// MARK: - Вспомогательные статические методы
 
 extension Campaign {
     
-    /// Создаёт пустую кампанию с заданным именем
+    /// Создаёт новую пустую кампанию с заданным именем и случайным кодом
     static func new(name: String) -> Campaign {
         return Campaign(
             name: name,
@@ -107,9 +107,8 @@ extension Campaign {
         )
     }
     
-    /// Генерирует случайный 4-символьный код комнаты
+    /// Генерирует случайный 6-значный код комнаты
     static func generateRoomCode() -> String {
-        let letters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-        return String((0..<4).map { _ in letters.randomElement()! })
+        return String((100000..<999999).randomElement()!)
     }
 }

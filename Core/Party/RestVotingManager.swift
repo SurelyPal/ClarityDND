@@ -12,7 +12,7 @@
 //
 //  Created by Refactor on 09.06.2026.
 //
-
+import Observation
 import Foundation
 
 /// Отдельный менеджер для системы голосования за отдых.

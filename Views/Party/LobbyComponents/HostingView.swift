@@ -88,11 +88,11 @@ struct HostingView: View {
 
             Button {
                 PlatformCompatibility.hapticNotification(.warning)
-                partyManager.stopHosting()
+                partyManager.endCampaignSession()
             } label: {
                 HStack(spacing: 8) {
-                    Image(systemName: "stop.circle.fill")
-                    Text("Закрыть комнату")
+                        Image(systemName: "stop.circle.fill")
+                        Text("Завершить сессию")
                 }
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(Color.dsRed)
