@@ -28,9 +28,27 @@ struct PartyMemberRow: View {
                 HStack(spacing: 6) {
                     Text(member.name)
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(member.isConnected ? Color.dsText : Color.dsTextDim.opacity(0.6))  // ✅ Более бледный для offline
-                    
-                    if !member.isConnected {
+                        .foregroundColor(member.isCharacterDeleted ? Color.dsTextDim.opacity(0.5) : (member.isConnected ? Color.dsText : Color.dsTextDim.opacity(0.6)))
+
+                    // ✅ НОВАЯ ЛОГИКА: Проверяем isCharacterDeleted ПЕРЕД isConnected
+                    if member.isCharacterDeleted {
+                        HStack(spacing: 3) {
+                            Image(systemName: "trash.fill")
+                                .font(.system(size: 7))
+                            Text("ПЕРСОНАЖ УДАЛЕН")
+                                .font(.system(size: 7, weight: .bold))
+                                .tracking(0.5)
+                        }
+                        .foregroundColor(Color.white)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(Color.dsRed.opacity(0.85))
+                        .cornerRadius(3)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 3)
+                                .stroke(Color.dsRed.opacity(0.6), lineWidth: 1)
+                        )
+                    } else if !member.isConnected {
                         Text("ОФЛАЙН")
                             .font(.system(size: 7, weight: .bold))
                             .tracking(0.5)
@@ -41,10 +59,10 @@ struct PartyMemberRow: View {
                             .cornerRadius(2)
                     }
                 }
-                
+
                 Text("\(member.race.rawValue) · \(member.characterClass)")
                     .font(.system(size: 11))
-                    .foregroundColor(Color.dsTextDim.opacity(member.isConnected ? 1.0 : 0.5))  // ✅ Бледнее для offline
+                    .foregroundColor(member.isCharacterDeleted ? Color.dsTextDim.opacity(0.4) : Color.dsTextDim.opacity(member.isConnected ? 1.0 : 0.5))
             }
             
             Spacer()

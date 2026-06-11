@@ -453,7 +453,7 @@ struct CharacterSheetView: View {
         // MARK: - Жест открытия/закрытия drawer'а
         
         private var drawerDragGesture: some Gesture {
-            DragGesture(minimumDistance: 20)
+            DragGesture(minimumDistance: 15)
                 .onChanged { value in
                     let horizontal = value.translation.width
                     let vertical = value.translation.height

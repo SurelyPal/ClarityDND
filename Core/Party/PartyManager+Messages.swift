@@ -389,25 +389,25 @@ extension PartyManager {
         guard role == .dungeonMaster else { return }
         guard peerID.displayName != self.localPeerID.displayName else { return }
         
-        // ✅ СТРОГАЯ ПРОВЕРКА: Персонаж ДОЛЖЕН быть привязан к текущей кампании ДМа
+        // ✅ ПРОВЕРКА КАМПАНИИ: Разрешаем подключение и автоматически привязываем, если ID нет
         if let activeCampaign = campaignManager.activeCampaign {
-            let activeCampaignID = activeCampaign.id  // ✅ id уже UUID, не optional
+            let activeCampaignID = activeCampaign.id
             
             if let characterCampaignID = campaignID {
-                // У персонажа есть ID кампании. Проверяем совпадение.
+                // У персонажа уже есть campaignID. Проверяем совпадение.
                 if characterCampaignID != activeCampaignID {
                     log("⛔ Отклонено: \(name) привязан к ДРУГОЙ кампании (\(characterCampaignID))")
-                    sendRejection(to: peerID, reason: "Персонаж не может подключиться к кампании")
+                    sendRejection(to: peerID, reason: "Персонаж привязан к другой кампании")
                     return
                 }
-                log("✅ Кампания совпадает: \(name) подключается к \(activeCampaign.name ?? "Без названия")")
+                log("✅ Кампания совпадает: \(name) подключается")
             } else {
-                // У персонажа НЕТ ID кампании, а у ДМа она есть. Отклоняем.
+                // ✅ КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: У персонажа НЕТ campaignID.
+                // Мы НЕ отклоняем его, а принимаем и отправляем команду привязки!
                 log("ℹ️ \(name) не привязан к кампании — принимаем и привязываем автоматически")
-                        sendCampaignBinding(to: peerID, campaignID: activeCampaignID)
+                sendCampaignBinding(to: peerID, campaignID: activeCampaignID)
             }
         }
-        
         let race = Race(rawValue: raceRaw) ?? .human
         
         let member = PartyMember(
@@ -523,33 +523,41 @@ extension PartyManager {
     
     // MARK: - Обработка удаления персонажа
 
+    // MARK: - Обработка удаления персонажа
+
     private func handleCharacterDeletion(characterID: UUID) {
         guard role == .dungeonMaster else { return }
         
-        // 1. Получаем mutable копию кампании
-        guard var campaign = campaignManager.activeCampaign else {
-            log("⚠️ handleCharacterDeletion: activeCampaign is nil")
-            return
-        }
-        
-        // 2. Находим члена партии по его ID (не characterID!)
-        if let memberIndex = campaign.members.firstIndex(where: { $0.id == characterID }) {
+        // 1. Ищем игрока в живом списке partyMembers (который отображается на экране)
+        if let memberIndex = partyMembers.firstIndex(where: { $0.id == characterID }) {
+            let deletedName = partyMembers[memberIndex].name
             
-            // 3. Помечаем как удалённого и оффлайн
-            campaign.members[memberIndex].isCharacterDeleted = true
-            campaign.members[memberIndex].isConnected = false // было isOnline
+            // 2. НЕ удаляем, а меняем статус на "удалён" и "оффлайн"
+            var updatedMember = partyMembers[memberIndex]
+            updatedMember.isConnected = false
+            updatedMember.isCharacterDeleted = true  // ✅ Флаг для отображения плашки
+            updatedMember.lastSeen = Date()
             
-            // 4. Сохраняем через CampaignManager
-            campaignManager.updateActiveCampaign(members: campaign.members)
+            // 3. Обновляем массив partyMembers
+            var newMembers = partyMembers
+            newMembers[memberIndex] = updatedMember
+            partyMembers = newMembers
             
-            // 5. Удаляем из локального списка ДМа и обновляем UI
-            partyMembers.removeAll { $0.id == characterID }
+            // 4. Также обновляем сохранённую кампанию (для восстановления после перезапуска)
+            if var campaign = campaignManager.activeCampaign,
+               let campaignMemberIndex = campaign.members.firstIndex(where: { $0.id == characterID }) {
+                campaign.members[campaignMemberIndex].isCharacterDeleted = true
+                campaign.members[campaignMemberIndex].isConnected = false
+                campaignManager.updateActiveCampaign(members: campaign.members)
+            }
+            
+            // 5. Сохраняем состояние и рассылаем обновлённый список всем
             savePartyState()
             broadcastPartyList()
             
-            log("🗑️ Персонаж удалён в кампании: \(characterID)")
+            log("🗑️ ДМ: Игрок \(deletedName) удалил персонажа. Помечен как удалённый в списке.")
         } else {
-            log("⚠️ handleCharacterDeletion: Персонаж \(characterID) не найден в кампании")
+            log("⚠️ ДМ: Получено уведомление об удалении \(characterID), но его нет в partyMembers")
         }
     }
     

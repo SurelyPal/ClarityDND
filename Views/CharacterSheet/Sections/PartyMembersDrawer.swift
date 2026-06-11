@@ -12,9 +12,12 @@ struct PartyMembersDrawer: View {
     @Binding var isOpen: Bool
     let members: [PartyMember]
     let onSelect: (PartyMember) -> Void
+    private var activeMembers: [PartyMember] {
+        partyManager.partyMembers.filter { !$0.isCharacterDeleted }
+    }
     
     var body: some View {
-        ForEach(partyManager.partyMembers) { member in
+        
             HStack(spacing: 0) {
                 
                 Spacer()
@@ -55,25 +58,26 @@ struct PartyMembersDrawer: View {
                     
                     DSdivider()
                         .padding(.horizontal, 16)
-                    
-                    // Список игроков
-                    if members.isEmpty {
-                        emptyState
-                    } else {
-                        ScrollView {
-                            VStack(spacing: 10) {
-                                ForEach(partyManager.partyMembers) { member in
-                                    Button {
-                                        onSelect(member)
-                                    } label: {
-                                        PartyMemberCard(member: member)
-                                    }
-                                    .buttonStyle(.plain)
+                
+                    // ✅ ИСПРАВЛЕНО: Список игроков с проверкой на пустоту отфильтрованного списка
+                if activeMembers.isEmpty {
+                    emptyState
+                } else {
+                    ScrollView {
+                        VStack(spacing: 10) {
+                            // ✅ ФИЛЬТРАЦИЯ: Перебираем только activeMembers
+                            ForEach(activeMembers) { member in
+                                Button {
+                                    onSelect(member)
+                                } label: {
+                                    PartyMemberCard(member: member)
                                 }
+                                .buttonStyle(.plain)
                             }
-                            .padding(16)
                         }
+                        .padding(16)
                     }
+                }
                     
                     Spacer()
                     
@@ -110,7 +114,7 @@ struct PartyMembersDrawer: View {
             .offset(x: isOpen ? 0 : 400)  // 🆕 +280 вместо -280 (уезжает вправо)
             .animation(.spring(response: 0.4, dampingFraction: 0.85), value: isOpen)
             .zIndex(1000)
-        }
+        
     }
         // MARK: - Пустое состояние
         
