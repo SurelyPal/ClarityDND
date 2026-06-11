@@ -96,10 +96,34 @@ struct PlayerFlowView: View {
         }
         .padding(.horizontal, 20)
         .onAppear {
-            // Небольшая задержка для плавной анимации появления
+            // 1. Принудительно обновляем список из SwiftData
+            store.refresh()
+            
+            // 2. Проверяем, не был ли selectedCharacter удалён
+            if let selected = partyManager.selectedCharacter {
+                let stillExists = store.characters.contains { $0.id == selected.id }
+                
+                if !stillExists {
+                    partyManager.clearSelectedCharacter()
+                    print("🧹 [PlayerFlowView] selectedCharacter очищен: персонаж был удалён")
+                }
+            }
+            
+            // 3. Анимация появления
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     isLoadingCharacters = false
+                }
+            }
+        }
+        // ✅ НОВОЕ: Реагируем на изменения списка персонажей в реальном времени
+        .onChange(of: store.characters) { oldCharacters, newCharacters in
+            if let selected = partyManager.selectedCharacter {
+                let stillExists = newCharacters.contains { $0.id == selected.id }
+                
+                if !stillExists {
+                    partyManager.clearSelectedCharacter()
+                    print("🧹 [PlayerFlowView.onChange] selectedCharacter очищен: персонаж удалён во время просмотра")
                 }
             }
         }

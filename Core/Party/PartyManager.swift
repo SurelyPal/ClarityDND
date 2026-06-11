@@ -112,8 +112,6 @@ final class PartyManager: NSObject, ObservableObject {
     var lastHPBroadcastTime: Date = .distantPast
     var lastFullBroadcastTime: Date = .distantPast
    
-    
-
     // MARK: - Init
 
     private override init() {
@@ -295,9 +293,20 @@ final class PartyManager: NSObject, ObservableObject {
         self.browser?.startBrowsingForPeers()
     }
 
+    /// Полностью очищает состояние выбранного персонажа и его привязок к кампании
     func clearSelectedCharacter() {
+        // 1. Сбрасываем выбранного персонажа
+        // (Если свойство private(set), убедись, что этот метод находится внутри extension PartyManager или класса)
         self.selectedCharacter = nil
-        saveSelectedCharacterID(nil)
+        
+        // 2. Сбрасываем ID ожидающей кампании
+        self.pendingCampaignID = nil
+        
+        // 3. Очищаем UserDefaults от всех следов этого персонажа
+        UserDefaults.standard.removeObject(forKey: "pendingCampaignBinding")
+        UserDefaults.standard.removeObject(forKey: "lastSelectedCharacterID") // если такой ключ используется
+        
+        log("🧹 Состояние персонажа и привязки к кампании полностью очищены")
     }
 
     func startSearching(with character: DNDCharacter) {

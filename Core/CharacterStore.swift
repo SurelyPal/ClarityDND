@@ -34,25 +34,38 @@ final class CharacterStore: ObservableObject {
         save()
         fetchAll()
     }
+    
     func delete(at offsets: IndexSet) {
         for index in offsets {
             let character = characters[index]
             
-            // ✅ НОВОЕ: Помечаем как удалённый вместо физического удаления
-            character.isDeleted = true
+            // 1. Если удаляемый персонаж сейчас выбран в PartyManager, очищаем его
+            if PartyManager.shared.selectedCharacter?.id == character.id {
+                PartyManager.shared.clearSelectedCharacter()
+                print("🧹 [CharacterStore] selectedCharacter очищен при удалении: \(character.displayName)")
+            }
             
-            // ✅ НОВОЕ: Синхронизируем удаление с партией (если игрок подключён)
+            // 2. Если удаляемый персонаж был привязан к кампании, очищаем UserDefaults
+            if character.campaignID != nil {
+                UserDefaults.standard.removeObject(forKey: "pendingCampaignBinding")
+                PartyManager.shared.pendingCampaignID = nil
+            }
+            
+            // 3. ✅ КРИТИЧНО: Если мы ИГРОК и подключены к ДМу — уведомляем ДМа ПЕРЕД удалением
+            // ✅ ПРАВИЛЬНО: используем pattern matching для enum с associated value
             if PartyManager.shared.role == .player,
                case .connected = PartyManager.shared.connectionState {
                 PartyManager.shared.syncCharacterDeletion(characterID: character.id)
+                print("📤 [CharacterStore] Уведомление ДМа об удалении: \(character.displayName)")
             }
+            
+            // 4. Удаляем из базы данных SwiftData
+            context.delete(character)
         }
-        // ✅ Сохраняем изменения в SwiftData
         save()
-        // ✅ Обновляем локальный массив characters
-        fetchAll()
     }
-    // MARK: - Умная синхронизация
+    
+// MARK: - Умная синхронизация
 
     /// Какие поля персонажа требуют полной синхронизации с ДМ
     enum ChangedField {
@@ -88,9 +101,13 @@ final class CharacterStore: ObservableObject {
     }
     private func fetchAll() {
         let descriptor = FetchDescriptor<DNDCharacter>(
-            sortBy: [SortDescriptor(\.name, order: .forward)]
+            sortBy: [SortDescriptor(\.name, order: .forward)]  // ✅ Правильное имя SwiftData свойства
         )
         characters = (try? context.fetch(descriptor)) ?? []
+        
+        #if DEBUG
+        print("📦 fetchAll: загружено \(characters.count) персонажей")
+        #endif
     }
     
     private func save() {
