@@ -34,6 +34,7 @@
 		1521C0972FD3EC7700FD2981 /* PartyMembersDrawer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1521C0962FD3EC7700FD2981 /* PartyMembersDrawer.swift */; };
 		1521C0A12FD58BA900FD2981 /* RestVoteOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1521C0A02FD58BA900FD2981 /* RestVoteOverlayView.swift */; };
 		1521C0A32FD58D1300FD2981 /* RestEffectOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1521C0A22FD58D1300FD2981 /* RestEffectOverlayView.swift */; };
+		153EAAD32FDADED700F7E972 /* CharacterInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 153EAAD22FDADED700F7E972 /* CharacterInfoView.swift */; };
 		15408BE72FD746D7005F24EA /* HPHistorySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15408BE62FD746D7005F24EA /* HPHistorySheet.swift */; };
 		15DF91E32FD21640007A87F8 /* ClarityApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF91E22FD21640007A87F8 /* ClarityApp.swift */; };
 		15DF91E52FD21640007A87F8 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF91E42FD21640007A87F8 /* ContentView.swift */; };
@@ -123,6 +124,7 @@
 		1521C0962FD3EC7700FD2981 /* PartyMembersDrawer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartyMembersDrawer.swift; sourceTree = "<group>"; };
 		1521C0A02FD58BA900FD2981 /* RestVoteOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestVoteOverlayView.swift; sourceTree = "<group>"; };
 		1521C0A22FD58D1300FD2981 /* RestEffectOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestEffectOverlayView.swift; sourceTree = "<group>"; };
+		153EAAD22FDADED700F7E972 /* CharacterInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacterInfoView.swift; sourceTree = "<group>"; };
 		15408BE62FD746D7005F24EA /* HPHistorySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HPHistorySheet.swift; sourceTree = "<group>"; };
 		15DF91E22FD21640007A87F8 /* ClarityApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClarityApp.swift; sourceTree = "<group>"; };
 		15DF91E42FD21640007A87F8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -266,6 +268,7 @@
 		15DF91EE2FD216F7007A87F8 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				153EAAD22FDADED700F7E972 /* CharacterInfoView.swift */,
 				15DF91E42FD21640007A87F8 /* ContentView.swift */,
 				15DF92BD2FD2DCAD007A87F8 /* Party */,
 				15DF91F82FD217E9007A87F8 /* Map */,
@@ -622,6 +625,7 @@
 				15DF92C72FD2F27D007A87F8 /* DungeonMasterDetailView.swift in Sources */,
 				15DF921E2FD21A25007A87F8 /* CharacterCreationView.swift in Sources */,
 				15DF92282FD21AA4007A87F8 /* PointBuyRow.swift in Sources */,
+				153EAAD32FDADED700F7E972 /* CharacterInfoView.swift in Sources */,
 				15DF92502FD21DF5007A87F8 /* DSColors.swift in Sources */,
 				15DF91E52FD21640007A87F8 /* ContentView.swift in Sources */,
 				15DF924F2FD21D33007A87F8 /* TarotTabView.swift in Sources */,

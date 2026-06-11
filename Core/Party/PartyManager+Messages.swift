@@ -290,10 +290,10 @@ extension PartyManager {
             
         case .characterUpdated(let charID, let currentHP, let maxHP, let level, let stress, let rerollPoints, let timestamp):
             handleCharacterUpdated(charID: charID, currentHP: currentHP, maxHP: maxHP, level: level, stress: stress, rerollPoints: rerollPoints, timestamp: timestamp)
-        
+            
         case .characterDeleted(let characterID):
-                    // ✅ НОВОЕ: Обработка удаления персонажа
-                    handleCharacterDeletion(characterID: characterID)
+            // ✅ НОВОЕ: Обработка удаления персонажа
+            handleCharacterDeletion(characterID: characterID)
             
         case .partyList(let members):
             handlePartyList(members: members)
@@ -303,7 +303,7 @@ extension PartyManager {
             savePartyState()
             // ✅ НОВОЕ: Обработка привязки к кампании
         case .campaignBinding(let campaignID):
-                    handleCampaignBinding(campaignID: campaignID)
+            handleCampaignBinding(campaignID: campaignID)
             // 🆕 Игрок запросил начать голосование — ДМ формирует список и рассылает
         case .requestRestVote(let restType, let requesterID, let requesterName):
             handleRequestRestVote(restType: restType, requesterID: requesterID, requesterName: requesterName)
@@ -320,7 +320,7 @@ extension PartyManager {
         case .restVoteFailed(let reason):
             log("❌ Голосование отменено: \(reason)")
             restVotingManager.cancelSession()
-        
+            
         case .restsReset:
             handleRestsReset()
             
@@ -388,26 +388,29 @@ extension PartyManager {
     ) {
         guard role == .dungeonMaster else { return }
         guard peerID.displayName != self.localPeerID.displayName else { return }
-
-        // ✅ ИСПРАВЛЕНО: Автоматическая привязка к кампании вместо отклонения
-        if let activeCampaignID = currentCampaignID {
+        
+        // ✅ СТРОГАЯ ПРОВЕРКА: Персонаж ДОЛЖЕН быть привязан к текущей кампании ДМа
+        if let activeCampaign = campaignManager.activeCampaign {
+            let activeCampaignID = activeCampaign.id  // ✅ id уже UUID, не optional
+            
             if let characterCampaignID = campaignID {
-                // У персонажа уже есть campaignID
+                // У персонажа есть ID кампании. Проверяем совпадение.
                 if characterCampaignID != activeCampaignID {
-                    log("⚠️ Отклонено: \(name) привязан к другой кампании")
-                    sendRejection(to: peerID, reason: "Персонаж привязан к другой кампании")
+                    log("⛔ Отклонено: \(name) привязан к ДРУГОЙ кампании (\(characterCampaignID))")
+                    sendRejection(to: peerID, reason: "Персонаж не может подключиться к кампании")
                     return
                 }
-                log("✅ Кампания совпадает: \(name) может подключиться")
+                log("✅ Кампания совпадает: \(name) подключается к \(activeCampaign.name ?? "Без названия")")
             } else {
-                // ✅ НОВОЕ: У персонажа нет campaignID — НЕ отклоняем, а принимаем и привязываем
-                log("ℹ️ \(name) не привязан к кампании — принимаем и привязываем автоматически")
-                sendCampaignBinding(to: peerID, campaignID: activeCampaignID)
+                // У персонажа НЕТ ID кампании, а у ДМа она есть. Отклоняем.
+                log("⛔ Отклонено: \(name) не привязан ни к одной кампании")
+                sendRejection(to: peerID, reason: "Персонаж не может подключиться к кампании")
+                return
             }
         }
-
+        
         let race = Race(rawValue: raceRaw) ?? .human
-
+        
         let member = PartyMember(
             id: charID,
             peerID: peerID,
@@ -420,7 +423,7 @@ extension PartyManager {
             stress: 0,
             avatarData: avatarData
         )
-
+        
         if let idx = partyMembers.firstIndex(where: { $0.id == charID }) {
             var newMembers = partyMembers
             newMembers[idx] = member
@@ -431,7 +434,7 @@ extension PartyManager {
             log("🎭 ДМ: \(name) в партии (аватар: \(avatarData != nil ? "✅" : "❌"))")
         }
         savePartyState()
-
+        
         broadcastPartyList()
     }
     
@@ -489,7 +492,7 @@ extension PartyManager {
         }
         
         lastUpdateTime[charID] = timestamp
-
+        
         // ✅ Запоминаем СТАРЫЙ level для сравнения
         let oldLevel = partyMembers[idx].level
         
@@ -500,11 +503,11 @@ extension PartyManager {
         updatedMember.stress = stress
         updatedMember.rerollPoints = rerollPoints
         updatedMember.lastSeen = Date()
-
+        
         var newMembers = partyMembers
         newMembers[idx] = updatedMember
         partyMembers = newMembers
-
+        
         savePartyState()
         
         // ✅ Если level изменился — принудительный broadcast (обходит throttling)
@@ -520,7 +523,7 @@ extension PartyManager {
     }
     
     // MARK: - Обработка удаления персонажа
-
+    
     private func handleCharacterDeletion(characterID: UUID) {
         guard role == .dungeonMaster else { return }
         
@@ -732,109 +735,117 @@ extension PartyManager {
     private func handleCampaignBinding(campaignID: UUID) {
         log("🔗 Получена команда привязки к кампании: \(campaignID)")
         
-        // ✅ Сохраняем campaignID в UserDefaults для будущих подключений
         UserDefaults.standard.set(campaignID.uuidString, forKey: "pendingCampaignBinding")
         self.pendingCampaignID = campaignID
         
-        log("✅ CampaignID сохранён в UserDefaults: \(campaignID)")
-    }
-    // MARK: - Принудительная синхронизация
-    
-    /// Принудительная синхронизация (обходит throttling).
-    /// Используется при критичных изменениях: level up, demotion, смена класса.
-    func syncBasic(_ character: DNDCharacter) {
-        guard role == .player,
-              case .connected = connectionState,
-              let session = session,
-              !session.connectedPeers.isEmpty else { return }
-
-        // ✅ DEBOUNCE: отменяем предыдущую отложенную задачу
-        throttledSyncTask?.cancel()
-        
-        // Захватываем текущие значения для отложенной отправки
-        let characterID = character.id
-        let currentHP = character.currentHP
-        let maxHP = character.hitPoints
-        let level = character.level
-        let stress = character.stress
-        let rerollPoints = character.rerollPoints
-        
-        // ✅ Создаём новую отложенную задачу (debounce 0.5 сек)
-        throttledSyncTask = Task { [weak self] in
-            // Ждём 0.5 секунды тишины
-            try? await Task.sleep(for: .seconds(0.5))
+        // ✅ Записываем ID в модель персонажа (без if let, так как campaignID уже не optional)
+        if let character = selectedCharacter {
+            character.campaignID = campaignID  // ✅ Просто присваиваем
+            character.campaignName = "Текущая кампания"
             
-            guard !Task.isCancelled, let self = self else { return }
-            
-            // Проверяем что всё ещё подключены
-            guard case .connected = self.connectionState else { return }
-            
-            self.lastBasicSyncTime = Date()
-            
-            let message = PartyMessage.characterUpdated(
-                characterID: characterID,
-                currentHP: currentHP,
-                maxHP: maxHP,
-                level: level,
-                stress: stress,
-                rerollPoints: rerollPoints,
-                timestamp: Date()
-            )
-            self.send(message)
-            
-            self.log("📤 syncBasic (debounced): HP=\(currentHP)/\(maxHP), level=\(level)")
+            log("✅ CampaignID записан в модель персонажа: \(campaignID)")
+        } else {
+            log("⚠️ Не удалось записать CampaignID: selectedCharacter равен nil")
         }
     }
-    /// Принудительная синхронизация (обходит debounce).
-    /// Используется при критичных изменениях: level up, demotion, смена класса.
-    func forceSyncBasic(_ character: DNDCharacter) {
-        guard role == .player,
-              case .connected = connectionState,
-              let session = session,
-              !session.connectedPeers.isEmpty else { return }
+        // MARK: - Принудительная синхронизация
         
-        // ✅ КРИТИЧНО: отменяем отложенную задачу чтобы она не перезаписала свежие данные
-        throttledSyncTask?.cancel()
-        throttledSyncTask = nil
+        /// Принудительная синхронизация (обходит throttling).
+        /// Используется при критичных изменениях: level up, demotion, смена класса.
+        func syncBasic(_ character: DNDCharacter) {
+            guard role == .player,
+                  case .connected = connectionState,
+                  let session = session,
+                  !session.connectedPeers.isEmpty else { return }
+            
+            // ✅ DEBOUNCE: отменяем предыдущую отложенную задачу
+            throttledSyncTask?.cancel()
+            
+            // Захватываем текущие значения для отложенной отправки
+            let characterID = character.id
+            let currentHP = character.currentHP
+            let maxHP = character.hitPoints
+            let level = character.level
+            let stress = character.stress
+            let rerollPoints = character.rerollPoints
+            
+            // ✅ Создаём новую отложенную задачу (debounce 0.5 сек)
+            throttledSyncTask = Task { [weak self] in
+                // Ждём 0.5 секунды тишины
+                try? await Task.sleep(for: .seconds(0.5))
+                
+                guard !Task.isCancelled, let self = self else { return }
+                
+                // Проверяем что всё ещё подключены
+                guard case .connected = self.connectionState else { return }
+                
+                self.lastBasicSyncTime = Date()
+                
+                let message = PartyMessage.characterUpdated(
+                    characterID: characterID,
+                    currentHP: currentHP,
+                    maxHP: maxHP,
+                    level: level,
+                    stress: stress,
+                    rerollPoints: rerollPoints,
+                    timestamp: Date()
+                )
+                self.send(message)
+                
+                self.log("📤 syncBasic (debounced): HP=\(currentHP)/\(maxHP), level=\(level)")
+            }
+        }
+        /// Принудительная синхронизация (обходит debounce).
+        /// Используется при критичных изменениях: level up, demotion, смена класса.
+        func forceSyncBasic(_ character: DNDCharacter) {
+            guard role == .player,
+                  case .connected = connectionState,
+                  let session = session,
+                  !session.connectedPeers.isEmpty else { return }
+            
+            // ✅ КРИТИЧНО: отменяем отложенную задачу чтобы она не перезаписала свежие данные
+            throttledSyncTask?.cancel()
+            throttledSyncTask = nil
+            
+            // Сбрасываем throttling
+            lastBasicSyncTime = .distantPast
+            
+            let message = PartyMessage.characterUpdated(
+                characterID: character.id,
+                currentHP: character.currentHP,
+                maxHP: character.hitPoints,
+                level: character.level,
+                stress: character.stress,
+                rerollPoints: character.rerollPoints,
+                timestamp: Date()
+            )
+            send(message)
+            
+            lastBasicSyncTime = Date()
+            
+            log("📤 forceSyncBasic: HP=\(character.currentHP)/\(character.hitPoints), level=\(character.level)")
+        }
+        // MARK: - Принудительный broadcast (обходит throttling)
         
-        // Сбрасываем throttling
-        lastBasicSyncTime = .distantPast
-        
-        let message = PartyMessage.characterUpdated(
-            characterID: character.id,
-            currentHP: character.currentHP,
-            maxHP: character.hitPoints,
-            level: character.level,
-            stress: character.stress,
-            rerollPoints: character.rerollPoints,
-            timestamp: Date()
-        )
-        send(message)
-        
-        lastBasicSyncTime = Date()
-        
-        log("📤 forceSyncBasic: HP=\(character.currentHP)/\(character.hitPoints), level=\(character.level)")
+        /// Принудительный broadcast всего partyList (обходит throttling).
+        /// Используется при критичных изменениях: level up, demotion.
+        func forceBroadcastPartyList() {
+            guard role == .dungeonMaster,
+                  let session = session,
+                  !session.connectedPeers.isEmpty else { return }
+            
+            // Отменяем отложенные задачи
+            throttledBroadcastTask?.cancel()
+            throttledBroadcastTask = nil
+            
+            // Сбрасываем throttling
+            lastBroadcastTime = .distantPast
+            
+            send(PartyMessage.partyList(members: partyMembers))
+            
+            lastBroadcastTime = Date()
+            
+            log("📤 forceBroadcastPartyList: \(partyMembers.count) игроков")
+        }
     }
-    // MARK: - Принудительный broadcast (обходит throttling)
 
-    /// Принудительный broadcast всего partyList (обходит throttling).
-    /// Используется при критичных изменениях: level up, demotion.
-    func forceBroadcastPartyList() {
-        guard role == .dungeonMaster,
-              let session = session,
-              !session.connectedPeers.isEmpty else { return }
-        
-        // Отменяем отложенные задачи
-        throttledBroadcastTask?.cancel()
-        throttledBroadcastTask = nil
-        
-        // Сбрасываем throttling
-        lastBroadcastTime = .distantPast
-        
-        send(PartyMessage.partyList(members: partyMembers))
-        
-        lastBroadcastTime = Date()
-        
-        log("📤 forceBroadcastPartyList: \(partyMembers.count) игроков")
-    }
-}

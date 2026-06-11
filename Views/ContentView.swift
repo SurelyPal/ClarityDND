@@ -23,6 +23,8 @@ struct ContentView: View {
     /// Показать экран создания персонажа
     @State private var showingCreation = false
     
+    @State private var selectedCharacterForInfo: DNDCharacter? = nil
+    
     @Query(
         filter: #Predicate<DNDCharacter> { character in
             !character.isDeleted  // ✅ НОВОЕ: Показываем только не удалённых
@@ -206,7 +208,6 @@ struct ContentView: View {
     
     private func characterList(store: CharacterStore) -> some View {
         List {
-            // ✅ ИСПРАВЛЕНО: Явно указываем тип (character: DNDCharacter), чтобы помочь компилятору
             ForEach(characters, id: \.id) { (character: DNDCharacter) in
                 NavigationLink(destination: CharacterSheetView(character: character)
                     .environmentObject(store)) {
@@ -215,6 +216,16 @@ struct ContentView: View {
                     .listRowBackground(Color.dsSurface)
                     .listRowSeparatorTint(Color.dsBorder)
                     .contextMenu {
+                        // ✅ НОВОЕ: Кнопка информации о персонаже
+                        Button(action: {
+                            selectedCharacterForInfo = character
+                            PlatformCompatibility.hapticImpact(.light)
+                        }) {
+                            Label("Информация о персонаже", systemImage: "info.circle")
+                        }
+                        
+                        Divider()
+                        
                         Button(role: .destructive) {
                             if let index = characters.firstIndex(where: { $0.id == character.id }) {
                                 store.delete(at: IndexSet(integer: index))
@@ -226,10 +237,14 @@ struct ContentView: View {
                     }
             }
             .onDelete { offsets in
-                // ✅ Удаляем через store, но список обновится автоматически через @Query
                 store.delete(at: offsets)
             }
         }
+        // ✅ НОВОЕ: Показываем sheet, когда selectedCharacterForInfo не nil
+        .sheet(item: $selectedCharacterForInfo) { (character: DNDCharacter) in
+            CharacterInfoView(character: character)
+        }
+        
         // ✅ ЭТИ МОДИФИКАТОРЫ ДОЛЖНЫ БЫТЬ ПОСЛЕ LIST, А НЕ ВНУТРИ!
         .listStyle(.plain)
         .scrollContentBackground(.hidden)  // ✅ Скрываем стандартный фон ячеек

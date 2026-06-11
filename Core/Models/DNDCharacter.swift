@@ -20,10 +20,11 @@ final class DNDCharacter {
     var level: Int
     var stats: AbilityScores
     var background: String
-    var campaignID: UUID?
     // MARK: - HP
     // 🔑 ВАЖНО: hitPoints = МАКСИМАЛЬНОЕ здоровье
     //           currentHP = ТЕКУЩЕЕ здоровье (уменьшается при уроне)
+    var campaignID: UUID?
+    var campaignName: String?
     var hitPoints: Int
     var currentHP: Int
     var alignment: DNDAlignment
@@ -63,6 +64,9 @@ final class DNDCharacter {
         self.instrumentModStorage = []
         self.avatarData = nil
         self.hpHistory = [] // 🆕 Инициализация истории
+        self.campaignID = campaignID       // ✅ Добавлено
+        self.campaignName = campaignName
+        
     }
 }
 
