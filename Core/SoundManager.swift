@@ -23,6 +23,7 @@ final class SoundManager {
     
     /// Все звуки игры
     enum Sound: String, CaseIterable {
+        case unequip = "unequip"
         case levelUp = "level_up"        // ✨ Золотой звон, арпеджио
         case demotion = "demotion"       // 🔻 Тёмный гул, разбитое стекло
         case tarotDraw = "tarot_draw"    // 🃏 Шуршание карты
@@ -85,6 +86,7 @@ final class SoundManager {
     /// Громкость для каждого звука (настраивается под баланс)
     private func volume(for sound: Sound) -> Float {
         switch sound {
+        case .unequip: return 0.5    
         case .levelUp: return 0.7   // Яркий, торжественный
         case .demotion: return 0.6  // Зловещий, не оглушающий
         case .tarotDraw: return 0.5 // Тихий, атмосферный

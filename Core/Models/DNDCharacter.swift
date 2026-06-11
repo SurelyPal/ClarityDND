@@ -26,10 +26,10 @@ final class DNDCharacter {
     //           currentHP = ТЕКУЩЕЕ здоровье (уменьшается при уроне)
     var hitPoints: Int
     var currentHP: Int
-    
     var alignment: DNDAlignment
     var stress: Int
     var rerollPoints: Int
+    var isDeleted: Bool
     var instrument: String?
     
     // MARK: - Коллекции
@@ -52,6 +52,7 @@ final class DNDCharacter {
         self.stats = AbilityScores()
         self.background = ""
         self.hitPoints = Constants.Character.defaultHP
+        self.isDeleted = false
         self.currentHP = Constants.Character.defaultHP  // 🔑 НОВОЕ: текущее = максимуму при создании
         self.alignment = .trueNeutral
         self.stress = 0

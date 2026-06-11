@@ -37,6 +37,7 @@ final class CharacterStore: ObservableObject {
     func delete(at offsets: IndexSet) {
         for index in offsets {
             context.delete(characters[index])
+            
         }
         save()
         fetchAll()

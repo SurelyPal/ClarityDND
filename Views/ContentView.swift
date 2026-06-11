@@ -103,6 +103,7 @@ struct ContentView: View {
                 }
             }
         }
+        .background(Color.dsBackground) 
         .preferredColorScheme(.dark)
     }
     
@@ -135,6 +136,7 @@ struct ContentView: View {
                 characterList(store: store)
             }
         }
+        .background(Color.dsBackground)  // ✅ НОВОЕ: фон для всего mainContent
         .environmentObject(store)
         .onAppear {
             // 🆕 Автопереподключение при запуске приложения
@@ -203,35 +205,48 @@ struct ContentView: View {
     
     private func characterList(store: CharacterStore) -> some View {
         List {
-            ForEach(characters) { character in
+            // ✅ ИСПРАВЛЕНО: Явно указываем тип (character: DNDCharacter), чтобы помочь компилятору
+            ForEach(characters, id: \.id) { (character: DNDCharacter) in
                 NavigationLink(destination: CharacterSheetView(character: character)
                     .environmentObject(store)) {
                         CharacterRowView(character: character)
                     }
                     .listRowBackground(Color.dsSurface)
                     .listRowSeparatorTint(Color.dsBorder)
+                    .contextMenu {
+                        Button(role: .destructive) {
+                            if let index = characters.firstIndex(where: { $0.id == character.id }) {
+                                store.delete(at: IndexSet(integer: index))
+                                SoundManager.shared.play(.unequip, haptic: .medium)
+                            }
+                        } label: {
+                            Label("Удалить персонажа", systemImage: "trash")
+                        }
+                    }
             }
             .onDelete { offsets in
                 // ✅ Удаляем через store, но список обновится автоматически через @Query
                 store.delete(at: offsets)
             }
-            .listStyle(.plain)
-            .scrollContentBackground(.hidden)
-            // 🆕 PULL-TO-REFRESH: потяни вниз для переподключения к партии
-            .refreshable {
-                SoundManager.shared.play(.equip, haptic: .light)
-                let success = await PartyManager.shared.reconnect()
-                
-                if success {
-                    print("✅ Успешное переподключение из ContentView")
-                }
-                
-                // ✅ Обновляем store.characters вручную (для синхронизации с партией)
-                store.refresh()
+        }
+        // ✅ ЭТИ МОДИФИКАТОРЫ ДОЛЖНЫ БЫТЬ ПОСЛЕ LIST, А НЕ ВНУТРИ!
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)  // ✅ Скрываем стандартный фон ячеек
+        .background(Color.dsBackground)     // ✅ Фон для самого List
+        .animation(nil, value: characters)
+        // 🆕 PULL-TO-REFRESH: потяни вниз для переподключения к партии
+        .refreshable {
+            SoundManager.shared.play(.equip, haptic: .light)
+            let success = await PartyManager.shared.reconnect()
+            
+            if success {
+                print("✅ Успешное переподключение из ContentView")
             }
+            
+            // ✅ Обновляем store.characters вручную (для синхронизации с партией)
+            store.refresh()
         }
     }
-    
     // MARK: - Компонент строки персонажа
     
     struct CharacterRowView: View {
