@@ -272,19 +272,25 @@ private extension PartyManager {
             sendJoinMessage(for: char)
             startHeartbeat()
         }
-        // ✅ НОВОЕ: Устанавливаем онлайн статус ТОЛЬКО если персонаж не удалён
-        // 1. Находим участника партии по его peerID
-        if let memberIndex = activeCampaign?.members.firstIndex(where: { $0.peerID == peerID.data }) {
+
+        // ✅ ИСПРАВЛЕНО: Устанавливаем онлайн статус ТОЛЬКО если персонаж не удалён
+        // 1. Находим участника партии по его peerID (сравниваем displayName)
+        if let memberIndex = campaignManager.activeCampaign?.members.firstIndex(where: { $0.peerID.displayName == peerID.displayName }) {
             
-            // 2. Проверяем, помечен ли его персонаж как удалённый
-            if activeCampaign!.members[memberIndex].isCharacterDeleted {
+            // 2. Получаем mutable копию кампании
+            guard var campaign = campaignManager.activeCampaign else { return }
+            
+            // 3. Проверяем, помечен ли его персонаж как удалённый
+            if campaign.members[memberIndex].isCharacterDeleted {
                 log("⚠️ Игрок подключился с удалённым персонажем. Онлайн статус НЕ обновляем.")
             } else {
-                // 3. Если персонаж НЕ удалён, ставим его онлайн
-                activeCampaign?.members[memberIndex].isOnline = true
+                // 4. Если персонаж НЕ удалён, ставим его онлайн
+                campaign.members[memberIndex].isConnected = true
                 
-                // 4. Синхронизируем состояние кампании (если у тебя есть такой метод)
-                // syncCampaignState()
+                // 5. Сохраняем изменения через CampaignManager
+                campaignManager.updateActiveCampaign(members: campaign.members)
+                
+                log("✅ Игрок \(campaign.members[memberIndex].name) теперь онлайн")
             }
         }
     }

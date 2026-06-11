@@ -520,22 +520,36 @@ extension PartyManager {
     }
     
     // MARK: - Обработка удаления персонажа
-    
+
     private func handleCharacterDeletion(characterID: UUID) {
         guard role == .dungeonMaster else { return }
         
-        // Находим члена партии с этим персонажем
-        if let memberIndex = activeCampaign?.members.firstIndex(where: { $0.characterID == characterID }) {
-            // Помечаем персонажа как удалённого в кампании
-            activeCampaign?.members[memberIndex].isCharacterDeleted = true
+        // 1. Получаем mutable копию текущей кампании
+        guard var campaign = campaignManager.activeCampaign else {
+            log("⚠️ handleCharacterDeletion: activeCampaign is nil")
+            return
+        }
+        
+        // 2. Находим члена партии с этим персонажем (используем .id, а не .characterID)
+        if let memberIndex = campaign.members.firstIndex(where: { $0.id == characterID }) {
             
-            // Убираем онлайн статус
-            activeCampaign?.members[memberIndex].isOnline = false
+            // 3. Помечаем персонажа как удалённого
+            campaign.members[memberIndex].isCharacterDeleted = true
             
-            // Синхронизируем изменения
-            syncCampaignState()
+            // 4. Убираем онлайн статус (используем isConnected, а не isOnline)
+            campaign.members[memberIndex].isConnected = false
+            
+            // 5. Сохраняем изменения через CampaignManager (вместо несуществующего syncCampaignState)
+            campaignManager.updateActiveCampaign(members: campaign.members)
             
             log("🗑️ Персонаж удалён в кампании: \(characterID)")
+            
+            // 6. Дополнительно: удаляем игрока из локального списка партии ДМа и обновляем UI
+            partyMembers.removeAll { $0.id == characterID }
+            broadcastPartyList()
+            
+        } else {
+            log("⚠️ handleCharacterDeletion: Персонаж \(characterID) не найден в кампании")
         }
     }
     
