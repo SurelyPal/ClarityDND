@@ -69,6 +69,12 @@ final class CharacterStore: ObservableObject {
             break
         }
     }
+    // MARK: - Публичный refresh для View
+
+    /// Принудительно обновляет массив characters из SwiftData
+    func refresh() {
+        fetchAll()
+    }
     private func fetchAll() {
         let descriptor = FetchDescriptor<DNDCharacter>(
             sortBy: [SortDescriptor(\.name, order: .forward)]

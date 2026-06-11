@@ -23,6 +23,12 @@ struct ContentView: View {
     /// Показать экран создания персонажа
     @State private var showingCreation = false
     
+    @Query(
+        filter: #Predicate<DNDCharacter> { _ in true },
+        sort: \DNDCharacter.name,
+        order: .forward
+    ) private var characters: [DNDCharacter]
+    
     // MARK: - Body
     
     var body: some View {
@@ -40,7 +46,7 @@ struct ContentView: View {
                 }
             }
             .toolbar {
-                #if os(iOS)
+#if os(iOS)
                 // Слева: кнопка Партии (MultiPeerConnectivity)
                 ToolbarItem(placement: .navigationBarLeading) {
                     NavigationLink(destination: PartyLobbyView()) {
@@ -64,7 +70,7 @@ struct ContentView: View {
                     }
                     .disabled(store == nil)
                 }
-                #elseif os(macOS)
+#elseif os(macOS)
                 // macOS: используем primaryAction для обеих кнопок
                 ToolbarItemGroup(placement: .primaryAction) {
                     NavigationLink(destination: PartyLobbyView()) {
@@ -85,11 +91,11 @@ struct ContentView: View {
                     }
                     .disabled(store == nil)
                 }
-                #endif
+#endif
             }
-            #if os(iOS)
+#if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
-            #endif
+#endif
             .sheet(isPresented: $showingCreation) {
                 if let store = store {
                     CharacterCreationView()
@@ -123,7 +129,7 @@ struct ContentView: View {
             DSdivider()
                 .padding(.horizontal, 20)
             
-            if store.characters.isEmpty {
+            if characters.isEmpty {
                 emptyState
             } else {
                 characterList(store: store)
@@ -197,7 +203,7 @@ struct ContentView: View {
     
     private func characterList(store: CharacterStore) -> some View {
         List {
-            ForEach(store.characters) { character in
+            ForEach(characters) { character in
                 NavigationLink(destination: CharacterSheetView(character: character)
                     .environmentObject(store)) {
                         CharacterRowView(character: character)
@@ -205,86 +211,92 @@ struct ContentView: View {
                     .listRowBackground(Color.dsSurface)
                     .listRowSeparatorTint(Color.dsBorder)
             }
-            .onDelete(perform: store.delete)
-        }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
-        // 🆕 PULL-TO-REFRESH: потяни вниз для переподключения к партии
-        .refreshable {
-            SoundManager.shared.play(.equip, haptic: .light)
-            let success = await PartyManager.shared.reconnect()
-            
-            if success {
-                print("✅ Успешное переподключение из ContentView")
+            .onDelete { offsets in
+                // ✅ Удаляем через store, но список обновится автоматически через @Query
+                store.delete(at: offsets)
+            }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            // 🆕 PULL-TO-REFRESH: потяни вниз для переподключения к партии
+            .refreshable {
+                SoundManager.shared.play(.equip, haptic: .light)
+                let success = await PartyManager.shared.reconnect()
+                
+                if success {
+                    print("✅ Успешное переподключение из ContentView")
+                }
+                
+                // ✅ Обновляем store.characters вручную (для синхронизации с партией)
+                store.refresh()
             }
         }
     }
-}
-
-// MARK: - Компонент строки персонажа
-
-struct CharacterRowView: View {
     
-    let character: DNDCharacter
+    // MARK: - Компонент строки персонажа
     
-    var body: some View {
-        HStack(spacing: 12) {
-            
-            AvatarView(
-                avatarData: character.avatarData,
-                race: character.race,
-                size: 44
-            )
-            
-            VStack(alignment: .leading, spacing: 3) {
-                Text(character.displayName)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(Color.dsText)
+    struct CharacterRowView: View {
+        
+        let character: DNDCharacter
+        
+        var body: some View {
+            HStack(spacing: 12) {
                 
-                Text("\(character.race.rawValue) · \(character.characterClass.rawValue)")
-                    .font(.system(size: 12))
-                    .foregroundColor(Color.dsTextDim)
-            }
-            
-            Spacer()
-            
-            VStack(alignment: .trailing, spacing: 3) {
-                Text("Веха \(character.level)")
-                    .font(.system(size: 11, weight: .medium))
-                    .tracking(1)
-                    .foregroundColor(Color.dsGold)
+                AvatarView(
+                    avatarData: character.avatarData,
+                    race: character.race,
+                    size: 44
+                )
                 
-                HStack(spacing: 4) {
-                    Image(systemName: "heart.fill")
-                        .font(.system(size: 9))
-                        .foregroundColor(Color.dsRed)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(character.displayName)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(Color.dsText)
                     
-                    Text("\(character.currentHP)/\(character.hitPoints)")
+                    Text("\(character.race.rawValue) · \(character.characterClass.rawValue)")
+                        .font(.system(size: 12))
+                        .foregroundColor(Color.dsTextDim)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 3) {
+                    Text("Веха \(character.level)")
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(hpColor)
+                        .tracking(1)
+                        .foregroundColor(Color.dsGold)
+                    
+                    HStack(spacing: 4) {
+                        Image(systemName: "heart.fill")
+                            .font(.system(size: 9))
+                            .foregroundColor(Color.dsRed)
+                        
+                        Text("\(character.currentHP)/\(character.hitPoints)")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(hpColor)
+                    }
                 }
             }
+            .padding(.vertical, 6)
         }
-        .padding(.vertical, 6)
-    }
-    
-    private var hpColor: Color {
-        let fraction = Double(character.currentHP) / Double(max(character.hitPoints, 1))
         
-        if fraction > 0.5 {
-            return Color.dsGold
+        private var hpColor: Color {
+            let fraction = Double(character.currentHP) / Double(max(character.hitPoints, 1))
+            
+            if fraction > 0.5 {
+                return Color.dsGold
+            }
+            if fraction > 0.25 {
+                return .orange
+            }
+            return Color.dsRed
         }
-        if fraction > 0.25 {
-            return .orange
-        }
-        return Color.dsRed
     }
 }
+    // MARK: - Preview
+    
+    #Preview {
+        ContentView()
+            .modelContainer(for: DNDCharacter.self)
+            .preferredColorScheme(.dark)
+    }
 
-// MARK: - Preview
-
-#Preview {
-    ContentView()
-        .modelContainer(for: DNDCharacter.self)
-        .preferredColorScheme(.dark)
-}
