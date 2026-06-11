@@ -265,11 +265,27 @@ private extension PartyManager {
             savePartyState()
             broadcastPartyList()
         }
+        
 
         // Игрок: отправляем данные и запускаем heartbeat
         if role == .player, let char = selectedCharacter {
             sendJoinMessage(for: char)
             startHeartbeat()
+        }
+        // ✅ НОВОЕ: Устанавливаем онлайн статус ТОЛЬКО если персонаж не удалён
+        // 1. Находим участника партии по его peerID
+        if let memberIndex = activeCampaign?.members.firstIndex(where: { $0.peerID == peerID.data }) {
+            
+            // 2. Проверяем, помечен ли его персонаж как удалённый
+            if activeCampaign!.members[memberIndex].isCharacterDeleted {
+                log("⚠️ Игрок подключился с удалённым персонажем. Онлайн статус НЕ обновляем.")
+            } else {
+                // 3. Если персонаж НЕ удалён, ставим его онлайн
+                activeCampaign?.members[memberIndex].isOnline = true
+                
+                // 4. Синхронизируем состояние кампании (если у тебя есть такой метод)
+                // syncCampaignState()
+            }
         }
     }
 

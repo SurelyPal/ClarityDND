@@ -48,7 +48,7 @@ enum PartyMessage: Codable, Sendable {
         background: String,
         alignment: DNDAlignment
     )
-    
+    case characterDeleted(characterID: UUID)  // ✅ НОВОЕ: Сообщение об удалении персонажа
     case playerLeft(characterID: UUID)
     case partyList(members: [PartyMember])
     // ✅ НОВОЕ: ДМ отправляет игроку команду привязать персонажа к кампании

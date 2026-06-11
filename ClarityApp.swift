@@ -22,5 +22,6 @@ struct ClarityApp: App {
             RootView()
         }
         .modelContainer(for: DNDCharacter.self)
+        
     }
 }

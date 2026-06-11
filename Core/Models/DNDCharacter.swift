@@ -29,7 +29,7 @@ final class DNDCharacter {
     var alignment: DNDAlignment
     var stress: Int
     var rerollPoints: Int
-    var isDeleted: Bool
+    var isDeleted: Bool = false 
     var instrument: String?
     
     // MARK: - Коллекции

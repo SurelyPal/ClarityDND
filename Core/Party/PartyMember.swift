@@ -29,7 +29,7 @@ struct PartyMember: Identifiable, Equatable, Codable, Hashable, Sendable {
     var avatarData: Data?
     var lastSeen: Date = Date()
     var isConnected: Bool = true
-    
+    var isCharacterDeleted: Bool = false
     // 🔑 НОВЫЕ поля для детального профиля
     var stats: AbilityScores?
     var rerollPoints: Int?
@@ -78,10 +78,12 @@ struct PartyMember: Identifiable, Equatable, Codable, Hashable, Sendable {
         maxHP: Int,
         stress: Int,
         avatarData: Data?,
-        isConnected: Bool = true
+        isConnected: Bool = true,
+        isCharacterDeleted: Bool = false
     ) {
         self.id = id
         self.peerDisplayName = peerID.displayName  // 🔑 Сохраняем имя
+        self.isCharacterDeleted = isCharacterDeleted 
         self.name = name
         self.race = race
         self.characterClass = characterClass

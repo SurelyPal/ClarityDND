@@ -24,11 +24,12 @@ struct ContentView: View {
     @State private var showingCreation = false
     
     @Query(
-        filter: #Predicate<DNDCharacter> { _ in true },
+        filter: #Predicate<DNDCharacter> { character in
+            !character.isDeleted  // ✅ НОВОЕ: Показываем только не удалённых
+        },
         sort: \DNDCharacter.name,
         order: .forward
     ) private var characters: [DNDCharacter]
-    
     // MARK: - Body
     
     var body: some View {

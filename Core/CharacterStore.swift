@@ -36,10 +36,20 @@ final class CharacterStore: ObservableObject {
     }
     func delete(at offsets: IndexSet) {
         for index in offsets {
-            context.delete(characters[index])
+            let character = characters[index]
             
+            // ✅ НОВОЕ: Помечаем как удалённый вместо физического удаления
+            character.isDeleted = true
+            
+            // ✅ НОВОЕ: Синхронизируем удаление с партией (если игрок подключён)
+            if PartyManager.shared.role == .player,
+               case .connected = PartyManager.shared.connectionState {
+                PartyManager.shared.syncCharacterDeletion(characterID: character.id)
+            }
         }
+        // ✅ Сохраняем изменения в SwiftData
         save()
+        // ✅ Обновляем локальный массив characters
         fetchAll()
     }
     // MARK: - Умная синхронизация

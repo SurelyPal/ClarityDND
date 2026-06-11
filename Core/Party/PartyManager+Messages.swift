@@ -96,6 +96,20 @@ extension PartyManager {
         // ✅ ДОБАВЛЕНО: логирование
             log("📤 syncFull: HP=\(character.currentHP)/\(character.hitPoints), level=\(character.level), inventory=\(character.inventory.count)")
     }
+    
+    // MARK: - Синхронизация удаления персонажа
+    
+    /// Синхронизирует статус удаления персонажа с ДМ
+    func syncCharacterDeletion(characterID: UUID) {
+        guard case .connected = connectionState,
+              role == .player else {
+            return
+        }
+        
+        let message = PartyMessage.characterDeleted(characterID: characterID)
+        send(message)
+        log("🗑️ Синхронизация удаления персонажа: \(characterID)")
+    }
 
     func requestFullSync() async {
         guard role == .dungeonMaster,
@@ -276,6 +290,10 @@ extension PartyManager {
             
         case .characterUpdated(let charID, let currentHP, let maxHP, let level, let stress, let rerollPoints, let timestamp):
             handleCharacterUpdated(charID: charID, currentHP: currentHP, maxHP: maxHP, level: level, stress: stress, rerollPoints: rerollPoints, timestamp: timestamp)
+        
+        case .characterDeleted(let characterID):
+                    // ✅ НОВОЕ: Обработка удаления персонажа
+                    handleCharacterDeletion(characterID: characterID)
             
         case .partyList(let members):
             handlePartyList(members: members)
@@ -499,6 +517,26 @@ extension PartyManager {
         }
         
         log("📥 Обновлён игрок \(updatedMember.name): HP=\(currentHP)/\(maxHP), level=\(level)")
+    }
+    
+    // MARK: - Обработка удаления персонажа
+    
+    private func handleCharacterDeletion(characterID: UUID) {
+        guard role == .dungeonMaster else { return }
+        
+        // Находим члена партии с этим персонажем
+        if let memberIndex = activeCampaign?.members.firstIndex(where: { $0.characterID == characterID }) {
+            // Помечаем персонажа как удалённого в кампании
+            activeCampaign?.members[memberIndex].isCharacterDeleted = true
+            
+            // Убираем онлайн статус
+            activeCampaign?.members[memberIndex].isOnline = false
+            
+            // Синхронизируем изменения
+            syncCampaignState()
+            
+            log("🗑️ Персонаж удалён в кампании: \(characterID)")
+        }
     }
     
     private func handlePartyList(members: [PartyMember]) {
