@@ -36,6 +36,7 @@ struct InventoryTabView: View {
     }
     
     var body: some View {
+        
         ScrollView {
             VStack(spacing: 16) {
                 // ═══════════════════════════════════════════
@@ -84,6 +85,11 @@ struct InventoryTabView: View {
                             icon: "checkmark.circle.fill",
                             label: "Экипировано",
                             value: "\(equippableItems.filter { $0.isEquipped }.count)"
+                        )
+                        inventoryStat(
+                            icon: "bag.fill",
+                            label: "Золотые",
+                            value: "\(character.inventory.count)"
                         )
                     }
                     .padding(.horizontal, 16)
@@ -173,7 +179,7 @@ struct InventoryTabView: View {
             Image(systemName: icon)
                 .font(.system(size: 14))
                 .foregroundColor(Color.dsGold)
-            
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(label)
                     .font(.system(size: 10))
@@ -182,8 +188,35 @@ struct InventoryTabView: View {
                     .font(.system(size: 16, weight: .medium))
                     .foregroundColor(Color.dsText)
             }
-            
+
             Spacer()
+            
+            // ✅ НОВОЕ: Кнопки +/- только для золота
+            if label == "Золото" && canEdit {
+                HStack(spacing: 4) {
+                    Button {
+                        if character.money > 0 {
+                            character.money -= 1
+                            store.update(character, changed: .full)
+                        }
+                    } label: {
+                        Image(systemName: "minus.circle.fill")
+                            .font(.system(size: 18))
+                            .foregroundColor(Color.dsRed)
+                    }
+                    .buttonStyle(.plain)
+                    
+                    Button {
+                        character.money += 1
+                        store.update(character, changed: .full)
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 18))
+                            .foregroundColor(Color.dsGold)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
         }
         .padding(12)
         .frame(maxWidth: .infinity)

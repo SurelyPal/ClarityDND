@@ -29,6 +29,7 @@ final class DNDCharacter {
     var currentHP: Int
     var alignment: DNDAlignment
     var stress: Int
+    var money: Int = 0  // ✅ НОВОЕ: Деньги персонажа
     var rerollPoints: Int
     var isDeleted: Bool = false 
     var instrument: String?
@@ -189,6 +190,7 @@ extension DNDCharacter: Codable {
         case hitPoints, currentHP, alignment, stress, rerollPoints, instrument
         case inventory, tarotCards, instrumentModStorage, avatarData
         case hpHistory
+        case money
     }
     
     convenience init(from decoder: Decoder) throws {
@@ -203,7 +205,7 @@ extension DNDCharacter: Codable {
         self.stats          = try container.decodeIfPresent(AbilityScores.self, forKey: .stats) ?? AbilityScores()
         self.background     = try container.decodeIfPresent(String.self, forKey: .background) ?? ""
         self.hitPoints      = try container.decodeIfPresent(Int.self, forKey: .hitPoints) ?? Constants.Character.defaultHP
-        
+        self.money = try container.decodeIfPresent(Int.self, forKey: .money) ?? 0
         // 🔑 НОВОЕ: currentHP с fallback на hitPoints (для старых данных)
         self.currentHP      = try container.decodeIfPresent(Int.self, forKey: .currentHP) ?? self.hitPoints
         
@@ -239,6 +241,7 @@ extension DNDCharacter: Codable {
         try container.encode(instrumentModStorage, forKey: .instrumentModStorage)
         try container.encodeIfPresent(avatarData, forKey: .avatarData)
         try container.encode(hpHistory, forKey: .hpHistory) // 🆕
+        try container.encode(money, forKey: .money)
     }
     
 }

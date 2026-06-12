@@ -26,7 +26,7 @@ struct DungeonMasterDetailView: View {
                     DMBasicInfoSection(member: member)
                     DMStatsSection(member: member)
                     DMSkillsSection(member: member)
-                    DMInventorySection(member: member)
+                    DMInventorySection(member: member, partyManager: partyManager)
                 }
                 .padding(.bottom, 40)
             }

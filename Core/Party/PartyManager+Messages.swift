@@ -348,9 +348,17 @@ extension PartyManager {
         case .characterDetails(let charID, let stats, let rerollPoints, let inventory, let skillProficiencies, let background, let alignment):
             handleCharacterDetails(charID: charID, stats: stats, rerollPoints: rerollPoints, inventory: inventory, skillProficiencies: skillProficiencies, background: background, alignment: alignment)
             
-        case .characterUpdated(let charID, let currentHP, let maxHP, let level, let stress, let rerollPoints, let timestamp):
-            handleCharacterUpdated(charID: charID, currentHP: currentHP, maxHP: maxHP, level: level, stress: stress, rerollPoints: rerollPoints, timestamp: timestamp)
-            
+        case .characterUpdated(let characterID, let currentHP, let maxHP, let level, let stress, let rerollPoints, let timestamp, let money):
+            handleCharacterUpdated(
+                charID: characterID,
+                currentHP: currentHP,
+                maxHP: maxHP,
+                level: level,
+                money: money,
+                stress: stress,
+                rerollPoints: rerollPoints,
+                timestamp: timestamp
+            )
         case .characterDeleted(let characterID):
             // ✅ НОВОЕ: Обработка удаления персонажа
             handleCharacterDeletion(characterID: characterID)
@@ -408,6 +416,9 @@ extension PartyManager {
                 log("🛑 ДМ остановил хост")
                 handleHostLost()
             }
+            
+        case .moneyUpdate(let characterID, let amount, let reason):
+            handleMoneyUpdate(characterID: characterID, amount: amount, reason: reason)
             
         case .connectionRejected(let reason):
             guard role == .player else { return }
@@ -481,21 +492,19 @@ extension PartyManager {
         }
         
         // ═══════════════════════════════════════════════════════════════
-        // 2. ПРОВЕРКА КАМПАНИИ
+        // 2. ✅ ПРОВЕРКА НА УРОВНЕ ПАРТИИ (ЗАЩИТА ОТ МУЛЬТИАККАУНТИНГА)
         // ═══════════════════════════════════════════════════════════════
-        if let activeCampaign = campaignManager.activeCampaign {
-            let activeCampaignID = activeCampaign.id
-            
-            if let characterCampaignID = campaignID {
-                if characterCampaignID != activeCampaignID {
-                    log("⛔ Отклонено: \(name) привязан к ДРУГОЙ кампании (\(characterCampaignID))")
-                    sendRejection(to: peerID, reason: "Персонаж привязан к другой кампании")
-                    return
-                }
-                log("✅ Кампания совпадает: \(name) подключается")
-            } else {
-                log("ℹ️ \(name) не привязан к кампании — принимаем и привязываем автоматически")
-                sendCampaignBinding(to: peerID, campaignID: activeCampaignID)
+        if let incomingCampaignID = campaignID {
+            // Ищем в текущем списке партии ДМа другого игрока с той же кампанией
+            if let duplicateMember = partyMembers.first(where: {
+                $0.campaignID == incomingCampaignID && $0.id != charID && $0.isConnected
+            }) {
+                log("⛔ ДМ: отклоняем подключение \(name) — в партии уже есть \(duplicateMember.name) с кампанией \(incomingCampaignID.uuidString.prefix(8))")
+                sendRejection(
+                    to: peerID,
+                    reason: "В партии уже есть ваш персонаж: \(duplicateMember.name). Отключите его перед подключением другого."
+                )
+                return
             }
         }
         
@@ -534,7 +543,7 @@ extension PartyManager {
         savePartyState()
         broadcastPartyList()
     }
-    
+
     /// Отправляет сообщение об отклонении подключения игроку
     private func sendRejection(to peerID: MCPeerID, reason: String) {
         let message = PartyMessage.connectionRejected(reason: reason)
@@ -580,7 +589,7 @@ extension PartyManager {
         broadcastPartyList()
     }
     
-    private func handleCharacterUpdated(charID: UUID, currentHP: Int, maxHP: Int, level: Int, stress: Int, rerollPoints: Int, timestamp: Date) {
+    private func handleCharacterUpdated(charID: UUID, currentHP: Int, maxHP: Int, level: Int,money: Int, stress: Int, rerollPoints: Int, timestamp: Date) {
         guard role == .dungeonMaster else { return }
         guard let idx = partyMembers.firstIndex(where: { $0.id == charID }) else { return }
         
@@ -599,7 +608,9 @@ extension PartyManager {
         updatedMember.level = level
         updatedMember.stress = stress
         updatedMember.rerollPoints = rerollPoints
+        updatedMember.money = money
         updatedMember.lastSeen = Date()
+        
         
         var newMembers = partyMembers
         newMembers[idx] = updatedMember
@@ -889,7 +900,8 @@ extension PartyManager {
                     level: level,
                     stress: stress,
                     rerollPoints: rerollPoints,
-                    timestamp: Date()
+                    timestamp: Date(),
+                    money: character.money
                 )
                 self.send(message)
                 
@@ -919,7 +931,8 @@ extension PartyManager {
                 level: character.level,
                 stress: character.stress,
                 rerollPoints: character.rerollPoints,
-                timestamp: Date()
+                timestamp: Date(),
+                money: character.money
             )
             send(message)
             
@@ -1000,5 +1013,60 @@ extension PartyManager {
             
             log("📤 forceBroadcastPartyList: \(partyMembers.count) игроков")
         }
+    // MARK: - 💰 Синхронизация денег
+
+    private func handleMoneyUpdate(characterID: UUID, amount: Int, reason: String) {
+        log("💰 Получено обновление денег от ДМа: \(amount) (причина: \(reason))")
+        
+        // Используем selectedCharacter напрямую (@Model сохраняет изменения автоматически)
+        if let character = selectedCharacter, character.id == characterID {
+            character.money = amount
+            log("💰 Деньги обновлены у \(character.displayName): \(amount)")
+            
+            // Отправляем обновлённого персонажа ДМу
+            if case .connected = connectionState {
+                syncCharacterUpdate(character)
+            }
+            
+            #if os(iOS)
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            #endif
+        } else {
+            log("⚠️ handleMoneyUpdate: персонаж \(characterID) не является текущим selectedCharacter")
+        }
     }
+    // MARK: - 🔄 Синхронизация полного обновления персонажа
+
+    /// Отправляет полное обновление персонажа ДМу (после изменения денег/инвентаря/HP)
+    func syncCharacterUpdate(_ character: DNDCharacter) {
+        guard case .connected = connectionState, role == .player else { return }
+        
+        let message = PartyMessage.characterUpdated(
+            characterID: character.id,
+            currentHP: character.currentHP,
+            maxHP: character.hitPoints,
+            level: character.level,        // ← ОБЯЗАТЕЛЬНО перед stress
+            stress: character.stress,
+            rerollPoints: character.rerollPoints,
+            timestamp: Date(),
+            money: character.money         // ← ДОБАВИТЬ В КОНЕЦ
+        )
+        send(message)
+        log("🔄 Отправлено обновление персонажа \(character.displayName) (HP: \(character.currentHP), золото: \(character.money))")
+    }
+    // MARK: - 💰 Синхронизация денег
+
+    /// Отправляет обновление денег игроку от ДМа
+    func sendMoneyUpdate(to peerID: MCPeerID, characterID: UUID, amount: Int, reason: String) {
+        let message = PartyMessage.moneyUpdate(characterID: characterID, amount: amount, reason: reason)
+        
+        do {
+            let data = try JSONEncoder().encode(message)
+            try session?.send(data, toPeers: [peerID], with: .reliable)
+            log("💰 Отправлено обновление денег: \(amount) (причина: \(reason))")
+        } catch {
+            log("❌ Ошибка отправки обновления денег: \(error)")
+        }
+    }
+}
 

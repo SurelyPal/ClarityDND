@@ -39,7 +39,16 @@ enum PartyMessage: Codable, Sendable {
         campaignID: UUID?,
         hasOtherActiveCharacterInCampaign: Bool 
     )
-    case characterUpdated(characterID: UUID, currentHP: Int, maxHP: Int, level: Int, stress: Int, rerollPoints: Int, timestamp: Date)
+    case characterUpdated(
+        characterID: UUID,
+        currentHP: Int,
+        maxHP: Int,
+        level: Int,
+        stress: Int,
+        rerollPoints: Int,
+        timestamp: Date,
+        money: Int
+    )
     case characterDetails(
         characterID: UUID,
         stats: AbilityScores,
@@ -76,7 +85,7 @@ enum PartyMessage: Codable, Sendable {
     // ✅ Heartbeat сообщения
     case heartbeatRequest(timestamp: Date)
     case heartbeatResponse(timestamp: Date)
-    
+    case moneyUpdate(characterID: UUID, amount: Int, reason: String)  // ✅ НОВОЕ: ДМ изменяет деньги
     // ✅ Явное уведомление об остановке хоста (для graceful shutdown)
     case hostStopped
     case restStarted(restType: RestType)

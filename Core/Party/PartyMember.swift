@@ -18,7 +18,7 @@ struct PartyMember: Identifiable, Equatable, Codable, Hashable, Sendable {
     var peerID: MCPeerID {
         MCPeerID(displayName: peerDisplayName)
     }
-    
+    var campaignID: UUID? = nil
     var name: String
     var race: Race
     var characterClass: String
@@ -37,7 +37,7 @@ struct PartyMember: Identifiable, Equatable, Codable, Hashable, Sendable {
     var skillProficiencies: [String]?
     var background: String?
     var alignment: DNDAlignment?
-    
+    var money: Int?  // ✅ НОВОЕ: Деньги для синхронизации
     var hpFraction: Double {
         guard maxHP > 0 else { return 0 }
         return Double(currentHP) / Double(maxHP)
@@ -63,6 +63,7 @@ struct PartyMember: Identifiable, Equatable, Codable, Hashable, Sendable {
         && lhs.isConnected == rhs.isConnected
         && lhs.avatarData == rhs.avatarData // 🆕 ДОБАВИЛИ
         && lhs.lastSeen == rhs.lastSeen         // 🆕 ДОБАВИЛИ
+        && lhs.money == rhs.money  // ✅ ДОБАВИТЬ
     }
     // MARK: - Инициализатор
     
