@@ -59,6 +59,12 @@ final class CharacterStore: ObservableObject {
                 print("📤 [CharacterStore] Уведомление ДМа об удалении: \(character.displayName)")
             }
             
+            // 4. ✅ Если мы ДМ — помечаем игрока как удалённого (он попадёт во вкладку "УДАЛЁННЫЕ")
+            if PartyManager.shared.role == .dungeonMaster {
+                PartyManager.shared.markCharacterAsDeleted(characterID: character.id)
+                print("🗑️ [CharacterStore] ДМ пометил игрока как удалённого: \(character.displayName)")
+            }
+            
             // 4. Удаляем из базы данных SwiftData
             context.delete(character)
         }

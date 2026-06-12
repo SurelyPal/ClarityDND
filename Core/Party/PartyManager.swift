@@ -91,6 +91,8 @@ final class PartyManager: NSObject, ObservableObject {
     var advertiser: MCNearbyServiceAdvertiser?
     var browser: MCNearbyServiceBrowser?
     private(set) var selectedCharacter: DNDCharacter?
+    /// Список всех персонажей на устройстве (используется для проверки мультибоксинга)
+    var availableCharacters: [DNDCharacter] = []
     private var didTryAutoReconnect = false
     // ✅ Хранилище для версионирования (игнорируем устаревшие сообщения)
     var lastUpdateTime: [UUID: Date] = [:]
@@ -254,27 +256,80 @@ final class PartyManager: NSObject, ObservableObject {
         self.connectionState = .selectingCharacter
         log("👤 Игрок начал выбор персонажа")
     }
-
+    /// Безопасный метод автопереподключения.
+    /// Запускает поиск ТОЛЬКО если:
+    /// 1. Есть выбранный персонаж
+    /// 2. Персонаж привязан к кампании (campaignID != nil)
+    /// 3. Мы не подключены и не в процессе поиска
+    func attemptAutoReconnect() {
+        // 1. Работает только для игрока
+        guard role == .player else {
+            log("⏭️ attemptAutoReconnect: пропущено, роль не .player")
+            return
+        }
+        
+        // 2. Не переподключаемся, если уже подключены или ищем
+        switch connectionState {
+        case .connected, .searching, .connecting:
+            log("⏭️ attemptAutoReconnect: пропущено, состояние \(connectionState)")
+            return
+        case .disconnected:
+            break // Продолжаем проверку
+        @unknown default:
+            // ✅ Обрабатываем любые будущие случаи (защита от изменений в будущем)
+            log("⏭️ attemptAutoReconnect: пропущено, неизвестное состояние \(connectionState)")
+            return
+        }
+        
+        // 3. ✅ КЛЮЧЕВАЯ ПРОВЕРКА: должен быть выбран персонаж с привязкой к кампании
+        guard let character = selectedCharacter,
+              let campaignID = character.campaignID else {
+            log("⏭️ attemptAutoReconnect: пропущено, персонаж не привязан к кампании")
+            return
+        }
+        
+        log("🔄 attemptAutoReconnect: запускаем поиск для \(character.displayName), привязан к кампании \(campaignID.uuidString.prefix(8))")
+        
+        // 4. Запускаем стандартный поиск
+        startSearching(with: character)
+    }
     func tryAutoReconnect(characters: [DNDCharacter]) {
+        // 1. Базовые проверки
         guard !didTryAutoReconnect,
               connectionState == .disconnected,
               let savedCharID = loadSelectedCharacterID(),
               let character = characters.first(where: { $0.id == savedCharID }) else {
             return
         }
+        
+        // 2. ✅ ПРОВЕРКА 1: Персонаж должен быть привязан к кампании
+        guard let campaignID = character.campaignID else {
+            log("⏭️ Автопереподключение пропущено: \(character.displayName) не привязан к кампании")
+            return
+        }
+        
+        // 3. ✅ ПРОВЕРКА 2: На устройстве НЕ должно быть других активных персонажей в этой кампании
+        let otherActiveCharacters = characters.filter {
+            $0.campaignID == campaignID && $0.id != character.id
+        }
+        
+        if !otherActiveCharacters.isEmpty {
+            let names = otherActiveCharacters.map { $0.displayName }.joined(separator: ", ")
+            log("⛔ Автопереподключение заблокировано: на устройстве есть другие привязанные персонажи (\(names)). Сначала удалите их.")
+            return
+        }
+        
+        log("🔄 Автопереподключение с персонажем \(character.displayName), привязанным к кампании \(campaignID.uuidString.prefix(8))")
 
         didTryAutoReconnect = true
         
-        // ✅ ОЧИСТКА: удаляем устаревших offline игроков перед переподключением
-            // Это предотвращает конфликт между старыми данными и новым списком от ДМ-а
-            let onlineMembers = partyMembers.filter { $0.isConnected }
-            if onlineMembers.count < partyMembers.count {
-                let removedCount = partyMembers.count - onlineMembers.count
-                partyMembers = onlineMembers
-                log("🧹 Очищено \(removedCount) offline игроков перед автопереподключением")
-            }
-        
-        log("🔄 Автопереподключение с персонажем: \(character.displayName)")
+        // 4. Очистка offline игроков
+        let onlineMembers = partyMembers.filter { $0.isConnected }
+        if onlineMembers.count < partyMembers.count {
+            let removedCount = partyMembers.count - onlineMembers.count
+            partyMembers = onlineMembers
+            log("🧹 Очищено \(removedCount) offline игроков перед автопереподключением")
+        }
 
         self.role = .player
         self.selectedCharacter = character

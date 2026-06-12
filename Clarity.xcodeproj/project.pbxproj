@@ -35,6 +35,7 @@
 		1521C0A12FD58BA900FD2981 /* RestVoteOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1521C0A02FD58BA900FD2981 /* RestVoteOverlayView.swift */; };
 		1521C0A32FD58D1300FD2981 /* RestEffectOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1521C0A22FD58D1300FD2981 /* RestEffectOverlayView.swift */; };
 		153EAAD32FDADED700F7E972 /* CharacterInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 153EAAD22FDADED700F7E972 /* CharacterInfoView.swift */; };
+		153EAAD82FDB939F00F7E972 /* View+CornerRadius.swift in Sources */ = {isa = PBXBuildFile; fileRef = 153EAAD72FDB939800F7E972 /* View+CornerRadius.swift */; };
 		15408BE72FD746D7005F24EA /* HPHistorySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15408BE62FD746D7005F24EA /* HPHistorySheet.swift */; };
 		15DF91E32FD21640007A87F8 /* ClarityApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF91E22FD21640007A87F8 /* ClarityApp.swift */; };
 		15DF91E52FD21640007A87F8 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF91E42FD21640007A87F8 /* ContentView.swift */; };
@@ -125,6 +126,7 @@
 		1521C0A02FD58BA900FD2981 /* RestVoteOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestVoteOverlayView.swift; sourceTree = "<group>"; };
 		1521C0A22FD58D1300FD2981 /* RestEffectOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestEffectOverlayView.swift; sourceTree = "<group>"; };
 		153EAAD22FDADED700F7E972 /* CharacterInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacterInfoView.swift; sourceTree = "<group>"; };
+		153EAAD72FDB939800F7E972 /* View+CornerRadius.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+CornerRadius.swift"; sourceTree = "<group>"; };
 		15408BE62FD746D7005F24EA /* HPHistorySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HPHistorySheet.swift; sourceTree = "<group>"; };
 		15DF91E22FD21640007A87F8 /* ClarityApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClarityApp.swift; sourceTree = "<group>"; };
 		15DF91E42FD21640007A87F8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -283,6 +285,7 @@
 		15DF91EF2FD2172B007A87F8 /* Theme */ = {
 			isa = PBXGroup;
 			children = (
+				153EAAD72FDB939800F7E972 /* View+CornerRadius.swift */,
 				15DF92182FD219CE007A87F8 /* DSColors.swift */,
 				15DF92192FD219EC007A87F8 /* DSModifiers.swift */,
 				15DF91F32FD21781007A87F8 /* Components */,
@@ -694,6 +697,7 @@
 				1503D3D22FD7EE2F0026C5DE /* DMSkillsSection.swift in Sources */,
 				1503D3D02FD7EE280026C5DE /* DMStatsSection.swift in Sources */,
 				1503D3C12FD7922E0026C5DE /* ConnectingView.swift in Sources */,
+				153EAAD82FDB939F00F7E972 /* View+CornerRadius.swift in Sources */,
 				1503D3CC2FD7EE0C0026C5DE /* DMDetailHeader.swift in Sources */,
 				1503D3B72FD791A70026C5DE /* RoleSelectionView.swift in Sources */,
 			);

@@ -237,7 +237,7 @@ struct RestVoteOverlayView: View {
                                 .font(.system(size: 11))
                                 .foregroundColor(Color.dsTextDim)
                             
-                            // Кнопка отмены для ДМа (даже если он уже проголосовал)
+                            // Кнопка отмены для ДМа
                             if isDungeonMaster, let onCancel = onCancel {
                                 Button {
                                     onCancel()

@@ -36,7 +36,8 @@ enum PartyMessage: Codable, Sendable {
         currentHP: Int,
         maxHP: Int,
         avatarData: Data?,
-        campaignID: UUID?
+        campaignID: UUID?,
+        hasOtherActiveCharacterInCampaign: Bool 
     )
     case characterUpdated(characterID: UUID, currentHP: Int, maxHP: Int, level: Int, stress: Int, rerollPoints: Int, timestamp: Date)
     case characterDetails(

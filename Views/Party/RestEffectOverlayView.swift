@@ -119,6 +119,7 @@ struct RestEffectOverlayView: View {
                     .shadow(color: effectColor.opacity(glowPulse * 0.3), radius: 60)
                     .transition(.scale(scale: 0.7).combined(with: .opacity))
                     .padding(.horizontal, 20)
+                    .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
                 }
             }
             .onAppear {

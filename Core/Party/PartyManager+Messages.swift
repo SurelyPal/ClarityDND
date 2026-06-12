@@ -12,42 +12,60 @@ import MultipeerConnectivity
 
 extension PartyManager {
     func send(_ message: PartyMessage) {
-        #if DEBUG
-        log("📤 send() вызван")
-        #endif
+        // ✅ ИСПРАВЛЕНИЕ КРАША: MCSession не потокобезопасен.
+        // Всегда выполняем чтение пиров и отправку на главном потоке.
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self, let session = self.session else {
+                #if DEBUG
+                self?.log("⚠️ send: session nil")
+                #endif
+                return
+            }
 
-        guard let session = session else {
-            #if DEBUG
-            log("⚠️ send: session nil")
-            #endif
-            return
-        }
+            // ✅ Безопасно копируем массив пиров в локальную переменную
+            let peers = session.connectedPeers
+            
+            guard !peers.isEmpty else {
+                #if DEBUG
+                self.log("⚠️ send: нет connected peers")
+                #endif
+                return
+            }
 
-        guard !session.connectedPeers.isEmpty else {
-            #if DEBUG
-            log("⚠️ send: нет connected peers")
-            #endif
-            return
-        }
-
-        do {
-            let data = try JSONEncoder().encode(message)
-            #if DEBUG
-            log("📦 Отправка \(data.count) байт \(session.connectedPeers.count) peer(ам)")
-            #endif
-            try session.send(data, toPeers: session.connectedPeers, with: .reliable)
-        } catch {
-            #if DEBUG
-            log("❌ Ошибка отправки: \(error)")
-            #endif
+            do {
+                let data = try JSONEncoder().encode(message)
+                #if DEBUG
+                self.log("📦 Отправка \(data.count) байт \(peers.count) peer(ам)")
+                #endif
+                // ✅ Используем локальную копию peers для отправки
+                try session.send(data, toPeers: peers, with: .reliable)
+            } catch {
+                #if DEBUG
+                self.log("❌ Ошибка отправки: \(error)")
+                #endif
+            }
         }
     }
 
     func sendJoinMessage(for character: DNDCharacter) {
         guard let session = session, !session.connectedPeers.isEmpty else { return }
 
-        // ✅ Используем pendingCampaignID, если он есть, иначе character.campaignID
         let effectiveCampaignID = pendingCampaignID ?? character.campaignID
+        
+        // ✅ ВЫЧИСЛЯЕМ: есть ли другие активные персонажи в этой кампании
+        let hasOtherActiveCharacter: Bool
+        if let campaignID = effectiveCampaignID {
+            let otherCharsInCampaign = self.availableCharacters.filter {
+                $0.campaignID == campaignID && $0.id != character.id
+            }
+            hasOtherActiveCharacter = !otherCharsInCampaign.isEmpty
+            
+            if hasOtherActiveCharacter {
+                log("⚠️ На устройстве есть другие персонажи в этой кампании: \(otherCharsInCampaign.map { $0.displayName })")
+            }
+        } else {
+            hasOtherActiveCharacter = false
+        }
 
         let message = PartyMessage.playerJoined(
             characterID: character.id,
@@ -58,10 +76,11 @@ extension PartyManager {
             currentHP: character.currentHP,
             maxHP: character.hitPoints,
             avatarData: character.avatarData,
-            campaignID: effectiveCampaignID
+            campaignID: effectiveCampaignID,
+            hasOtherActiveCharacterInCampaign: hasOtherActiveCharacter
         )
         send(message)
-        log("📤 playerJoined отправлен для \(character.displayName) (кампания: \(effectiveCampaignID?.uuidString.prefix(8) ?? "nil"))")
+        log("📤 playerJoined отправлен для \(character.displayName) (hasOtherActive: \(hasOtherActiveCharacter))")
 
         sendCharacterDetails(for: character)
         log("📋 characterDetails отправлен при подключении")
@@ -106,6 +125,42 @@ extension PartyManager {
             return
         }
         
+        /// Удаляет участника из списка партии (используется ДМом при локальном удалении)
+        func removePartyMember(characterID: UUID) {
+            guard role == .dungeonMaster else { return }
+            
+            // Ищем игрока в живом списке partyMembers
+            if let memberIndex = partyMembers.firstIndex(where: { $0.id == characterID }) {
+                let deletedName = partyMembers[memberIndex].name
+                
+                // Меняем статус на "удалён" и "оффлайн"
+                var updatedMember = partyMembers[memberIndex]
+                updatedMember.isConnected = false
+                updatedMember.isCharacterDeleted = true
+                updatedMember.lastSeen = Date()
+                
+                // Обновляем массив partyMembers
+                var newMembers = partyMembers
+                newMembers[memberIndex] = updatedMember
+                partyMembers = newMembers
+                
+                // Также обновляем сохранённую кампанию
+                if var campaign = campaignManager.activeCampaign,
+                   let campaignMemberIndex = campaign.members.firstIndex(where: { $0.id == characterID }) {
+                    campaign.members[campaignMemberIndex].isCharacterDeleted = true
+                    campaign.members[campaignMemberIndex].isConnected = false
+                    campaignManager.updateActiveCampaign(members: campaign.members)
+                }
+                
+                // Сохраняем состояние и рассылаем обновлённый список всем
+                savePartyState()
+                broadcastPartyList()
+                
+                log("🗑️ ДМ локально удалил игрока \(deletedName) из списка партии")
+            } else {
+                log("⚠️ ДМ: попытка удалить \(characterID), но его нет в partyMembers")
+            }
+        }
         let message = PartyMessage.characterDeleted(characterID: characterID)
         send(message)
         log("🗑️ Синхронизация удаления персонажа: \(characterID)")
@@ -162,36 +217,40 @@ extension PartyManager {
     // MARK: - Broadcast
 
     func broadcastPartyList() {
-        guard role == .dungeonMaster,
-              let session = session,
-              !session.connectedPeers.isEmpty else { return }
+        guard role == .dungeonMaster else { return }
 
-        let now = Date()
-        if now.timeIntervalSince(lastBroadcastTime) < broadcastThrottle {
-            // ✅ Откладываем через throttledBroadcastTask
-            throttledBroadcastTask?.cancel()
-            
-            throttledBroadcastTask = Task { [weak self] in
-                guard let self = self else { return }
-                let elapsed = Date().timeIntervalSince(self.lastBroadcastTime)
-                let remaining = self.broadcastThrottle - elapsed
+        // ✅ Переносим проверку connectedPeers на главный поток
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self,
+                  let session = self.session,
+                  !session.connectedPeers.isEmpty else { return }
+
+            let now = Date()
+            if now.timeIntervalSince(self.lastBroadcastTime) < self.broadcastThrottle {
+                self.throttledBroadcastTask?.cancel()
                 
-                if remaining > 0 {
-                    try? await Task.sleep(for: .seconds(remaining))
+                // ✅ ДОБАВЛЕНО @MainActor: задача выполняется на главном потоке
+                self.throttledBroadcastTask = Task { @MainActor [weak self] in
+                    guard let self = self else { return }
+                    let elapsed = Date().timeIntervalSince(self.lastBroadcastTime)
+                    let remaining = self.broadcastThrottle - elapsed
+                    
+                    if remaining > 0 {
+                        try? await Task.sleep(for: .seconds(remaining))
+                    }
+                    
+                    guard !Task.isCancelled else { return }
+                    
+                    self.lastBroadcastTime = Date()
+                    self.send(PartyMessage.partyList(members: self.partyMembers))
                 }
-                
-                guard !Task.isCancelled else { return }
-                
-                self.lastBroadcastTime = Date()
-                self.send(PartyMessage.partyList(members: self.partyMembers))
+                return
             }
-            return
-        }
 
-        lastBroadcastTime = now
-        
-        send(PartyMessage.partyList(members: partyMembers))
-        log("📤 broadcastPartyList: \(partyMembers.count) игроков")
+            self.lastBroadcastTime = now
+            self.send(PartyMessage.partyList(members: self.partyMembers))
+            self.log("📤 broadcastPartyList: \(self.partyMembers.count) игроков")
+        }
     }
     // MARK: - Обработка запроса голосования от игрока
 
@@ -270,7 +329,8 @@ extension PartyManager {
             let currentHP,
             let maxHP,
             let avatarData,
-            let campaignID
+            let campaignID,
+            let hasOtherActiveCharacterInCampaign
         ):
             handlePlayerJoined(
                 charID: charID,
@@ -282,9 +342,9 @@ extension PartyManager {
                 currentHP: currentHP,
                 maxHP: maxHP,
                 avatarData: avatarData,
-                campaignID: campaignID
+                campaignID: campaignID,
+                hasOtherActiveCharacterInCampaign: hasOtherActiveCharacterInCampaign
             )
-            
         case .characterDetails(let charID, let stats, let rerollPoints, let inventory, let skillProficiencies, let background, let alignment):
             handleCharacterDetails(charID: charID, stats: stats, rerollPoints: rerollPoints, inventory: inventory, skillProficiencies: skillProficiencies, background: background, alignment: alignment)
             
@@ -373,7 +433,7 @@ extension PartyManager {
     }
     
     // MARK: - Message Handlers (приватные)
-    
+
     private func handlePlayerJoined(
         charID: UUID,
         peerID: MCPeerID,
@@ -384,17 +444,49 @@ extension PartyManager {
         currentHP: Int,
         maxHP: Int,
         avatarData: Data?,
-        campaignID: UUID?
+        campaignID: UUID?,
+        hasOtherActiveCharacterInCampaign: Bool
     ) {
         guard role == .dungeonMaster else { return }
         guard peerID.displayName != self.localPeerID.displayName else { return }
         
-        // ✅ ПРОВЕРКА КАМПАНИИ: Разрешаем подключение и автоматически привязываем, если ID нет
+        // ═══════════════════════════════════════════════════════════════
+        // 1. ПРОВЕРКА МУЛЬТИБОКСИНГА НА ОСНОВЕ ФЛАГА ОТ ИГРОКА
+        // ═══════════════════════════════════════════════════════════════
+        if let existingIndex = partyMembers.firstIndex(where: { $0.peerID.displayName == peerID.displayName }) {
+            let existingMember = partyMembers[existingIndex]
+            
+            if existingMember.id == charID {
+                // ✅ Тот же персонаж переподключается (например, после обрыва связи)
+                log("🔄 Тот же персонаж \(name) переподключается. Обновляем данные.")
+            } else {
+                // ⚠️ Это ДРУГОЙ персонаж с того же устройства
+                if hasOtherActiveCharacterInCampaign {
+                    // ❌ На устройстве игрока есть другой активный персонаж — БЛОКИРУЕМ
+                    log("⛔ Отклонено: На устройстве \(peerID.displayName) есть другой активный персонаж в этой кампании.")
+                    sendRejection(
+                        to: peerID,
+                        reason: "На вашем устройстве уже есть другой активный персонаж в этой кампании. Сначала удалите его или отключите от партии."
+                    )
+                    return
+                } else {
+                    // ✅ Других активных персонажей нет — удаляем старую запись и разрешаем нового
+                    log("✅ На устройстве нет других активных персонажей. Удаляем старую запись \(existingMember.name) и разрешаем нового: \(name).")
+                    
+                    var newMembers = partyMembers
+                    newMembers.remove(at: existingIndex)
+                    partyMembers = newMembers
+                }
+            }
+        }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // 2. ПРОВЕРКА КАМПАНИИ
+        // ═══════════════════════════════════════════════════════════════
         if let activeCampaign = campaignManager.activeCampaign {
             let activeCampaignID = activeCampaign.id
             
             if let characterCampaignID = campaignID {
-                // У персонажа уже есть campaignID. Проверяем совпадение.
                 if characterCampaignID != activeCampaignID {
                     log("⛔ Отклонено: \(name) привязан к ДРУГОЙ кампании (\(characterCampaignID))")
                     sendRejection(to: peerID, reason: "Персонаж привязан к другой кампании")
@@ -402,15 +494,17 @@ extension PartyManager {
                 }
                 log("✅ Кампания совпадает: \(name) подключается")
             } else {
-                // ✅ КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: У персонажа НЕТ campaignID.
-                // Мы НЕ отклоняем его, а принимаем и отправляем команду привязки!
                 log("ℹ️ \(name) не привязан к кампании — принимаем и привязываем автоматически")
                 sendCampaignBinding(to: peerID, campaignID: activeCampaignID)
             }
         }
+        
+        // ═══════════════════════════════════════════════════════════════
+        // 3. ДОБАВЛЕНИЕ ИЛИ ОБНОВЛЕНИЕ УЧАСТНИКА В СПИСКЕ
+        // ═══════════════════════════════════════════════════════════════
         let race = Race(rawValue: raceRaw) ?? .human
         
-        let member = PartyMember(
+        var member = PartyMember(
             id: charID,
             peerID: peerID,
             name: name,
@@ -423,6 +517,10 @@ extension PartyManager {
             avatarData: avatarData
         )
         
+        member.isConnected = true
+        member.isCharacterDeleted = false
+        member.lastSeen = Date()
+        
         if let idx = partyMembers.firstIndex(where: { $0.id == charID }) {
             var newMembers = partyMembers
             newMembers[idx] = member
@@ -432,8 +530,8 @@ extension PartyManager {
             partyMembers.append(member)
             log("🎭 ДМ: \(name) в партии (аватар: \(avatarData != nil ? "✅" : "❌"))")
         }
-        savePartyState()
         
+        savePartyState()
         broadcastPartyList()
     }
     
@@ -523,27 +621,25 @@ extension PartyManager {
     
     // MARK: - Обработка удаления персонажа
 
-    // MARK: - Обработка удаления персонажа
-
     private func handleCharacterDeletion(characterID: UUID) {
         guard role == .dungeonMaster else { return }
         
-        // 1. Ищем игрока в живом списке partyMembers (который отображается на экране)
+        // Ищем игрока в живом списке partyMembers
         if let memberIndex = partyMembers.firstIndex(where: { $0.id == characterID }) {
             let deletedName = partyMembers[memberIndex].name
             
-            // 2. НЕ удаляем, а меняем статус на "удалён" и "оффлайн"
+            // НЕ удаляем, а помечаем как "удалён" и "оффлайн"
             var updatedMember = partyMembers[memberIndex]
             updatedMember.isConnected = false
-            updatedMember.isCharacterDeleted = true  // ✅ Флаг для отображения плашки
+            updatedMember.isCharacterDeleted = true  // ✅ Флаг для вкладки "УДАЛЁННЫЕ"
             updatedMember.lastSeen = Date()
             
-            // 3. Обновляем массив partyMembers
+            // Обновляем массив partyMembers
             var newMembers = partyMembers
             newMembers[memberIndex] = updatedMember
             partyMembers = newMembers
             
-            // 4. Также обновляем сохранённую кампанию (для восстановления после перезапуска)
+            // Также обновляем сохранённую кампанию (для восстановления после перезапуска)
             if var campaign = campaignManager.activeCampaign,
                let campaignMemberIndex = campaign.members.firstIndex(where: { $0.id == characterID }) {
                 campaign.members[campaignMemberIndex].isCharacterDeleted = true
@@ -551,11 +647,11 @@ extension PartyManager {
                 campaignManager.updateActiveCampaign(members: campaign.members)
             }
             
-            // 5. Сохраняем состояние и рассылаем обновлённый список всем
+            // Сохраняем состояние и рассылаем обновлённый список всем
             savePartyState()
             broadcastPartyList()
             
-            log("🗑️ ДМ: Игрок \(deletedName) удалил персонажа. Помечен как удалённый в списке.")
+            log("🗑️ ДМ: Игрок \(deletedName) удалил персонажа. Перемещён во вкладку 'УДАЛЁННЫЕ'.")
         } else {
             log("⚠️ ДМ: Получено уведомление об удалении \(characterID), но его нет в partyMembers")
         }
@@ -740,12 +836,13 @@ extension PartyManager {
     private func handleCampaignBinding(campaignID: UUID) {
         log("🔗 Получена команда привязки к кампании: \(campaignID)")
         
+        // ✅ Сохраняем campaignID в UserDefaults для будущих подключений
         UserDefaults.standard.set(campaignID.uuidString, forKey: "pendingCampaignBinding")
         self.pendingCampaignID = campaignID
         
-        // ✅ Записываем ID в модель персонажа (без if let, так как campaignID уже не optional)
+        // ✅ Записываем ID и имя кампании в модель персонажа
         if let character = selectedCharacter {
-            character.campaignID = campaignID  // ✅ Просто присваиваем
+            character.campaignID = campaignID
             character.campaignName = "Текущая кампания"
             
             log("✅ CampaignID записан в модель персонажа: \(campaignID)")
@@ -757,16 +854,18 @@ extension PartyManager {
         
         /// Принудительная синхронизация (обходит throttling).
         /// Используется при критичных изменениях: level up, demotion, смена класса.
-        func syncBasic(_ character: DNDCharacter) {
-            guard role == .player,
-                  case .connected = connectionState,
-                  let session = session,
+    func syncBasic(_ character: DNDCharacter) {
+        guard role == .player else { return }
+        
+        // ✅ Проверку состояния и сессии делаем на главном потоке
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self,
+                  case .connected = self.connectionState,
+                  let session = self.session,
                   !session.connectedPeers.isEmpty else { return }
             
-            // ✅ DEBOUNCE: отменяем предыдущую отложенную задачу
-            throttledSyncTask?.cancel()
-            
-            // Захватываем текущие значения для отложенной отправки
+            self.throttledSyncTask?.cancel()
+             
             let characterID = character.id
             let currentHP = character.currentHP
             let maxHP = character.hitPoints
@@ -774,14 +873,11 @@ extension PartyManager {
             let stress = character.stress
             let rerollPoints = character.rerollPoints
             
-            // ✅ Создаём новую отложенную задачу (debounce 0.5 сек)
-            throttledSyncTask = Task { [weak self] in
-                // Ждём 0.5 секунды тишины
+            // ✅ ДОБАВЛЕНО @MainActor: задача выполняется на главном потоке
+            self.throttledSyncTask = Task { @MainActor [weak self] in
                 try? await Task.sleep(for: .seconds(0.5))
-                
+                 
                 guard !Task.isCancelled, let self = self else { return }
-                
-                // Проверяем что всё ещё подключены
                 guard case .connected = self.connectionState else { return }
                 
                 self.lastBasicSyncTime = Date()
@@ -800,6 +896,7 @@ extension PartyManager {
                 self.log("📤 syncBasic (debounced): HP=\(currentHP)/\(maxHP), level=\(level)")
             }
         }
+    }
         /// Принудительная синхронизация (обходит debounce).
         /// Используется при критичных изменениях: level up, demotion, смена класса.
         func forceSyncBasic(_ character: DNDCharacter) {
@@ -832,7 +929,44 @@ extension PartyManager {
         }
     
     // MARK: - Синхронизация удаления персонажа
-
+    /// Помечает персонажа как удалённого (используется ДМом при локальном удалении).
+    /// Персонаж НЕ удаляется из partyMembers, а перемещается во вкладку "УДАЛЁННЫЕ".
+    func markCharacterAsDeleted(characterID: UUID) {
+        guard role == .dungeonMaster else { return }
+        
+        // Ищем игрока в списке partyMembers
+        guard let memberIndex = partyMembers.firstIndex(where: { $0.id == characterID }) else {
+            log("⚠️ markCharacterAsDeleted: персонаж \(characterID) не найден в partyMembers")
+            return
+        }
+        
+        let deletedName = partyMembers[memberIndex].name
+        
+        // Помечаем как "удалён" и "оффлайн"
+        var updatedMember = partyMembers[memberIndex]
+        updatedMember.isConnected = false
+        updatedMember.isCharacterDeleted = true  // ✅ Флаг для вкладки "УДАЛЁННЫЕ"
+        updatedMember.lastSeen = Date()
+        
+        // Обновляем массив partyMembers
+        var newMembers = partyMembers
+        newMembers[memberIndex] = updatedMember
+        partyMembers = newMembers
+        
+        // Также обновляем сохранённую кампанию (для восстановления после перезапуска)
+        if var campaign = campaignManager.activeCampaign,
+           let campaignMemberIndex = campaign.members.firstIndex(where: { $0.id == characterID }) {
+            campaign.members[campaignMemberIndex].isCharacterDeleted = true
+            campaign.members[campaignMemberIndex].isConnected = false
+            campaignManager.updateActiveCampaign(members: campaign.members)
+        }
+        
+        // Сохраняем состояние и рассылаем обновления
+        savePartyState()
+        broadcastPartyList()
+        
+        log("🗑️ ДМ локально удалил игрока \(deletedName). Перемещён во вкладку 'УДАЛЁННЫЕ'.")
+    }
     /// Вызывается игроком при удалении персонажа, чтобы уведомить ДМа
     func notifyCharacterDeletion(characterID: UUID) {
         guard role == .player,

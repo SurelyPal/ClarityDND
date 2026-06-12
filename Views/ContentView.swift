@@ -144,6 +144,7 @@ struct ContentView: View {
         .onAppear {
             // 🆕 Автопереподключение при запуске приложения
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                
                 PartyManager.shared.tryAutoReconnect(characters: store.characters)
             }
         }

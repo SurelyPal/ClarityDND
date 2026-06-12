@@ -27,6 +27,12 @@ extension PartyManager: MCSessionDelegate {
                 self.connectionState = .connecting(peerName: peerID.displayName)
             case .notConnected:
                 self.handlePeerDisconnected(peerID: peerID, session: session)
+                log("⚠️ Peer отключился: \(peerID.displayName)")
+                    
+                    // ✅ Используем безопасный метод с проверкой привязки
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
+                        self?.attemptAutoReconnect()
+                    }
             @unknown default:
                 break
             }
@@ -425,14 +431,11 @@ extension PartyManager {
         send(.heartbeatRequest(timestamp: Date()))
     }
 
-    /// Обрабатывает потерю связи с ДМ-ом (heartbeat timeout)
     func handleHostLost() {
         stopHeartbeat()
 
         // Отключаем session
         session?.disconnect()
-        // session = nil  // УБРАНО: setter недоступен
-
         
         partyMembers = []
         restVotingManager.resetAll()
@@ -444,6 +447,12 @@ extension PartyManager {
         savePartyState()
 
         log("🔴 Принудительное отключение: ДМ не отвечает")
+        
+        // ✅ АВТОПЕРЕПОДКЛЮЧЕНИЕ: пытаемся переподключиться через 3 секунды
+        // Сработает ТОЛЬКО если персонаж привязан к кампании
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
+            self?.attemptAutoReconnect()
+        }
     }
 
     

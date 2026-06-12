@@ -8,6 +8,7 @@ import SwiftUI
 
 struct DungeonMasterView: View {
     @ObservedObject private var partyManager = PartyManager.shared
+    @State private var showDeletedCharacters = false
     
     var body: some View {
         ZStack {
@@ -101,17 +102,81 @@ struct DungeonMasterView: View {
     }
     
     private var header: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 12) {
             Text("👑").font(.system(size: 40))
             Text("ПАРТИЯ").font(.system(size: 10)).tracking(3)
                 .foregroundColor(Color.dsTextDim)
-            Text("\(partyManager.partyMembers.count) \(partyMemberWord)")
-                .font(.system(size: 22, weight: .light))
-                .foregroundColor(Color.dsGold)
+            
+            // ✅ НОВОЕ: Счётчики активных и удалённых
+            let activeCount = partyManager.partyMembers.filter { !$0.isCharacterDeleted }.count
+            let deletedCount = partyManager.partyMembers.filter { $0.isCharacterDeleted }.count
+            
+            HStack(spacing: 16) {
+                Text("\(activeCount) \(activeMemberWord)")
+                    .font(.system(size: 18, weight: .light))
+                    .foregroundColor(showDeletedCharacters ? Color.dsTextDim : Color.dsGold)
+                
+                if deletedCount > 0 {
+                    Text("·")
+                        .foregroundColor(Color.dsTextDim)
+                    
+                    Text("\(deletedCount) \(deletedMemberWord)")
+                        .font(.system(size: 18, weight: .light))
+                        .foregroundColor(showDeletedCharacters ? Color.dsGold : Color.dsTextDim)
+                }
+            }
+            
+            // ✅ НОВОЕ: Переключатель вкладок
+            if deletedCount > 0 {
+                HStack(spacing: 0) {
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            showDeletedCharacters = false
+                        }
+                    } label: {
+                        Text("АКТИВНЫЕ")
+                            .font(.system(size: 10, weight: .bold))
+                            .tracking(1)
+                            .foregroundColor(showDeletedCharacters ? Color.dsTextDim : Color.dsBackground)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                            .background(showDeletedCharacters ? Color.clear : Color.dsGold)
+                            .cornerRadius(4)  // ✅ Кроссплатформенное решение
+                    }
+                    .buttonStyle(.plain)
+                    
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            showDeletedCharacters = true
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text("УДАЛЁННЫЕ")
+                                .font(.system(size: 10, weight: .bold))
+                                .tracking(1)
+                            Image(systemName: "trash.fill")
+                                .font(.system(size: 8))
+                        }
+                        .foregroundColor(!showDeletedCharacters ? Color.dsTextDim : Color.dsBackground)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .background(!showDeletedCharacters ? Color.clear : Color.dsRed.opacity(0.8))
+                        .cornerRadius(4)  // ✅ Кроссплатформенное решение
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(Color.dsGold.opacity(0.5), lineWidth: 1)
+                )
+            }
+                
+            
             DSdivider().padding(.horizontal, 60)
         }
     }
-    
     private var partyMemberWord: String {
         switch partyManager.partyMembers.count {
         case 1: return "герой"
@@ -120,14 +185,49 @@ struct DungeonMasterView: View {
         }
     }
     
+    private var activeMemberWord: String {
+        let count = partyManager.partyMembers.filter { !$0.isCharacterDeleted }.count
+        switch count {
+        case 1: return "герой"
+        case 2, 3, 4: return "героя"
+        default: return "героев"
+        }
+    }
+
+    private var deletedMemberWord: String {
+        let count = partyManager.partyMembers.filter { $0.isCharacterDeleted }.count
+        switch count {
+        case 1: return "погибший"
+        case 2, 3, 4: return "погибших"
+        default: return "погибших"
+        }
+    }
+    
     private var emptyState: some View {
         VStack(spacing: 16) {
             Spacer().frame(height: 60)
-            Image(systemName: "person.3")
-                .font(.system(size: 60))
-                .foregroundColor(Color.dsTextDim.opacity(0.4))
-            Text("Пока никто не подключился")
-                .font(.system(size: 14)).foregroundColor(Color.dsTextDim)
+            
+            if showDeletedCharacters {
+                // ✅ Empty state для удалённых персонажей
+                Image(systemName: "graveyard")
+                    .font(.system(size: 60))
+                    .foregroundColor(Color.dsTextDim.opacity(0.4))
+                Text("Кладбище пусто")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(Color.dsText)
+                Text("Здесь будут отображаться персонажи,\nкоторые покинули партию")
+                    .font(.system(size: 11))
+                    .foregroundColor(Color.dsTextDim)
+                    .multilineTextAlignment(.center)
+            } else {
+                // ✅ Empty state для активных персонажей
+                Image(systemName: "person.3")
+                    .font(.system(size: 60))
+                    .foregroundColor(Color.dsTextDim.opacity(0.4))
+                Text("Пока никто не подключился")
+                    .font(.system(size: 14)).foregroundColor(Color.dsTextDim)
+            }
+            
             Spacer().frame(height: 60)
         }
     }
@@ -137,9 +237,14 @@ struct DungeonMasterView: View {
             columns: [GridItem(.flexible()), GridItem(.flexible())],
             spacing: 16
         ) {
-            ForEach(partyManager.partyMembers) { member in
+            // ✅ Фильтруем по текущей вкладке
+            let filteredMembers = showDeletedCharacters
+                ? partyManager.partyMembers.filter { $0.isCharacterDeleted }
+                : partyManager.partyMembers.filter { !$0.isCharacterDeleted }
+            
+            ForEach(filteredMembers) { member in
                 NavigationLink {
-                    DungeonMasterDetailView(memberID: member.id)  // 🆕
+                    DungeonMasterDetailView(memberID: member.id)
                 } label: {
                     PartyMemberCard(member: member)
                 }
