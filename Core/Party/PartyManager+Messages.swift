@@ -708,7 +708,7 @@ extension PartyManager {
         let oldCount = self.partyMembers.count
         let newCount = members.count
         
-        self.partyMembers = members
+        self.partyMembers = mergedMembers
         
         if oldCount != newCount {
             log("📋 partyList применён: было \(oldCount), стало \(newCount) игроков")

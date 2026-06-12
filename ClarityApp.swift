@@ -20,6 +20,7 @@ struct ClarityApp: App {
         WindowGroup {
             // 🆕 Запускаем RootView вместо ContentView
             RootView()
+            
         }
         .modelContainer(for: DNDCharacter.self)
         

@@ -18,7 +18,7 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     
     /// Хранилище персонажей (создаётся отложенно, когда context доступен)
-    @State private var store: CharacterStore?
+    @EnvironmentObject var store: CharacterStore
     
     /// Показать экран создания персонажа
     @State private var showingCreation = false
@@ -40,76 +40,71 @@ struct ContentView: View {
                 Color.dsBackground
                     .ignoresSafeArea()
                 
-                // 🆕 Если CharacterStore создан — показываем основной UI
-                if let store = store {
-                    mainContent(store: store)
-                } else {
-                    // Экран загрузки, пока создаётся CharacterStore
-                    loadingView
-                }
-            }
-            .toolbar {
-#if os(iOS)
-                // Слева: кнопка Партии (MultiPeerConnectivity)
-                ToolbarItem(placement: .navigationBarLeading) {
-                    NavigationLink(destination: PartyLobbyView()) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "person.3.fill")
-                                .font(.system(size: 13))
-                            Text("Партия")
-                                .font(.system(size: 12, weight: .medium))
-                                .tracking(0.5)
-                        }
-                        .foregroundColor(Color.dsGold)
-                    }
-                }
+                mainContent(store: store)
                 
-                // Справа: кнопка создания персонажа
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { showingCreation = true }) {
-                        Image(systemName: "plus")
-                            .foregroundColor(Color.dsGold)
-                            .font(.system(size: 16, weight: .medium))
-                    }
-                    .disabled(store == nil)
-                }
-#elseif os(macOS)
-                // macOS: используем primaryAction для обеих кнопок
-                ToolbarItemGroup(placement: .primaryAction) {
-                    NavigationLink(destination: PartyLobbyView()) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "person.3.fill")
-                                .font(.system(size: 13))
-                            Text("Партия")
-                                .font(.system(size: 12, weight: .medium))
-                                .tracking(0.5)
-                        }
-                        .foregroundColor(Color.dsGold)
-                    }
-                    
-                    Button(action: { showingCreation = true }) {
-                        Image(systemName: "plus")
-                            .foregroundColor(Color.dsGold)
-                            .font(.system(size: 16, weight: .medium))
-                    }
-                    .disabled(store == nil)
-                }
-#endif
-            }
+                
+                    .toolbar {
 #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
+                        // Слева: кнопка Партии (MultiPeerConnectivity)
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            NavigationLink(destination: PartyLobbyView()) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "person.3.fill")
+                                        .font(.system(size: 13))
+                                    Text("Партия")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .tracking(0.5)
+                                }
+                                .foregroundColor(Color.dsGold)
+                            }
+                        }
+                        
+                        // Справа: кнопка создания персонажа
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button(action: { showingCreation = true }) {
+                                Image(systemName: "plus")
+                                    .foregroundColor(Color.dsGold)
+                                    .font(.system(size: 16, weight: .medium))
+                            }
+                            .disabled(store == nil)
+                        }
+#elseif os(macOS)
+                        // macOS: используем primaryAction для обеих кнопок
+                        ToolbarItemGroup(placement: .primaryAction) {
+                            NavigationLink(destination: PartyLobbyView()) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "person.3.fill")
+                                        .font(.system(size: 13))
+                                    Text("Партия")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .tracking(0.5)
+                                }
+                                .foregroundColor(Color.dsGold)
+                            }
+                            
+                            Button(action: { showingCreation = true }) {
+                                Image(systemName: "plus")
+                                    .foregroundColor(Color.dsGold)
+                                    .font(.system(size: 16, weight: .medium))
+                            }
+                            .disabled(store == nil)
+                        }
 #endif
-            .sheet(isPresented: $showingCreation) {
-                if let store = store {
-                    CharacterCreationView()
-                        .environmentObject(store)
-                }
+                    }
+#if os(iOS)
+                    .navigationBarTitleDisplayMode(.inline)
+#endif
+                    .sheet(isPresented: $showingCreation) {
+                       
+                            CharacterCreationView()
+                                .environmentObject(store)
+                        
+                    }
             }
+            .background(Color.dsBackground)
+            .preferredColorScheme(.dark)
         }
-        .background(Color.dsBackground) 
-        .preferredColorScheme(.dark)
     }
-    
     // MARK: - Основной контент (когда store готов)
     
     @ViewBuilder
@@ -149,28 +144,7 @@ struct ContentView: View {
             }
         }
     }
-    
-    // MARK: - Экран загрузки
-    
-    private var loadingView: some View {
-        VStack(spacing: 20) {
-            ProgressView()
-                .progressViewStyle(.circular)
-                .tint(.dsGold)
-                .scaleEffect(1.5)
-            
-            Text("Открываем книгу судеб...")
-                .font(.system(size: 14))
-                .foregroundColor(.dsTextDim)
-                .tracking(1)
-        }
-        .onAppear {
-            // Создаём CharacterStore, передавая ему context из SwiftData
-            store = CharacterStore(context: modelContext)
-            print("✅ CharacterStore создан в ContentView")
-        }
-    }
-    
+ 
     // MARK: - Пустое состояние
     
     private var emptyState: some View {
