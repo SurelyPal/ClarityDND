@@ -288,6 +288,12 @@ final class PartyManager: NSObject, ObservableObject {
             log("⏭️ attemptAutoReconnect: пропущено, персонаж не привязан к кампании")
             return
         }
+
+        // 🆕 БЛОКИРОВКА: нельзя автопереподключиться удалённым персонажем
+        guard !character.isDeleted else {
+            log("⛔ attemptAutoReconnect: персонаж '\(character.displayName)' удалён — автопереподключение заблокировано")
+            return
+        }
         
         log("🔄 attemptAutoReconnect: запускаем поиск для \(character.displayName), привязан к кампании \(campaignID.uuidString.prefix(8))")
         
@@ -307,6 +313,12 @@ final class PartyManager: NSObject, ObservableObject {
         // 2. ✅ ПРОВЕРКА 1: Персонаж должен быть привязан к кампании
         guard let campaignID = character.campaignID else {
             log("⏭️ Автопереподключение пропущено: \(character.displayName) не привязан к кампании")
+            return
+        }
+
+        // 🆕 БЛОКИРОВКА: нельзя автопереподключиться удалённым персонажем
+        guard !character.isDeleted else {
+            log("⛔ Автопереподключение заблокировано: \(character.displayName) удалён")
             return
         }
         
@@ -367,6 +379,15 @@ final class PartyManager: NSObject, ObservableObject {
     }
 
     func startSearching(with character: DNDCharacter, allCharacters: [DNDCharacter] = []) {
+        
+        // 🆕 БЛОКИРОВКА: нельзя начать поиск удалённым персонажем
+            guard !character.isDeleted else {
+                log("⛔ startSearching: персонаж '\(character.displayName)' удалён — поиск заблокирован")
+                lastError = "Этот персонаж удалён и не может подключиться к партии"
+                connectionState = .selectingCharacter
+                return
+            }
+        
         self.selectedCharacter = character
         if !allCharacters.isEmpty {
             self.availableCharacters = allCharacters
@@ -432,7 +453,22 @@ final class PartyManager: NSObject, ObservableObject {
     }
 
     func setSelectedCharacter(_ character: DNDCharacter?) {
+        // 🆕 БЛОКИРОВКА: нельзя выбрать удалённого персонажа
+        if let char = character, char.isDeleted {
+            log("⛔ setSelectedCharacter: персонаж '\(char.displayName)' удалён — выбор заблокирован")
+            return
+        }
+        
         self.selectedCharacter = character
+        
+        // 🎯 КРИТИЧНО: Создаем Snapshot СРАЗУ, пока объект ещё привязан к контексту
+        if let char = character {
+            self.selectedCharacterSnapshot = DNDCharacter.Snapshot(from: char)
+            log("📸 Snapshot создан для '\(char.displayName)'")
+        } else {
+            self.selectedCharacterSnapshot = nil
+        }
+        
         saveSelectedCharacterID(character?.id)
     }
 

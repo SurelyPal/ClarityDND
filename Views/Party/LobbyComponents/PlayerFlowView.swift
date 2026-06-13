@@ -35,9 +35,13 @@ struct PlayerFlowView: View {
             DSdivider().padding(.horizontal, 40)
 
             // Список персонажей или пустое состояние
+            // 🆕 ФИЛЬТРУЕМ: показываем только НЕ удалённых персонажей
+            let activeCharacters = store.characters.filter { !$0.isDeleted }
+
+            // Список персонажей или пустое состояние
             if isLoadingCharacters {
                 loadingState
-            } else if store.characters.isEmpty {
+            } else if activeCharacters.isEmpty {
                 emptyState
             } else {
                 characterList
@@ -144,7 +148,7 @@ struct PlayerFlowView: View {
     private var characterList: some View {
         ScrollView {
             VStack(spacing: 12) {
-                ForEach(store.characters) { char in
+                ForEach(store.characters.filter { !$0.isDeleted }) { char in
                     Button {
                         #if os(iOS)
                         PlatformCompatibility.hapticImpact(.light)

@@ -191,9 +191,32 @@ extension PartyManager: MCNearbyServiceBrowserDelegate {
                 return
             }
 
-            // 🎯 КРИТИЧНО: Создаем snapshot ЗДЕСЬ, пока объект еще привязан к контексту
-            let snapshot = DNDCharacter.Snapshot(from: selectedChar)
-            self.selectedCharacterSnapshot = snapshot
+            // 🆕 БЛОКИРОВКА: нельзя подключиться удалённым персонажем
+            guard !selectedChar.isDeleted else {
+                self.log("⛔ БЛОКИРОВКА: персонаж '\(selectedChar.displayName)' удалён — подключение невозможно")
+                self.lastError = "Этот персонаж удалён и не может подключиться к партии"
+                self.browser?.stopBrowsingForPeers()
+                self.session?.disconnect()
+                self.connectionState = .selectingCharacter
+                return
+            }
+
+            // 🎯 ИСПОЛЬЗУЕМ УЖЕ СОЗДАННЫЙ snapshot (создан в setSelectedCharacter)
+            // НЕ создаём новый, чтобы избежать краша при чтении avatarData из detached объекта
+            guard let snapshot = self.selectedCharacterSnapshot else {
+                self.log("⛔ КРИТИЧНО: Snapshot не найден! Убедитесь, что setSelectedCharacter был вызван до начала поиска")
+                self.lastError = "Внутренняя ошибка: данные персонажа не загружены"
+                self.browser?.stopBrowsingForPeers()
+                self.connectionState = .selectingCharacter
+                return
+            }
+
+            // Проверяем, что Snapshot соответствует выбранному персонажу
+            guard snapshot.id == selectedChar.id else {
+                self.log("⛔ Snapshot не соответствует выбранному персонажу! Пересоздаём...")
+                self.selectedCharacterSnapshot = DNDCharacter.Snapshot(from: selectedChar)
+                return
+            }
 
             if let roomCampaignIDString = campaignIDString,
                let roomCampaignID = UUID(uuidString: roomCampaignIDString) {
@@ -305,15 +328,27 @@ private extension PartyManager {
         
 
         // Игрок: отправляем данные и запускаем heartbeat
-        if role == .player, let snapshot = selectedCharacterSnapshot {
-            sendJoinMessage(for: snapshot)
-            startHeartbeat()
-        } else if role == .player, let char = selectedCharacter {
-            // Fallback: если snapshot еще не создан
-            let snapshot = DNDCharacter.Snapshot(from: char)
-            self.selectedCharacterSnapshot = snapshot
-            sendJoinMessage(for: snapshot)
-            startHeartbeat()
+        if role == .player {
+            // 🎯 Используем уже созданный Snapshot (создан в setSelectedCharacter)
+            if let snapshot = selectedCharacterSnapshot {
+                sendJoinMessage(for: snapshot)
+                startHeartbeat()
+            } else {
+                // Fallback: создаём Snapshot ЗДЕСЬ, но с защитой от detached объекта
+                log("⚠️ Snapshot не найден, создаём fallback...")
+                
+                guard let char = selectedCharacter, !char.isDeleted else {
+                    log("⛔ Невозможно создать Snapshot: персонаж не выбран или удалён")
+                    self.connectionState = .selectingCharacter
+                    return
+                }
+                
+                // Создаём Snapshot пока мы ещё на MainActor
+                let newSnapshot = DNDCharacter.Snapshot(from: char)
+                self.selectedCharacterSnapshot = newSnapshot
+                sendJoinMessage(for: newSnapshot)
+                startHeartbeat()
+            }
         }
 
         // ✅ ИСПРАВЛЕНО: Устанавливаем онлайн статус ТОЛЬКО если персонаж не удалён

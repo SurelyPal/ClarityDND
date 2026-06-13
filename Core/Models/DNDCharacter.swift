@@ -20,9 +20,6 @@ final class DNDCharacter {
     var level: Int
     var stats: AbilityScores
     var background: String
-    // MARK: - HP
-    // 🔑 ВАЖНО: hitPoints = МАКСИМАЛЬНОЕ здоровье
-    // currentHP = ТЕКУЩЕЕ здоровье (уменьшается при уроне)
     var campaignID: UUID?
     var campaignName: String?
     var hitPoints: Int
@@ -32,7 +29,6 @@ final class DNDCharacter {
     var rerollPoints: Int
     var isDeleted: Bool = false
     var instrument: String?
-    
     // 🆕 ДЕНЬГИ (золотые монеты)
     var money: Int = 0
 

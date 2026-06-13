@@ -69,6 +69,7 @@ final class CharacterStore: ObservableObject {
             context.delete(character)
         }
         save()
+        fetchAll()
     }
     
 // MARK: - Умная синхронизация
@@ -106,13 +107,19 @@ final class CharacterStore: ObservableObject {
         fetchAll()
     }
     private func fetchAll() {
-        let descriptor = FetchDescriptor<DNDCharacter>(
-            sortBy: [SortDescriptor(\.name, order: .forward)]  // ✅ Правильное имя SwiftData свойства
+        // 🆕 ФИЛЬТРУЕМ: загружаем только НЕ удалённых персонажей
+        let predicate = #Predicate<DNDCharacter> { character in
+            !character.isDeleted
+        }
+        
+        let descriptor = FetchDescriptor(
+            predicate: predicate,
+            sortBy: [SortDescriptor(\.name, order: .forward)]
         )
         characters = (try? context.fetch(descriptor)) ?? []
-        
+
         #if DEBUG
-        print("📦 fetchAll: загружено \(characters.count) персонажей")
+        print("📦 fetchAll: загружено \(characters.count) персонажей (без удалённых)")
         #endif
     }
     
