@@ -98,4 +98,18 @@ enum PartyMessage: Codable, Sendable {
     // 🆕 ДМ запрашивает полную синхронизацию от игрока
     case requestSync
     case connectionRejected(reason: String)
+    // 🆕 Передача предмета между игроками
+    case itemTransfer(
+        item: InventoryItem,
+        fromCharacterID: UUID,
+        fromCharacterName: String,
+        toCharacterID: UUID
+    )
+    // 🆕 Передача золота между игроками
+    case goldTransfer(
+        amount: Int,
+        fromCharacterID: UUID,
+        fromCharacterName: String,
+        toCharacterID: UUID
+    )
 }

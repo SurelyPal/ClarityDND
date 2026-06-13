@@ -451,8 +451,26 @@ extension PartyManager {
             
             // ✅ КРОССПЛАТФОРМЕННО: используем PlatformCompatibility
             PlatformCompatibility.hapticNotification(.error)
+            
         case .ping: send(.pong)
         case .pong, .requestCharacterSync: break
+        // 🆕 Обработка передачи предмета
+        case .itemTransfer(let item, let fromID, let fromName, let toID):
+                handleItemTransfer(
+                    item: item,
+                    fromCharacterID: fromID,
+                    fromCharacterName: fromName,
+                    toCharacterID: toID
+                )
+           
+            // 🆕 Обработка передачи золота
+        case .goldTransfer(let amount, let fromID, let fromName, let toID):
+                        handleGoldTransfer(
+                            amount: amount,
+                            fromCharacterID: fromID,
+                            fromCharacterName: fromName,
+                            toCharacterID: toID
+                        )
             
         }
     }
@@ -1115,9 +1133,9 @@ extension PartyManager {
 extension PartyManager {
     private func handleMoneyUpdate(characterID: UUID, amount: Int, reason: String) {
         guard role == .player else {
-                log("⚠️ [Игрок] handleMoneyUpdate: проигнорировано, так как роль не player")
-                return
-            }
+            log("⚠️ [Игрок] handleMoneyUpdate: проигнорировано, так как роль не player")
+            return
+        }
         
         log("📥 [Игрок] Получено moneyUpdate: characterID=\(characterID), amount=\(amount)")
         
@@ -1127,10 +1145,10 @@ extension PartyManager {
         }
         
         guard character.id == characterID else {
-                log("❌ [Игрок] ОШИБКА: ID не совпадает! Ожидался \(characterID), а у selectedCharacter ID = \(character.id)")
-                return
-            }
-            
+            log("❌ [Игрок] ОШИБКА: ID не совпадает! Ожидался \(characterID), а у selectedCharacter ID = \(character.id)")
+            return
+        }
+        
         log("✅ [Игрок] Персонаж найден: \(character.name). Было золота: \(character.money). Станет: \(amount)")
         
         // ✅ Обновляем золото у локального персонажа
@@ -1147,5 +1165,45 @@ extension PartyManager {
         
         // ✅ Синхронизируем изменения с ДМ
         syncBasic(character)
+    }
+    
+    private func handleItemTransfer(
+        item: InventoryItem,
+        fromCharacterID: UUID,
+        fromCharacterName: String,
+        toCharacterID: UUID
+    ) {
+        guard role == .player,
+              let character = selectedCharacter,
+              character.id == toCharacterID else {
+            log("⚠️ itemTransfer: не мой персонаж или не игрок")
+            return
+        }
+        
+        // Добавляем предмет в инвентарь
+        character.inventory.append(item)
+        log("📦 Получен предмет '\(item.name)' от \(fromCharacterName)")
+        
+        // Уведомление пользователю
+        PlatformCompatibility.hapticNotification(.success)
+    }
+    
+    // 🆕 Обработка получения золота от другого игрока
+    private func handleGoldTransfer(
+        amount: Int,
+        fromCharacterID: UUID,
+        fromCharacterName: String,
+        toCharacterID: UUID
+    ) {
+        guard role == .player,
+              let character = selectedCharacter,
+              character.id == toCharacterID else {
+            log("⚠️ goldTransfer: не мой персонаж или не игрок")
+            return
+        }
+        
+        character.money += amount
+        log("💰 Получено \(amount) золота от \(fromCharacterName)")
+        PlatformCompatibility.hapticNotification(.success)
     }
 }

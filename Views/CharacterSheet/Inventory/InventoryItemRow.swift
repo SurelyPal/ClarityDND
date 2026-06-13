@@ -14,7 +14,8 @@ struct InventoryItemRow: View {
     let onDelete: () -> Void
     let onToggleEquip: () -> Void
     let onUpdate: () -> Void
-    
+    let onTransfer: ((InventoryItem) -> Void)? // 🆕 Передача предмета
+
     // 🆕 Для меню действий
     @State private var showingActionMenu = false
     @State private var showingTransferSheet = false
@@ -74,7 +75,7 @@ struct InventoryItemRow: View {
                         Label("Редактировать", systemImage: "pencil")
                     }
                     
-                    Button(action: { showingTransferSheet = true }) {
+                    Button(action: { onTransfer?(item) })  {
                         Label("Передать игроку", systemImage: "arrow.right.circle")
                     }
                     
@@ -100,10 +101,8 @@ struct InventoryItemRow: View {
                 .frame(height: 0.5),
             alignment: .bottom
         )
-        .sheet(isPresented: $showingTransferSheet) {
-            TransferItemSheet(item: item)
-        }
     }
+    
     
     // MARK: - Кнопка экипировки/снятия (тап по слоту)
     
@@ -153,11 +152,14 @@ struct InventoryItemRow: View {
     }
 }
 
-// 🆕 НОВОЕ: Лист для передачи предмета другому игроку
+
+// Лист для передачи предмета (Только UI, логика в InventoryTabView)
 struct TransferItemSheet: View {
     let item: InventoryItem
     @EnvironmentObject var partyManager: PartyManager
     @Environment(\.dismiss) var dismiss
+    
+    let onTransfer: (PartyMember) -> Void // 🆕 Замыкание для передачи логики наверх
     
     @State private var selectedPlayerID: UUID?
     
@@ -172,8 +174,7 @@ struct TransferItemSheet: View {
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(Color.dsText)
             
-            DSdivider()
-                .padding(.horizontal, 40)
+            DSdivider().padding(.horizontal, 40)
             
             Text("Выберите игрока:")
                 .font(.system(size: 12))
@@ -181,17 +182,21 @@ struct TransferItemSheet: View {
             
             ScrollView {
                 VStack(spacing: 8) {
-                    ForEach(partyManager.partyMembers.filter { $0.isConnected }) { member in
+                    // 🆕 Исключаем текущего персонажа из списка получателей
+                    let currentCharacterID = partyManager.selectedCharacter?.id
+                    
+                    ForEach(partyManager.partyMembers.filter { member in
+                        member.isConnected && member.id != currentCharacterID // 🔧 Фильтр "не я"
+                    }) { member in
                         Button {
                             selectedPlayerID = member.id
-                            // TODO: Реализовать передачу предмета через PartyManager
+                            onTransfer(member) // 🆕 Вызываем замыкание вместо сломанного PartyManager.transferItem
                             dismiss()
                         } label: {
                             HStack {
                                 Image(systemName: "person.circle.fill")
                                     .font(.system(size: 24))
                                     .foregroundColor(Color.dsGold)
-                                
                                 VStack(alignment: .leading) {
                                     Text(member.name)
                                         .font(.system(size: 14, weight: .medium))
@@ -200,9 +205,7 @@ struct TransferItemSheet: View {
                                         .font(.system(size: 11))
                                         .foregroundColor(Color.dsTextDim)
                                 }
-                                
                                 Spacer()
-                                
                                 if selectedPlayerID == member.id {
                                     Image(systemName: "checkmark.circle.fill")
                                         .foregroundColor(Color.dsGold)
@@ -222,9 +225,7 @@ struct TransferItemSheet: View {
                 .padding(.horizontal, 20)
             }
             
-            Button {
-                dismiss()
-            } label: {
+            Button { dismiss() } label: {
                 Text("ОТМЕНА")
                     .font(.system(size: 12, weight: .medium))
                     .tracking(1)
