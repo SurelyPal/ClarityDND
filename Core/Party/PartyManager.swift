@@ -91,6 +91,7 @@ final class PartyManager: NSObject, ObservableObject {
     var advertiser: MCNearbyServiceAdvertiser?
     var browser: MCNearbyServiceBrowser?
     private(set) var selectedCharacter: DNDCharacter?
+    var selectedCharacterSnapshot: DNDCharacter.Snapshot?
     /// Список всех персонажей на устройстве (используется для проверки мультибоксинга)
     var availableCharacters: [DNDCharacter] = []
     private var didTryAutoReconnect = false
@@ -294,6 +295,7 @@ final class PartyManager: NSObject, ObservableObject {
         startSearching(with: character)
     }
     func tryAutoReconnect(characters: [DNDCharacter]) {
+        self.availableCharacters = characters // 🆕 Кэшируем список для проверки мультибоксинга
         // 1. Базовые проверки
         guard !didTryAutoReconnect,
               connectionState == .disconnected,
@@ -364,8 +366,11 @@ final class PartyManager: NSObject, ObservableObject {
         log("🧹 Состояние персонажа и привязки к кампании полностью очищены")
     }
 
-    func startSearching(with character: DNDCharacter) {
+    func startSearching(with character: DNDCharacter, allCharacters: [DNDCharacter] = []) {
         self.selectedCharacter = character
+        if !allCharacters.isEmpty {
+            self.availableCharacters = allCharacters
+        }
 
         if self.session == nil {
             self.session = MCSession(peer: self.localPeerID, securityIdentity: nil, encryptionPreference: .none)
@@ -379,6 +384,51 @@ final class PartyManager: NSObject, ObservableObject {
 
         self.browser?.startBrowsingForPeers()
         self.connectionState = .searching
+    }
+    
+    // MARK: - 🔑 ПРОВЕРКА ПРИ ПОДКЛЮЧЕНИИ К ДМу
+
+    /// Проверяет можно ли подключиться к этому ДМу с выбранным персонажем
+    /// - Parameters:
+    ///   - dmPeerID: ID ДМа к которому подключаемся
+    ///   - discoveryInfo: Информация от ДМа (должна содержать campaignID)
+    /// - Returns: true если можно подключиться, false если нужно отклонить
+    func canConnectToDM(dmPeerID: MCPeerID, discoveryInfo: [String: String]?) -> Bool {
+        // Получаем campaignID от ДМа (это String из discoveryInfo)
+        guard let dmCampaignIDString = discoveryInfo?["campaignID"] else {
+            // ДМ не передал campaignID — подключаемся свободно (новая кампания)
+            log("✅ ДМ не передал campaignID — подключаемся свободно")
+            return true
+        }
+        
+        // 🔑 ИСПРАВЛЕНИЕ: Конвертируем String в UUID для корректного сравнения
+        guard let dmCampaignID = UUID(uuidString: dmCampaignIDString) else {
+            log("⚠️ Не удалось распознать campaignID от ДМа: \(dmCampaignIDString)")
+            return true // Разрешаем подключение, если ID невалиден, чтобы не блокировать легаси-сессии
+        }
+        
+        // Проверяем: есть ли на устройстве персонаж привязанный к этой кампании
+        // Теперь сравниваем UUID? ($0.campaignID) с UUID (dmCampaignID) — это корректно
+        let boundCharacter = availableCharacters.first { $0.campaignID == dmCampaignID }
+        
+        guard let boundCharacter = boundCharacter else {
+            // Нет привязанных персонажей — подключаемся свободно
+            log("✅ Нет персонажей привязанных к кампании \(dmCampaignID) — подключаемся свободно")
+            return true
+        }
+        
+        // На устройстве есть персонаж привязанный к этой кампании
+        if boundCharacter.id == selectedCharacter?.id {
+            // Это выбранный персонаж — подключаемся
+            log("✅ Выбранный персонаж \(boundCharacter.displayName) привязан к этой кампании — подключаемся")
+            return true
+        } else {
+            // Это НЕ выбранный персонаж — отклоняем подключение
+            log("⛔ Отклонено: персонаж \(boundCharacter.displayName) уже привязан к этой кампании")
+            lastError = "К этой кампании уже привязан персонаж: \(boundCharacter.displayName). Выберите его для подключения."
+            connectionState = .disconnected
+            return false
+        }
     }
 
     func setSelectedCharacter(_ character: DNDCharacter?) {
@@ -489,7 +539,17 @@ final class PartyManager: NSObject, ObservableObject {
                     
                     // ДМ тоже применяет эффект отдыха
                     if let dmCharacter = selectedCharacter {
-                        applyRestEffectImmediately(to: dmCharacter, type: restType)
+                        switch restType {
+                        case .short:
+                            let heal = Int(ceil(Double(dmCharacter.hitPoints) * 0.25))
+                            dmCharacter.currentHP = min(dmCharacter.hitPoints, dmCharacter.currentHP + heal)
+                            if dmCharacter.stress > 0 { dmCharacter.stress -= 1 }
+                        case .long:
+                            dmCharacter.currentHP = dmCharacter.hitPoints
+                            dmCharacter.stress = 0
+                            dmCharacter.rerollPoints = Constants.Character.maxRerollPoints
+                        }
+                        log("💤 Эффект отдыха применён к \(dmCharacter.displayName)")
                     }
                     
                     restVotingManager.startEffect(restType: restType, initiatorName: initiatorName)

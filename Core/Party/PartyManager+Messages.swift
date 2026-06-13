@@ -47,21 +47,24 @@ extension PartyManager {
         }
     }
 
-    func sendJoinMessage(for character: DNDCharacter) {
+    func sendJoinMessage(for character: DNDCharacter.Snapshot) {
         guard let session = session, !session.connectedPeers.isEmpty else { return }
 
         let effectiveCampaignID = pendingCampaignID ?? character.campaignID
         
         // ✅ ВЫЧИСЛЯЕМ: есть ли другие активные персонажи в этой кампании
+        // ВАЖНО: работаем только с уже загруженными @Model объектами на MainActor
         let hasOtherActiveCharacter: Bool
         if let campaignID = effectiveCampaignID {
             let otherCharsInCampaign = self.availableCharacters.filter {
+                // Безопасное сравнение: используем snapshot.id (value type)
                 $0.campaignID == campaignID && $0.id != character.id
             }
             hasOtherActiveCharacter = !otherCharsInCampaign.isEmpty
             
             if hasOtherActiveCharacter {
-                log("⚠️ На устройстве есть другие персонажи в этой кампании: \(otherCharsInCampaign.map { $0.displayName })")
+                let names = otherCharsInCampaign.map { $0.displayName }.joined(separator: ", ")
+                log("⚠️ На устройстве есть другие персонажи в этой кампании: \(names)")
             }
         } else {
             hasOtherActiveCharacter = false
@@ -86,8 +89,15 @@ extension PartyManager {
         log("📋 characterDetails отправлен при подключении")
     }
 
-    func sendCharacterDetails(for character: DNDCharacter) {
+    func sendCharacterDetails(for snapshot: DNDCharacter.Snapshot) {
         guard let session = session, !session.connectedPeers.isEmpty else { return }
+
+        // Безопасно получаем оригинальный @Model объект по ID из snapshot
+        guard let character = availableCharacters.first(where: { $0.id == snapshot.id })
+                ?? selectedCharacter else {
+            log("⚠️ sendCharacterDetails: не найден персонаж с ID \(snapshot.id)")
+            return
+        }
 
         let proficientSkills = getProficientSkills(for: character)
 
@@ -103,7 +113,7 @@ extension PartyManager {
         send(message)
     }
 
-    // MARK: - Синхронизация
+// MARK: - Синхронизация
 
     func syncFull(_ character: DNDCharacter) {
         guard role == .player,
@@ -111,12 +121,14 @@ extension PartyManager {
         syncBasic(character)
         // ✅ Принудительная синхронизация — обходим throttling
             
-        sendCharacterDetails(for: character)
+        let snapshot = DNDCharacter.Snapshot(from: character)
+        sendCharacterDetails(for: snapshot)
+        
         // ✅ ДОБАВЛЕНО: логирование
             log("📤 syncFull: HP=\(character.currentHP)/\(character.hitPoints), level=\(character.level), inventory=\(character.inventory.count)")
     }
     
-    // MARK: - Синхронизация удаления персонажа
+// MARK: - Синхронизация удаления персонажа
     
     /// Синхронизирует статус удаления персонажа с ДМ
     func syncCharacterDeletion(characterID: UUID) {
@@ -208,18 +220,18 @@ extension PartyManager {
                 level: level,
                 stress: stress,
                 rerollPoints: rerollPoints,
-                timestamp: Date()  // ✅ Добавлено
+                timestamp: Date()  //  Добавлено
             )
             self.send(message)
         }
     } */
 
-    // MARK: - Broadcast
+// MARK: - Broadcast
 
     func broadcastPartyList() {
         guard role == .dungeonMaster else { return }
 
-        // ✅ Переносим проверку connectedPeers на главный поток
+        //Переносим проверку connectedPeers на главный поток
         DispatchQueue.main.async { [weak self] in
             guard let self = self,
                   let session = self.session,
@@ -229,7 +241,7 @@ extension PartyManager {
             if now.timeIntervalSince(self.lastBroadcastTime) < self.broadcastThrottle {
                 self.throttledBroadcastTask?.cancel()
                 
-                // ✅ ДОБАВЛЕНО @MainActor: задача выполняется на главном потоке
+                // ДОБАВЛЕНО @MainActor: задача выполняется на главном потоке
                 self.throttledBroadcastTask = Task { @MainActor [weak self] in
                     guard let self = self else { return }
                     let elapsed = Date().timeIntervalSince(self.lastBroadcastTime)
@@ -252,7 +264,7 @@ extension PartyManager {
             self.log("📤 broadcastPartyList: \(self.partyMembers.count) игроков")
         }
     }
-    // MARK: - Обработка запроса голосования от игрока
+// MARK: - Обработка запроса голосования от игрока
 
     private func handleRestVoteRequest(initiatorID: UUID, initiatorName: String, restType: RestType, eligibleVoterIDs: Set<UUID>, initialVotes: [UUID: Bool]) {
         let isInitiator = (selectedCharacter?.id == initiatorID)
@@ -297,14 +309,15 @@ extension PartyManager {
                     
                     log("📥 Получен restVoteRequest: инициатор=\(initiatorName), eligible=\(eligibleVoterIDs.count), initialVotes=\(initialVotes.count)")
                 }
-            }    // MARK: - Helpers
+            }
+// MARK: - Helpers
 
     private func getProficientSkills(for character: DNDCharacter) -> Set<String> {
         ClassProficiencies.forClass(character.characterClass)
     }
 }
 
-// MARK: - 📥 Обработка входящих сообщений
+// MARK: - Обработка входящих сообщений
 
 extension PartyManager {
     func receiveMessage(_ data: Data, from peerID: MCPeerID) {
@@ -443,7 +456,7 @@ extension PartyManager {
         }
     }
     
-    // MARK: - Message Handlers (приватные)
+// MARK: - Message Handlers (приватные)
 
     private func handlePlayerJoined(
         charID: UUID,
@@ -599,7 +612,7 @@ extension PartyManager {
         
         lastUpdateTime[charID] = timestamp
         
-        // ✅ Запоминаем СТАРЫЙ level для сравнения
+        //Запоминаем СТАРЫЙ level для сравнения
         let oldLevel = partyMembers[idx].level
         
         var updatedMember = partyMembers[idx]
@@ -618,7 +631,7 @@ extension PartyManager {
         
         savePartyState()
         
-        // ✅ Если level изменился — принудительный broadcast (обходит throttling)
+        //Если level изменился — принудительный broadcast (обходит throttling)
         if oldLevel != level {
             log("🎯 Level изменился: \(oldLevel) → \(level), принудительный broadcast")
             forceBroadcastPartyList()
@@ -630,7 +643,7 @@ extension PartyManager {
         log("📥 Обновлён игрок \(updatedMember.name): HP=\(currentHP)/\(maxHP), level=\(level)")
     }
     
-    // MARK: - Обработка удаления персонажа
+// MARK: - Обработка удаления персонажа
 
     private func handleCharacterDeletion(characterID: UUID) {
         guard role == .dungeonMaster else { return }
@@ -642,7 +655,7 @@ extension PartyManager {
             // НЕ удаляем, а помечаем как "удалён" и "оффлайн"
             var updatedMember = partyMembers[memberIndex]
             updatedMember.isConnected = false
-            updatedMember.isCharacterDeleted = true  // ✅ Флаг для вкладки "УДАЛЁННЫЕ"
+            updatedMember.isCharacterDeleted = true  // Флаг для вкладки "УДАЛЁННЫЕ"
             updatedMember.lastSeen = Date()
             
             // Обновляем массив partyMembers

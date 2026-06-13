@@ -1,8 +1,8 @@
 //
-//  PartyManager+Connection.swift
-//  Clarity
+// PartyManager+Connection.swift
+// Clarity
 //
-//  Created by Refactor on 09.06.2026.
+// Created by Refactor on 09.06.2026.
 //
 
 import Foundation
@@ -28,11 +28,11 @@ extension PartyManager: MCSessionDelegate {
             case .notConnected:
                 self.handlePeerDisconnected(peerID: peerID, session: session)
                 log("⚠️ Peer отключился: \(peerID.displayName)")
-                    
-                    // ✅ Используем безопасный метод с проверкой привязки
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
-                        self?.attemptAutoReconnect()
-                    }
+                
+                // ✅ Используем безопасный метод с проверкой привязки
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
+                    self?.attemptAutoReconnect()
+                }
             @unknown default:
                 break
             }
@@ -45,8 +45,8 @@ extension PartyManager: MCSessionDelegate {
         fromPeer peerID: MCPeerID
     ) {
         Task { @MainActor [weak self] in
-         guard let self = self else { return }
-         self.receiveMessage(data, from: peerID)
+            guard let self = self else { return }
+            self.receiveMessage(data, from: peerID)
         }
     }
 
@@ -103,7 +103,7 @@ extension PartyManager: MCNearbyServiceAdvertiserDelegate {
             guard self.role == .dungeonMaster
             else {
                 // ✅ Используем Task для логирования (log() требует MainActor)
-        Task { @MainActor in
+                Task { @MainActor in
                     self.log("⚠️ Отклоняем приглашение от \(peerID.displayName): мы не ДМ")
                 }
                 invitationHandler(false, nil)
@@ -136,7 +136,7 @@ extension PartyManager: MCNearbyServiceAdvertiserDelegate {
         }
 
         invitationHandler(true, self.session)
-        
+
         Task { @MainActor [weak self] in
             guard let self = self else { return }
             self.log("✅ Приглашение от \(peerID.displayName) принято, session передан")
@@ -168,10 +168,10 @@ extension PartyManager: MCNearbyServiceBrowserDelegate {
         let roomCode = info?["roomCode"] ?? "???"
         let campaignIDString = info?["campaignID"]
         let campaignName = info?["campaignName"] ?? "Без названия"
-        
+
         Task { @MainActor [weak self] in
             guard let self = self else { return }
-            
+
             // Получаем правила игры от ДМа
             if let rulesString = info?["gameRules"],
                let rulesData = rulesString.data(using: .utf8),
@@ -180,34 +180,65 @@ extension PartyManager: MCNearbyServiceBrowserDelegate {
                 self.saveGameRules(rules)
                 self.log("📜 Получены правила от ДМа")
             }
-            
+
             self.log("👀 Найдена комната: \(roomCode) от \(peerID.displayName)")
-            
-            // 🆕 МЯГКАЯ ПРОВЕРКА КАМПАНИИ (не блокирует подключение)
-            if let selectedChar = self.selectedCharacter {
-                if let charCampaignID = selectedChar.campaignID {
-                    // Персонаж привязан к кампании
-                    if let roomCampaignIDString = campaignIDString,
-                       let roomCampaignID = UUID(uuidString: roomCampaignIDString) {
+
+            // 🆕 ЖЕСТКАЯ ПРОВЕРКА КАМПАНИИ И МУЛЬТИБОКСИНГА (работаем со snapshot!)
+            guard let selectedChar = self.selectedCharacter else {
+                self.log("⚠️ selectedCharacter == nil. Убедитесь, что персонаж выбран перед поиском.")
+                browser.stopBrowsingForPeers()
+                self.connectionState = .selectingCharacter
+                return
+            }
+
+            // 🎯 КРИТИЧНО: Создаем snapshot ЗДЕСЬ, пока объект еще привязан к контексту
+            let snapshot = DNDCharacter.Snapshot(from: selectedChar)
+            self.selectedCharacterSnapshot = snapshot
+
+            if let roomCampaignIDString = campaignIDString,
+               let roomCampaignID = UUID(uuidString: roomCampaignIDString) {
+                
+                // 1. ПРОВЕРКА МУЛЬТИБОКСИНГА
+                let otherAttachedCharacters = self.availableCharacters.filter {
+                    $0.campaignID == roomCampaignID && $0.id != snapshot.id
+                }
+                
+                if !otherAttachedCharacters.isEmpty {
+                    let names = otherAttachedCharacters.map { $0.displayName }.joined(separator: ", ")
+                    self.log("⛔ БЛОКИРОВКА: на устройстве есть другие привязанные персонажи (\(names)) к этой кампании. Отключение!")
+                    self.lastError = "Мультибоксинг запрещён: \(names)"
+                    self.browser?.stopBrowsingForPeers()
+                    self.session?.disconnect()
+                    self.connectionState = .disconnected
+                    return
+                }
+                
+                // 2. ПРОВЕРКА ПРИВЯЗКИ ПЕРСОНАЖА
+                if let charCampaignID = snapshot.campaignID {
+                    if charCampaignID != roomCampaignID {
+                        let boundCampaignName = snapshot.campaignName ?? "без названия"
+                        self.log("🚫 ОТКАЗАНО: персонаж '\(snapshot.displayName)' привязан к кампании '\(boundCampaignName)', а комната принадлежит '\(campaignName)'")
                         
-                        if charCampaignID != roomCampaignID {
-                            self.log("⚠️ Внимание: комната '\(campaignName)' принадлежит другой кампании")
-                            self.log("ℹ️ Попытка подключения всё равно будет выполнена. ДМ решит, пустить ли вас.")
-                            // 🟢 НЕ делаем return! Разрешаем попытку подключения.
-                            // Окончательную проверку сделает ДМ в handlePlayerJoined.
-                        } else {
-                            self.log("✅ Кампания совпадает: '\(campaignName)'")
-                        }
+                        self.lastError = "Этот персонаж уже привязан к кампании «\(boundCampaignName)». Вы не можете подключиться к другой партии."
+                        
+                        self.browser?.stopBrowsingForPeers()
+                        self.session?.disconnect()
+                        self.connectionState = .selectingCharacter
+                        return
                     } else {
-                        self.log("ℹ️ У комнаты нет campaignID — подключаемся как гость")
+                        self.log("✅ Кампания совпадает: '\(campaignName)'")
                     }
                 } else {
-                    self.log("ℹ️ Персонаж не привязан к кампании — подключаемся к любой комнате")
+                    // 3. Автоматическая привязка
+                    self.log("ℹ️ Персонаж не привязан к кампании. Привязываем к '\(campaignName)'")
+                    selectedChar.campaignID = roomCampaignID
+                    selectedChar.campaignName = campaignName
+                    self.saveCharacterBinding(selectedChar)
                 }
             } else {
-                self.log("⚠️ selectedCharacter == nil. Убедитесь, что персонаж выбран перед поиском.")
+                self.log("ℹ️ У комнаты нет campaignID — подключаемся как гость")
             }
-            
+
             // Останавливаем поиск и подключаемся
             browser.stopBrowsingForPeers()
             self.joinRoom(peerID: peerID, roomCode: roomCode)
@@ -229,13 +260,13 @@ extension PartyManager: MCNearbyServiceBrowserDelegate {
     ) {
         Task { @MainActor [weak self] in
             guard let self = self else { return }
-            
+
             let errorMessage = "Не удалось начать поиск: \(error.localizedDescription)"
             self.log("⚠️ \(errorMessage)")
-            
+
             // 🆕 БЕЗОПАСНО: показываем ошибку, но НЕ меняем connectionState агрессивно
             self.lastError = errorMessage
-            
+
             // Только если мы действительно в состоянии поиска — возвращаем к выбору
             if case .searching = self.connectionState {
                 self.connectionState = .selectingCharacter
@@ -274,28 +305,34 @@ private extension PartyManager {
         
 
         // Игрок: отправляем данные и запускаем heartbeat
-        if role == .player, let char = selectedCharacter {
-            sendJoinMessage(for: char)
+        if role == .player, let snapshot = selectedCharacterSnapshot {
+            sendJoinMessage(for: snapshot)
+            startHeartbeat()
+        } else if role == .player, let char = selectedCharacter {
+            // Fallback: если snapshot еще не создан
+            let snapshot = DNDCharacter.Snapshot(from: char)
+            self.selectedCharacterSnapshot = snapshot
+            sendJoinMessage(for: snapshot)
             startHeartbeat()
         }
 
         // ✅ ИСПРАВЛЕНО: Устанавливаем онлайн статус ТОЛЬКО если персонаж не удалён
         // 1. Находим участника партии по его peerID (сравниваем displayName)
         if let memberIndex = campaignManager.activeCampaign?.members.firstIndex(where: { $0.peerID.displayName == peerID.displayName }) {
-            
+
             // 2. Получаем mutable копию кампании
             guard var campaign = campaignManager.activeCampaign else { return }
-            
+
             // 3. Проверяем, помечен ли его персонаж как удалённый
             if campaign.members[memberIndex].isCharacterDeleted {
                 log("⚠️ Игрок подключился с удалённым персонажем. Онлайн статус НЕ обновляем.")
             } else {
                 // 4. Если персонаж НЕ удалён, ставим его онлайн
                 campaign.members[memberIndex].isConnected = true
-                
+
                 // 5. Сохраняем изменения через CampaignManager
                 campaignManager.updateActiveCampaign(members: campaign.members)
-                
+
                 log("✅ Игрок \(campaign.members[memberIndex].name) теперь онлайн")
             }
         }
@@ -371,7 +408,6 @@ private extension PartyManager {
             disconnectReason = "Мастер неожиданно отключился"
             lastError = "Связь с Мастером потеряна"
 
-
             savePartyState()
         } else {
             connectionState = .connected(peersCount: count)
@@ -391,11 +427,11 @@ extension PartyManager {
         missedHeartbeats = 0
 
         heartbeatTimer = Timer.scheduledTimer(withTimeInterval: heartbeatInterval, repeats: true) { [weak self] _ in
-         guard let self = self else { return }
-         Task { @MainActor [weak self] in
-         self?.sendHeartbeatRequest()
-         }
-    }
+            guard let self = self else { return }
+            Task { @MainActor [weak self] in
+                self?.sendHeartbeatRequest()
+            }
+        }
 
         log("💓 Heartbeat запущен (интервал: \(heartbeatInterval)с, таймаут: \(heartbeatTimeout)с)")
     }
@@ -436,7 +472,7 @@ extension PartyManager {
 
         // Отключаем session
         session?.disconnect()
-        
+
         partyMembers = []
         restVotingManager.resetAll()
 
@@ -447,7 +483,7 @@ extension PartyManager {
         savePartyState()
 
         log("🔴 Принудительное отключение: ДМ не отвечает")
-        
+
         // ✅ АВТОПЕРЕПОДКЛЮЧЕНИЕ: пытаемся переподключиться через 3 секунды
         // Сработает ТОЛЬКО если персонаж привязан к кампании
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
@@ -455,8 +491,6 @@ extension PartyManager {
         }
     }
 
-    
-    
     /// Обновляет время последнего heartbeat (вызывается при получении ответа)
     func updateLastHeartbeat() {
         lastHeartbeatReceived = Date()
@@ -468,59 +502,58 @@ extension PartyManager {
     /// Останавливает heartbeat и отключает MCSession.
     func cleanupConnection(reason: String) {
         log("🧹 cleanupConnection: \(reason)")
-        
+
         // Останавливаем heartbeat
         stopHeartbeat()
-        
+
         // Отключаем MCSession (этого достаточно для игрока)
         // advertiser и browser не трогаем — для игрока они не существуют,
         // а для ДМ-а есть отдельная логика в stopHosting
         session?.disconnect()
-        
+
         log("🧹 Очистка завершена")
     }
 }
 // MARK: - 🆕 Управление кампаниями
 extension PartyManager {
-    
+
     /// Завершает текущую сессию кампании
     func endCampaignSession() {
         log("🏁 Завершаем сессию кампании")
-                
-                // Сохраняем финальное состояние
-                savePartyState()
-                
-                // Сбрасываем активную кампанию
-                campaignManager.clearActiveCampaign()
-                currentCampaignID = nil
-                
-                // 🆕 Очищаем ID из UserDefaults
-                UserDefaults.standard.removeObject(forKey: "lastActiveCampaignID")
+
         // Сохраняем финальное состояние
         savePartyState()
-        
+
         // Сбрасываем активную кампанию
         campaignManager.clearActiveCampaign()
         currentCampaignID = nil
-        
+
+        // 🆕 Очищаем ID из UserDefaults
+        UserDefaults.standard.removeObject(forKey: "lastActiveCampaignID")
+        // Сохраняем финальное состояние
+        savePartyState()
+
+        // Сбрасываем активную кампанию
+        campaignManager.clearActiveCampaign()
+        currentCampaignID = nil
+
         // Останавливаем мультиплеер
         session?.disconnect()
         advertiser?.stopAdvertisingPeer()
         browser?.stopBrowsingForPeers()
-        
+
         // Очищаем состояние партии
         partyMembers = []
         restVotingManager.activeRestVote = nil
         restVotingManager.myVoteSent = nil
         restVotingManager.activeRestEffect = nil
-        
+
         connectionState = .disconnected
         disconnectReason = nil
         lastError = nil
-        
+
         log("🏁 Сессия кампании завершена")
     }
-
 
     /// Проверяет, может ли персонаж подключиться к текущей кампании
     /// (не закреплён ли он за другой кампанией)
@@ -528,23 +561,32 @@ extension PartyManager {
         guard let campaignID = currentCampaignID else {
             return true // Нет активной кампании — можно подключиться
         }
-        
+
         // Проверяем, не закреплён ли персонаж за ДРУГОЙ кампанией
         let conflictingCampaign = campaignManager.isCharacterAssignedToOtherCampaign(
             characterID: characterID,
             excludingCampaignID: campaignID
         )
-        
+
         if let conflict = conflictingCampaign {
             log("⚠️ Персонаж уже закреплён за кампанией '\(conflict.name)'")
             return false
         }
-        
+
         return true
     }
-    
+
     /// Возвращает текущую активную кампанию (если есть)
     var activeCampaign: Campaign? {
         return campaignManager.activeCampaign
     }
+    /// Сохраняет привязку персонажа к кампании в SwiftData
+    /// Вызывается после автоматической привязки в browser(_:foundPeer:withDiscoveryInfo:)
+    private func saveCharacterBinding(_ character: DNDCharacter) {
+        // SwiftData автоматически сохраняет изменения @Model объектов.
+        // Если у PartyManager есть прямой доступ к modelContext, можно вызвать принудительно:
+        // do { try modelContext.save() } catch { log("❌ Не удалось сохранить привязку: \(error)") }
+        log("💾 Привязка персонажа '\(character.displayName)' к кампании сохранена")
+    }
 }
+

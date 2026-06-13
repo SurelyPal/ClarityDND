@@ -1,8 +1,8 @@
 //
-//  DNDCharacter.swift
-//  Clarity
+// DNDCharacter.swift
+// Clarity
 //
-//  Created by KEBAB on 04.06.2026.
+// Created by KEBAB on 04.06.2026.
 //
 
 import Foundation
@@ -22,18 +22,20 @@ final class DNDCharacter {
     var background: String
     // MARK: - HP
     // 🔑 ВАЖНО: hitPoints = МАКСИМАЛЬНОЕ здоровье
-    //           currentHP = ТЕКУЩЕЕ здоровье (уменьшается при уроне)
+    // currentHP = ТЕКУЩЕЕ здоровье (уменьшается при уроне)
     var campaignID: UUID?
     var campaignName: String?
     var hitPoints: Int
     var currentHP: Int
     var alignment: DNDAlignment
     var stress: Int
-    var money: Int = 0  // ✅ НОВОЕ: Деньги персонажа
     var rerollPoints: Int
-    var isDeleted: Bool = false 
+    var isDeleted: Bool = false
     var instrument: String?
     
+    // 🆕 ДЕНЬГИ (золотые монеты)
+    var money: Int = 0
+
     // MARK: - Коллекции
     var inventory: [InventoryItem]
     var tarotCards: [TarotCard]
@@ -43,7 +45,7 @@ final class DNDCharacter {
     var hpHistory: [HPChange] = []
     // MARK: - Бинарные данные (хранятся отдельно от SQLite)
     @Attribute(.externalStorage) var avatarData: Data?
-    
+
     // MARK: - Initializer
     init() {
         self.id = UUID()
@@ -55,19 +57,17 @@ final class DNDCharacter {
         self.background = ""
         self.hitPoints = Constants.Character.defaultHP
         self.isDeleted = false
-        self.currentHP = Constants.Character.defaultHP  // 🔑 НОВОЕ: текущее = максимуму при создании
+        self.currentHP = Constants.Character.defaultHP // 🔑 НОВОЕ: текущее = максимуму при создании
         self.alignment = .trueNeutral
         self.stress = 0
         self.rerollPoints = 0
         self.instrument = nil
+        self.money = 0 // 🆕 Начальное количество денег
         self.inventory = []
         self.tarotCards = []
         self.instrumentModStorage = []
         self.avatarData = nil
         self.hpHistory = [] // 🆕 Инициализация истории
-        self.campaignID = campaignID       // ✅ Добавлено
-        self.campaignName = campaignName
-        
     }
 }
 
@@ -94,7 +94,7 @@ extension DNDCharacter {
         }
         return dict
     }
-    
+
     func setModification(
         _ modification: InstrumentModification,
         for instrument: InstrumentType,
@@ -105,7 +105,7 @@ extension DNDCharacter {
             InstrumentModEntry(instrument: instrument, slot: slot, modification: modification)
         )
     }
-    
+
     func removeModification(
         for instrument: InstrumentType,
         slot: InstrumentModificationSlot
@@ -123,7 +123,7 @@ extension DNDCharacter {
             item.isEquipped && InstrumentType.from(name: item.name) != nil
         }
     }
-    
+
     var equippedInstrumentType: InstrumentType? {
         guard characterClass == .bard else { return nil }
         return inventory
@@ -138,7 +138,7 @@ extension DNDCharacter {
     var isMaxLevel: Bool {
         level >= Constants.Character.maxLevel
     }
-    
+
     var displayName: String {
         name.isEmpty ? Constants.Character.unnamedName : name
     }
@@ -150,19 +150,19 @@ extension DNDCharacter {
     var armorClass: Int {
         10 + stats.modifier(for: \.dexterity)
     }
-    
+
     var initiative: Int {
         stats.modifier(for: \.dexterity)
     }
-    
+
     var proficiencyBonus: Int {
         2 + (level - 1) / 4
     }
-    
+
     var passivePerception: Int {
         10 + stats.modifier(for: \.wisdom)
     }
-    
+
     var speed: Int {
         race.baseSpeedMeters
     }
@@ -176,51 +176,53 @@ extension DNDCharacter {
     func levelUp() {
         level += 1
         hitPoints += 5
-        currentHP = hitPoints  // ✅ HP восстанавливается до максимума при level up
-        
+        currentHP = hitPoints // ✅ HP восстанавливается до максимума при level up
+
         print("🎯 levelUp(): level=\(level), hitPoints=\(hitPoints), currentHP=\(currentHP)")
     }}
 
 // MARK: - Codable (для миграции с UserDefaults)
 
 extension DNDCharacter: Codable {
-    // 🔑 Добавлен currentHP
+    // 🔑 Добавлен currentHP и money
     private enum CodingKeys: String, CodingKey {
         case id, name, race, characterClass, level, stats, background
-        case hitPoints, currentHP, alignment, stress, rerollPoints, instrument
+        case hitPoints, currentHP, alignment, stress, rerollPoints, instrument, money
         case inventory, tarotCards, instrumentModStorage, avatarData
         case hpHistory
-        case money
     }
-    
+
     convenience init(from decoder: Decoder) throws {
         self.init()
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        
-        self.id             = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
-        self.name           = try container.decodeIfPresent(String.self, forKey: .name) ?? ""
-        self.race           = try container.decodeIfPresent(Race.self, forKey: .race) ?? .human
+
+        self.id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        self.name = try container.decodeIfPresent(String.self, forKey: .name) ?? ""
+        self.race = try container.decodeIfPresent(Race.self, forKey: .race) ?? .human
         self.characterClass = try container.decodeIfPresent(CharacterClass.self, forKey: .characterClass) ?? .fighter
-        self.level          = try container.decodeIfPresent(Int.self, forKey: .level) ?? 1
-        self.stats          = try container.decodeIfPresent(AbilityScores.self, forKey: .stats) ?? AbilityScores()
-        self.background     = try container.decodeIfPresent(String.self, forKey: .background) ?? ""
-        self.hitPoints      = try container.decodeIfPresent(Int.self, forKey: .hitPoints) ?? Constants.Character.defaultHP
-        self.money = try container.decodeIfPresent(Int.self, forKey: .money) ?? 0
+        self.level = try container.decodeIfPresent(Int.self, forKey: .level) ?? 1
+        self.stats = try container.decodeIfPresent(AbilityScores.self, forKey: .stats) ?? AbilityScores()
+        self.background = try container.decodeIfPresent(String.self, forKey: .background) ?? ""
+        self.hitPoints = try container.decodeIfPresent(Int.self, forKey: .hitPoints) ?? Constants.Character.defaultHP
+
         // 🔑 НОВОЕ: currentHP с fallback на hitPoints (для старых данных)
-        self.currentHP      = try container.decodeIfPresent(Int.self, forKey: .currentHP) ?? self.hitPoints
+        self.currentHP = try container.decodeIfPresent(Int.self, forKey: .currentHP) ?? self.hitPoints
+
+        self.alignment = try container.decodeIfPresent(DNDAlignment.self, forKey: .alignment) ?? .trueNeutral
+        self.stress = try container.decodeIfPresent(Int.self, forKey: .stress) ?? 0
+        self.rerollPoints = try container.decodeIfPresent(Int.self, forKey: .rerollPoints) ?? 0
+        self.instrument = try container.decodeIfPresent(String.self, forKey: .instrument)
         
-        self.alignment      = try container.decodeIfPresent(DNDAlignment.self, forKey: .alignment) ?? .trueNeutral
-        self.stress         = try container.decodeIfPresent(Int.self, forKey: .stress) ?? 0
-        self.rerollPoints   = try container.decodeIfPresent(Int.self, forKey: .rerollPoints) ?? 0
-        self.instrument     = try container.decodeIfPresent(String.self, forKey: .instrument)
-        
-        self.inventory      = try container.decodeIfPresent([InventoryItem].self, forKey: .inventory) ?? []
-        self.tarotCards     = try container.decodeIfPresent([TarotCard].self, forKey: .tarotCards) ?? []
-        self.avatarData     = try container.decodeIfPresent(Data.self, forKey: .avatarData)
+        // 🆕 ДЕНЬГИ с fallback на 0
+        self.money = try container.decodeIfPresent(Int.self, forKey: .money) ?? 0
+
+        self.inventory = try container.decodeIfPresent([InventoryItem].self, forKey: .inventory) ?? []
+        self.tarotCards = try container.decodeIfPresent([TarotCard].self, forKey: .tarotCards) ?? []
+        self.avatarData = try container.decodeIfPresent(Data.self, forKey: .avatarData)
         self.instrumentModStorage = try container.decodeIfPresent([InstrumentModEntry].self, forKey: .instrumentModStorage) ?? []
         self.hpHistory = try container.decodeIfPresent([HPChange].self, forKey: .hpHistory) ?? [] // 🆕
     }
-    
+
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
@@ -231,19 +233,19 @@ extension DNDCharacter: Codable {
         try container.encode(stats, forKey: .stats)
         try container.encode(background, forKey: .background)
         try container.encode(hitPoints, forKey: .hitPoints)
-        try container.encode(currentHP, forKey: .currentHP)  // 🔑 НОВОЕ
+        try container.encode(currentHP, forKey: .currentHP) // 🔑 НОВОЕ
         try container.encode(alignment, forKey: .alignment)
         try container.encode(stress, forKey: .stress)
         try container.encode(rerollPoints, forKey: .rerollPoints)
         try container.encodeIfPresent(instrument, forKey: .instrument)
+        try container.encode(money, forKey: .money) // 🆕 ДЕНЬГИ
         try container.encode(inventory, forKey: .inventory)
         try container.encode(tarotCards, forKey: .tarotCards)
         try container.encode(instrumentModStorage, forKey: .instrumentModStorage)
         try container.encodeIfPresent(avatarData, forKey: .avatarData)
         try container.encode(hpHistory, forKey: .hpHistory) // 🆕
-        try container.encode(money, forKey: .money)
     }
-    
+
 }
 // MARK: - UI helpers
 extension DNDCharacter {
@@ -257,40 +259,79 @@ extension DNDCharacter {
         return Color.dsRed
     }
 }
-    // MARK: - HP History Management
+ // MARK: - HP History Management
 
-    extension DNDCharacter {
-        /// Записывает изменение HP в историю
-        /// - Parameters:
-        ///   - oldHP: Старое значение HP
-        ///   - newHP: Новое значение HP
-        ///   - reason: Причина изменения (опционально)
-        func recordHPChange(oldHP: Int, newHP: Int, reason: String = "") {
-            let amount = newHP - oldHP
-            
-            // Не записываем если ничего не изменилось
-            guard amount != 0 else { return }
-            
-            let change = HPChange(
-                amount: amount,
-                reason: reason,
-                oldHP: oldHP,
-                newHP: newHP
-            )
-            
-            hpHistory.insert(change, at: 0) // Новые записи в начало
-            
-            // Ограничиваем историю последними 50 записями
-            if hpHistory.count > 50 {
-                hpHistory = Array(hpHistory.prefix(50))
-            }
-        }
-        
-        /// Очищает историю изменений HP
-        func clearHPHistory() {
-            hpHistory.removeAll()
+ extension DNDCharacter {
+    /// Записывает изменение HP в историю
+    /// - Parameters:
+    ///   - oldHP: Старое значение HP
+    ///   - newHP: Новое значение HP
+    ///   - reason: Причина изменения (опционально)
+    func recordHPChange(oldHP: Int, newHP: Int, reason: String = "") {
+        let amount = newHP - oldHP
+
+        // Не записываем если ничего не изменилось
+        guard amount != 0 else { return }
+
+        let change = HPChange(
+            amount: amount,
+            reason: reason,
+            oldHP: oldHP,
+            newHP: newHP
+        )
+
+        hpHistory.insert(change, at: 0) // Новые записи в начало
+
+        // Ограничиваем историю последними 50 записями
+        if hpHistory.count > 50 {
+            hpHistory = Array(hpHistory.prefix(50))
         }
     }
 
+    /// Очищает историю изменений HP
+    func clearHPHistory() {
+        hpHistory.removeAll()
+    }
+ }
+// MARK: - Value-Type Snapshot для безопасной передачи
 
-
+extension DNDCharacter {
+    /// Снимок данных персонажа для передачи в nonisolated контексты (MCSession делегаты)
+    /// Решает проблему "detached from context" при обращении к @Model свойствам
+    struct Snapshot: Codable, Sendable {
+        let id: UUID
+        let name: String
+        let displayName: String
+        let race: Race
+        let characterClass: CharacterClass
+        let level: Int
+        let stats: AbilityScores
+        let hitPoints: Int
+        let currentHP: Int
+        let campaignID: UUID?
+        let campaignName: String?
+        let avatarData: Data?
+        let stress: Int
+        let rerollPoints: Int
+        let money: Int
+        
+        /// Создает снимок из @Model объекта (вызывать ТОЛЬКО на MainActor)
+        init(from character: DNDCharacter) {
+            self.id = character.id
+            self.name = character.name
+            self.displayName = character.displayName
+            self.race = character.race
+            self.characterClass = character.characterClass
+            self.level = character.level
+            self.stats = character.stats
+            self.hitPoints = character.hitPoints
+            self.currentHP = character.currentHP
+            self.campaignID = character.campaignID
+            self.campaignName = character.campaignName
+            self.avatarData = character.avatarData
+            self.stress = character.stress
+            self.rerollPoints = character.rerollPoints
+            self.money = character.money
+        }
+    }
+}
