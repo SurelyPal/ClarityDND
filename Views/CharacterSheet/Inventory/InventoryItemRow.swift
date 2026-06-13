@@ -1,9 +1,9 @@
+// InventoryItemRow.swift
+// Clarity
 //
-//  InventoryItemRow.swift
-//  Clarity
+// Created by KEBAB on 04.06.2026.
 //
-//  Created by KEBAB on 04.06.2026.
-//
+
 import SwiftUI
 
 struct InventoryItemRow: View {
@@ -15,136 +15,94 @@ struct InventoryItemRow: View {
     let onToggleEquip: () -> Void
     let onUpdate: () -> Void
     
-    @State private var isExpanded = false
-    
-    private var hasDescription: Bool {
-        !item.description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
+    // 🆕 Для меню действий
+    @State private var showingActionMenu = false
+    @State private var showingTransferSheet = false
     
     var body: some View {
-        VStack(spacing: 0) {
-            // ═══════════════════════════════════════════
-            // 🔘 ОСНОВНАЯ СТРОКА (кликабельная для разворачивания)
-            // ═══════════════════════════════════════════
-            HStack(spacing: 12) {
-                
-                // Кнопка экипировки/снятия (тап по слоту)
-                slotEquipButton
-                
-                // Кликабельная область: название + статы + индикатор разворачивания
-                Button {
-                    guard hasDescription else { return }
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                        isExpanded.toggle()
-                    }
-                } label: {
-                    HStack(spacing: 8) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(item.name)
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(item.isEquipped ? Color.dsGold : Color.dsText)
-                            if !item.stats.isEmpty {
-                                Text(item.stats)
-                                    .font(.system(size: 11))
-                                    .foregroundColor(Color.dsGoldDim)
-                            }
-                        }
-                        
-                        Spacer(minLength: 4)
-                        
-                        // Индикатор возможности разворачивания
-                        if hasDescription {
-                            Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundColor(Color.dsTextDim)
-                                .padding(6)
-                                .background(Color.dsSurfaceAlt)
-                                .clipShape(Circle())
-                        }
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .disabled(!hasDescription)
-                
-                // Кнопка редактирования
-                Button(action: onEdit) {
-                    Image(systemName: canEdit ? "pencil.circle.fill" : "lock.fill")
-                        .font(.system(size: 24))
-                        .foregroundColor(canEdit ? Color.dsGold : Color.dsTextDim.opacity(0.5))
-                        .background(Color.dsSurface)
-                        .clipShape(Circle())
-                }
-                .buttonStyle(.plain)
-                .disabled(!canEdit)                    // 🆕
-                
-                // Кнопка удаления
-                Button(action: onDelete) {
-                    Image(systemName: canEdit ? "xmark.circle.fill" : "lock.fill")
-                        .font(.system(size: 24))
-                        .foregroundColor(canEdit ? Color.dsRed : Color.dsTextDim.opacity(0.5))
-                        .background(Color.dsSurface)
-                        .clipShape(Circle())
-                }
-                .buttonStyle(.plain)
-                .disabled(!canEdit)                    // 🆕
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
-            .contentShape(Rectangle())
-            .background(
-                isHighlighted ? Color.dsGold.opacity(0.08) : Color.clear
-            )
+        HStack(spacing: 12) {
+            // Иконка предмета
+            Image(systemName: IconHelper.iconForItem(item))
+                .font(.system(size: 20))
+                .foregroundColor(item.isEquipped ? Color.dsGold : Color.dsTextDim)
+                .frame(width: 32)
             
-            // ═══════════════════════════════════════════
-            // 📖 РАЗВЁРНУТОЕ ОПИСАНИЕ (с анимацией)
-            // ═══════════════════════════════════════════
-            if isExpanded && hasDescription {
-                VStack(alignment: .leading, spacing: 8) {
-                    // Декоративная линия слева
-                    HStack(alignment: .top, spacing: 10) {
-                        Rectangle()
-                            .fill(Color.dsGold.opacity(0.4))
-                            .frame(width: 2)
-                        
-                        Text(item.description)
-                            .font(.system(size: 13, weight: .regular))
-                            .foregroundColor(Color.dsText)
-                            .lineSpacing(3)
-                            .fixedSize(horizontal: false, vertical: true)
+            // Информация о предмете
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(item.name.isEmpty ? "Без названия" : item.name)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(Color.dsText)
+                    
+                    if item.isEquipped {
+                        Text("ЭКИПИРОВАНО")
+                            .font(.system(size: 9, weight: .bold))
+                            .tracking(1)
+                            .foregroundColor(Color.dsGold)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.dsGold.opacity(0.15))
+                            .cornerRadius(3)
+                    }
+                }
+                
+                if !item.description.isEmpty {
+                    Text(item.description)
+                        .font(.system(size: 11))
+                        .foregroundColor(Color.dsTextDim)
+                        .lineLimit(2)
+                }
+                
+                if !item.stats.isEmpty {
+                    Text(item.stats)
+                        .font(.system(size: 10))
+                        .foregroundColor(Color.dsGold.opacity(0.8))
+                }
+            }
+            
+            Spacer()
+            
+            // Кнопка слота (экипировка)
+            if item.slot.isEquippable {
+                slotEquipButton
+            }
+            
+            // 🆕 Кнопка меню действий
+            if canEdit {
+                Menu {
+                    Button(action: onEdit) {
+                        Label("Редактировать", systemImage: "pencil")
                     }
                     
-                    // Подсказка
-                    HStack(spacing: 6) {
-                        Image(systemName: "hand.tap.fill")
-                            .font(.system(size: 9))
-                        Text("Нажмите чтобы свернуть")
-                            .font(.system(size: 10))
-                            .tracking(0.5)
+                    Button(action: { showingTransferSheet = true }) {
+                        Label("Передать игроку", systemImage: "arrow.right.circle")
                     }
-                    .foregroundColor(Color.dsTextDim)
-                    .padding(.top, 4)
+                    
+                    Button(role: .destructive, action: onDelete) {
+                        Label("Выбросить", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .font(.system(size: 20))
+                        .foregroundColor(Color.dsTextDim)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 16)
-                .padding(.top, 4)
-                .padding(.bottom, 16)
-                .background(Color.dsSurfaceAlt.opacity(0.5))
-                .transition(.asymmetric(
-                    insertion: .move(edge: .top).combined(with: .opacity),
-                    removal: .opacity
-                ))
+                .buttonStyle(.plain)
             }
-            
-            // Разделитель снизу
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(
+            isHighlighted ? Color.dsGold.opacity(0.08) : Color.clear
+        )
+        .overlay(
             Rectangle()
                 .fill(Color.dsBorder)
-                .frame(height: 0.5)
-        }
-        // Подсветка при разворачивании
-        .background(
-            isExpanded ? Color.dsGold.opacity(0.03) : Color.clear
+                .frame(height: 0.5),
+            alignment: .bottom
         )
+        .sheet(isPresented: $showingTransferSheet) {
+            TransferItemSheet(item: item)
+        }
     }
     
     // MARK: - Кнопка экипировки/снятия (тап по слоту)
@@ -190,7 +148,97 @@ struct InventoryItemRow: View {
             .cornerRadius(3)
         }
         .buttonStyle(.plain)
-        .disabled(!canEdit)                    // 🆕
-        .opacity(canEdit ? 1.0 : 0.5)          // 🆕
+        .disabled(!canEdit) // 🆕
+        .opacity(canEdit ? 1.0 : 0.5) // 🆕
+    }
+}
+
+// 🆕 НОВОЕ: Лист для передачи предмета другому игроку
+struct TransferItemSheet: View {
+    let item: InventoryItem
+    @EnvironmentObject var partyManager: PartyManager
+    @Environment(\.dismiss) var dismiss
+    
+    @State private var selectedPlayerID: UUID?
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("✦ ПЕРЕДАТЬ ПРЕДМЕТ ✦")
+                .font(.system(size: 11, weight: .bold))
+                .tracking(3)
+                .foregroundColor(Color.dsGold)
+            
+            Text(item.name)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(Color.dsText)
+            
+            DSdivider()
+                .padding(.horizontal, 40)
+            
+            Text("Выберите игрока:")
+                .font(.system(size: 12))
+                .foregroundColor(Color.dsTextDim)
+            
+            ScrollView {
+                VStack(spacing: 8) {
+                    ForEach(partyManager.partyMembers.filter { $0.isConnected }) { member in
+                        Button {
+                            selectedPlayerID = member.id
+                            // TODO: Реализовать передачу предмета через PartyManager
+                            dismiss()
+                        } label: {
+                            HStack {
+                                Image(systemName: "person.circle.fill")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(Color.dsGold)
+                                
+                                VStack(alignment: .leading) {
+                                    Text(member.name)
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundColor(Color.dsText)
+                                    Text("\(member.characterClass) • Уровень \(member.level)")
+                                        .font(.system(size: 11))
+                                        .foregroundColor(Color.dsTextDim)
+                                }
+                                
+                                Spacer()
+                                
+                                if selectedPlayerID == member.id {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(Color.dsGold)
+                                }
+                            }
+                            .padding(12)
+                            .background(Color.dsSurface)
+                            .cornerRadius(6)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(selectedPlayerID == member.id ? Color.dsGold : Color.dsBorder, lineWidth: 1)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 20)
+            }
+            
+            Button {
+                dismiss()
+            } label: {
+                Text("ОТМЕНА")
+                    .font(.system(size: 12, weight: .medium))
+                    .tracking(1)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Color.dsSurfaceAlt)
+                    .foregroundColor(Color.dsText)
+                    .cornerRadius(4)
+            }
+            .buttonStyle(.plain)
+            .padding(.horizontal, 20)
+        }
+        .padding(.vertical, 24)
+        .background(Color.dsBackground)
+        .presentationDetents([.medium])
     }
 }

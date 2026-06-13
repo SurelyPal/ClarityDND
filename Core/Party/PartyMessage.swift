@@ -56,7 +56,8 @@ enum PartyMessage: Codable, Sendable {
         inventory: [InventoryItem],
         skillProficiencies: [String],
         background: String,
-        alignment: DNDAlignment
+        alignment: DNDAlignment,
+        money: Int
     )
     case characterDeleted(characterID: UUID)  // ✅ НОВОЕ: Сообщение об удалении персонажа
     case playerLeft(characterID: UUID)
@@ -91,7 +92,6 @@ enum PartyMessage: Codable, Sendable {
     case restStarted(restType: RestType)
     case restVoteFailed(reason: String)
     case restsReset
-    
     case ping
     case pong
     case requestCharacterSync

@@ -108,11 +108,12 @@ extension PartyManager {
             inventory: character.inventory,
             skillProficiencies: Array(proficientSkills),
             background: character.background,
-            alignment: character.alignment
+            alignment: character.alignment,
+            money: character.money
         )
         send(message)
     }
-
+  
 // MARK: - Синхронизация
 
     func syncFull(_ character: DNDCharacter) {
@@ -358,8 +359,8 @@ extension PartyManager {
                 campaignID: campaignID,
                 hasOtherActiveCharacterInCampaign: hasOtherActiveCharacterInCampaign
             )
-        case .characterDetails(let charID, let stats, let rerollPoints, let inventory, let skillProficiencies, let background, let alignment):
-            handleCharacterDetails(charID: charID, stats: stats, rerollPoints: rerollPoints, inventory: inventory, skillProficiencies: skillProficiencies, background: background, alignment: alignment)
+        case .characterDetails(let charID, let stats, let rerollPoints, let inventory, let skillProficiencies, let background, let alignment, let money):
+            handleCharacterDetails(charID: charID, stats: stats, rerollPoints: rerollPoints, inventory: inventory, skillProficiencies: skillProficiencies, background: background, alignment: alignment, money: money)
             
         case .characterUpdated(let characterID, let currentHP, let maxHP, let level, let stress, let rerollPoints, let timestamp, let money):
             handleCharacterUpdated(
@@ -367,10 +368,10 @@ extension PartyManager {
                 currentHP: currentHP,
                 maxHP: maxHP,
                 level: level,
-                money: money,
                 stress: stress,
                 rerollPoints: rerollPoints,
-                timestamp: timestamp
+                timestamp: timestamp,
+                money: money
             )
         case .characterDeleted(let characterID):
             // ✅ НОВОЕ: Обработка удаления персонажа
@@ -582,7 +583,7 @@ extension PartyManager {
         }
     }
     
-    private func handleCharacterDetails(charID: UUID, stats: AbilityScores, rerollPoints: Int, inventory: [InventoryItem], skillProficiencies: [String], background: String, alignment: DNDAlignment) {
+    private func handleCharacterDetails(charID: UUID, stats: AbilityScores, rerollPoints: Int, inventory: [InventoryItem], skillProficiencies: [String], background: String, alignment: DNDAlignment, money: Int) {
         guard role == .dungeonMaster else { return }
         guard let idx = partyMembers.firstIndex(where: { $0.id == charID }) else { return }
         
@@ -593,6 +594,7 @@ extension PartyManager {
         updatedMember.skillProficiencies = skillProficiencies
         updatedMember.background = background
         updatedMember.alignment = alignment
+        updatedMember.money = money 
         
         var newMembers = partyMembers
         newMembers[idx] = updatedMember
@@ -602,7 +604,7 @@ extension PartyManager {
         broadcastPartyList()
     }
     
-    private func handleCharacterUpdated(charID: UUID, currentHP: Int, maxHP: Int, level: Int,money: Int, stress: Int, rerollPoints: Int, timestamp: Date) {
+    private func handleCharacterUpdated(charID: UUID, currentHP: Int, maxHP: Int, level: Int, stress: Int, rerollPoints: Int, timestamp: Date, money: Int) {
         guard role == .dungeonMaster else { return }
         guard let idx = partyMembers.firstIndex(where: { $0.id == charID }) else { return }
         
@@ -1028,7 +1030,7 @@ extension PartyManager {
         }
     // MARK: - 💰 Синхронизация денег
 
-    private func handleMoneyUpdate(characterID: UUID, amount: Int, reason: String) {
+   /* private func handleMoneyUpdate(characterID: UUID, amount: Int, reason: String) {
         log("💰 Получено обновление денег от ДМа: \(amount) (причина: \(reason))")
         
         // Используем selectedCharacter напрямую (@Model сохраняет изменения автоматически)
@@ -1047,7 +1049,7 @@ extension PartyManager {
         } else {
             log("⚠️ handleMoneyUpdate: персонаж \(characterID) не является текущим selectedCharacter")
         }
-    }
+    } */
     // MARK: - 🔄 Синхронизация полного обновления персонажа
 
     /// Отправляет полное обновление персонажа ДМу (после изменения денег/инвентаря/HP)
@@ -1067,19 +1069,83 @@ extension PartyManager {
         send(message)
         log("🔄 Отправлено обновление персонажа \(character.displayName) (HP: \(character.currentHP), золото: \(character.money))")
     }
-    // MARK: - 💰 Синхронизация денег
+}
+// MARK: - 🆕 Передача золота
 
-    /// Отправляет обновление денег игроку от ДМа
+extension PartyManager {
+    /// ДМ отправляет обновление золота игроку
     func sendMoneyUpdate(to peerID: MCPeerID, characterID: UUID, amount: Int, reason: String) {
-        let message = PartyMessage.moneyUpdate(characterID: characterID, amount: amount, reason: reason)
+        guard role == .dungeonMaster else {
+            log("⚠️ [DM] sendMoneyUpdate: вызвано не ДМ-ом")
+            return
+        }
+        
+        let message = PartyMessage.moneyUpdate(
+            characterID: characterID,
+            amount: amount,
+            reason: reason
+        )
         
         do {
-            let data = try JSONEncoder().encode(message)
-            try session?.send(data, toPeers: [peerID], with: .reliable)
-            log("💰 Отправлено обновление денег: \(amount) (причина: \(reason))")
-        } catch {
-            log("❌ Ошибка отправки обновления денег: \(error)")
+                let data = try JSONEncoder().encode(message)
+                // Отправляем конкретно этому пиру, а не всем подряд
+                try session?.send(data, toPeers: [peerID], with: .reliable)
+                log("✅ [DM] Золото отправлено: \(amount) для characterID: \(characterID), peer: \(peerID.displayName)")
+            } catch {
+                log("❌ [DM] Ошибка отправки золота: \(error.localizedDescription)")
+            }
+        
+        send(message)
+        log("💰 sendMoneyUpdate: \(amount) золота для \(characterID), причина: \(reason)")
+        
+        // ✅ Обновляем локального члена партии (для отображения у ДМ)
+        if let idx = partyMembers.firstIndex(where: { $0.id == characterID }) {
+            var updatedMember = partyMembers[idx]
+            updatedMember.money = amount
+            var newMembers = partyMembers
+            newMembers[idx] = updatedMember
+            partyMembers = newMembers
+            savePartyState()
+            broadcastPartyList()
         }
     }
 }
+// MARK: - 🆕 Обработка обновления золота
 
+extension PartyManager {
+    private func handleMoneyUpdate(characterID: UUID, amount: Int, reason: String) {
+        guard role == .player else {
+                log("⚠️ [Игрок] handleMoneyUpdate: проигнорировано, так как роль не player")
+                return
+            }
+        
+        log("📥 [Игрок] Получено moneyUpdate: characterID=\(characterID), amount=\(amount)")
+        
+        guard let character = selectedCharacter, character.id == characterID else {
+            log("⚠️ handleMoneyUpdate: персонаж не найден или не выбран")
+            return
+        }
+        
+        guard character.id == characterID else {
+                log("❌ [Игрок] ОШИБКА: ID не совпадает! Ожидался \(characterID), а у selectedCharacter ID = \(character.id)")
+                return
+            }
+            
+        log("✅ [Игрок] Персонаж найден: \(character.name). Было золота: \(character.money). Станет: \(amount)")
+        
+        // ✅ Обновляем золото у локального персонажа
+        character.money = amount
+        
+        log("💾 [Игрок] Значение в памяти изменено. Текущее значение character.money: \(character.money)")
+        
+        // ✅ SwiftData автоматически сохраняет изменения для @Model объектов
+        // Просто логируем успешное обновление
+        log("💰 handleMoneyUpdate: золото обновлено до \(amount), причина: \(reason)")
+        
+        // ✅ Уведомление пользователю
+        PlatformCompatibility.hapticNotification(.success)
+        
+        // ✅ Синхронизируем изменения с ДМ
+        syncBasic(character)
+    }
+}

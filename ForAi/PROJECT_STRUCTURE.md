@@ -1,170 +1,165 @@
-Структура проекта ClarityDND 
-
-Описание: SwiftUI-приложение для управления D&D персонажами с локальным мультиплеером (MultipeerConnectivity). Поддерживает iOS (iPhone/iPad) и macOS.
 Clarity/
-├── 🚀 КОРНЕВЫЕ ФАЙЛЫ
-├── AppRootView.swift                      # Корневая навигация: меню → создание → игра
-├── Clarity-Info.plist                     # Конфигурация iOS/macOS (permissions, capabilities)
-├── Clarity.xcodeproj                      # Конфигурация Xcode проекта
-├── ClarityApp.swift                       # 🚀 Точка входа (@main): создаёт CharacterStore, PartyManager
+├── 📄 ClarityApp.swift                      # Точка входа приложения
+├── 📄 RootView.swift                        # Корневой view (навигация)
+├── 📄 Clarity-Info.plist                    # Конфигурация приложения
+├── 📄 Clarity.xcodeproj/                    # Xcode проект
 │
-├── ⚙️ Core/                               # БИЗНЕС-ЛОГИКА (ядро приложения)
-│   ├── Assets.xcassets                    # 🖼️ Изображения, цвета, иконки
-│   ├── CharacterStore.swift               # 🗄️ ObservableObject: хранилище персонажей (CRUD + JSON)
-│   ├── Constants.swift                    # 🔢 Глобальные константы приложения
-│   ├── DatabaseRecovery.swift             # 🔄 Восстановление данных при сбоях БД
-│   ├── MilestoneLibrary.swift             # 🎯 Библиотека вех (level up награды по уровням)
-│   ├── SoundManager.swift                 # 🔊 Звуки + haptic feedback (singleton)
-│   │
-│   ├── 📦 Models/                         # МОДЕЛИ ДАННЫХ
-│   │   ├── AbilityScores.swift            # 💪 STR, DEX, CON, INT, WIS, CHA
-│   │   ├── CharacterClass.swift           # 🗡️ Enum классов (fighter, wizard, rogue, ...)
-│   │   ├── ClassProficiencies.swift       # 🎯 Владения класса (оружие, броня, навыки)
-│   │   ├── DNDAlignment.swift             # ⚖️ Мировоззрение (lawful good, chaotic evil, ...)
-│   │   ├── DNDCharacter.swift             # 🎭 ГЛАВНАЯ МОДЕЛЬ (ObservableObject): HP, level, inventory
-│   │   ├── EquipmentSlot.swift            # 🛡️ Слоты экипировки
-│   │   ├── HPChange.swift                 # ❤️ Изменения HP (лечение/урон)
-│   │   ├── InstrumentModification.swift   # 🔧 Модификации инструментов
-│   │   ├── InstrumentModificationLibrary.swift  # Библиотека модификаций
-│   │   ├── InstrumentModificationSlot.swift     # Слоты модификаций
-│   │   ├── InstrumentType.swift           # 🎸 Типы инструментов (lute, drum, ...)
-│   │   ├── InventoryItem.swift            # 🎒 Предметы инвентаря
-│   │   ├── MapLocation.swift              # 🗺️ Локации на карте мира
-│   │   ├── Race.swift                     # 👤 Enum рас (human, elf, dwarf, ...)
-│   │   └── TarotCard.swift                # 🃏 Карты таро (игровая механика)
-│   │
-│   └── 🎲 Party/                          # МУЛЬТИПЛЕЕР (MultipeerConnectivity)
-│       ├── GameRules.swift                # 📜 Правила игры (canShortRest, canLongRest)
-│       ├── PartyManager.swift             # 👑 Singleton-менеджер: @Published partyMembers, connectionState
-│       │                                    #   Throttling: basicSync=0.3s, broadcast=0.5s
-│       │                                    #   Heartbeat таймеры, lastUpdateTime для версионирования
-│       ├── PartyManager+Connection.swift  # 🌐 MCSessionDelegate + Advertiser/Browser delegates
-│       │                                    #   handlePeerConnected/Disconnected, heartbeat
-│       ├── PartyManager+Messages.swift    # 📨 Обработка сообщений: handleCharacterUpdated,
-│       │                                    #   syncBasic (debounce), forceSyncBasic, broadcastPartyList
-│       ├── PartyManager+Persistence.swift # 💾 savePartyState/loadPartyState (UserDefaults)
-│       ├── PartyMember.swift              # 👥 struct: id, peerID, currentHP, maxHP, isConnected
-│       ├── PartyMessage.swift             # 📦 Enum Codable: playerJoined, characterUpdated,
-│       │                                    #   partyList, restVote*, heartbeat*, hostStopped
-│       └── RestVotingManager.swift        # 🗳️ Логика голосования за отдых (RestVoteSession)
+├── 🎨 Theme/                                # Дизайн-система Dark Souls стиля
+│   ├── DSColors.swift                       # Цветовая палитра (dsGold, dsRed)
+│   ├── DSModifiers.swift                    # Кастомные ViewModifier'ы
+│   ├── View+CornerRadius.swift              # Расширения для скруглений
+│   └── Components/                          # Переиспользуемые UI компоненты
+│       ├── CornerOrnaments.swift            # Декоративные углы
+│       ├── DSdivider.swift                  # Разделители
+│       └── DSSectionHeader.swift            # Заголовки секций
 │
-├── 🤖 ForAi/                              # ДОКУМЕНТАЦИЯ ДЛЯ ИИ-АССИСТЕНТОВ
-│   ├── PROJECT_STRUCTURE.md               # Описание архитектуры проекта
-│   └── TODO.md                            # Задачи и планы развития
-│
-├── 🔊 Resources/
-│   └── Sounds/                            # Звуковые эффекты (.wav)
-│
-├── 🎨 Theme/                              # ДИЗАЙН-СИСТЕМА (Design System)
-│   ├── DSColors.swift                     # Палитра: dsGold, dsRed, dsBackground, ...
-│   ├── DSModifiers.swift                  # View-модификаторы (кнопки, карточки, тени)
-│   └── Components/                        # Переиспользуемые UI-компоненты темы
-│       ├── CornerOrnaments.swift          # Декоративные уголки в стиле D&D
-│       ├── DSdivider.swift                # Разделители
-│       └── DSSectionHeader.swift          # Заголовки секций
-│
-├── 🛠️ Utils/                              # ВСПОМОГАТЕЛЬНЫЕ УТИЛИТЫ
-│   ├── ImageCompressor.swift              # 🖼️ Сжатие изображений (для аватаров)
-│   └── PlatformCompatibility.swift        # 📱 Абстракция различий iOS/macOS
-│
-├── 🖼️ Views/                              # ПОЛЬЗОВАТЕЛЬСКИЙ ИНТЕРФЕЙС (SwiftUI)
-│   ├── ContentView.swift                  # Главный View (роутинг)
+├── 👁️ Views/                                # UI слой (SwiftUI)
+│   ├── ContentView.swift                    # Главный контейнер
+│   ├── CharacterInfoView.swift              # Просмотр инфо о персонаже
 │   │
-│   ├── ✨ CharacterCreation/              # СОЗДАНИЕ ПЕРСОНАЖА (wizard)
-│   │   ├── CharacterCreationView.swift    # Главный View создания
-│   │   ├── Components/
-│   │   │   ├── PointBuyRow.swift          # Point buy система распределения очков
-│   │   │   └── RaceCard.swift             # Карточка расы для выбора
-│   │   └── Steps/                         # Шаги мастера создания
-│   │       ├── ClassStepView.swift        # Выбор класса
-│   │       ├── NameStepView.swift         # Ввод имени
-│   │       ├── RaceStepView.swift         # Выбор расы
-│   │       └── StatsStepView.swift        # Распределение характеристик
-│   │
-│   ├── 📋 CharacterSheet/                 # ЛИСТ ПЕРСОНАЖА
-│   │   ├── CharacterSheetView.swift       # Главный View листа
-│   │   ├── Components/                    # Popup-компоненты
-│   │   │   ├── DemotionPopupView.swift    # 📉 Popup понижения вехи
-│   │   │   └── MilestonePopupView.swift   # 🎉 Popup повышения вехи
-│   │   ├── Equipment/
-│   │   │   └── EquipmentPanel.swift       # 🛡️ Панель экипировки
-│   │   ├── InstrumentMods/                # 🎸 Модификации инструментов
-│   │   │   ├── InstrumentModHeader.swift  # Шапка модификации
-│   │   │   ├── InstrumentModPickerView.swift  # Выбор модификации
-│   │   │   ├── InstrumentModSlotView.swift    # Слот модификации
-│   │   │   └── InstrumentModsTabView.swift    # Вкладка модификаций
-│   │   ├── Inventory/                     # 🎒 Инвентарь
-│   │   │   ├── InventoryItemRow.swift     # Строка предмета
-│   │   │   ├── InventoryTabView.swift     # Вкладка инвентаря
-│   │   │   └── ItemEditorView.swift       # Редактор предмета
-│   │   ├── Sections/                      # Секции листа
-│   │   │   ├── CharacterHeaderSection.swift  # Шапка (имя, раса, класс, уровень)
-│   │   │   ├── HPHistorySheet.swift       # История изменений HP
-│   │   │   ├── HPSection.swift            # Секция HP (кнопки +/-)
-│   │   │   ├── PartyMembersDrawer.swift   # 🎯 Drawer с членами партии (@Published)
-│   │   │   └── TabSection.swift           # Переключение вкладок
-│   │   ├── Skills/
-│   │   │   └── SkillsTabView.swift        # 🎯 Вкладка навыков
-│   │   ├── Stats/                         # 💪 Характеристики
-│   │   │   ├── DSCombatStatsView.swift    # Боевые характеристики
-│   │   │   ├── DSStatCard.swift           # Карточка характеристики
-│   │   │   └── StatsTabView.swift         # Вкладка характеристик
-│   │   └── Stress/
-│   │       └── StressTrackerView.swift    # 😰 Трекер стресса
-│   │
-│   ├── 🗺️ Map/                            # КАРТА МИРА
-│   │   ├── MapView.swift                  # Главная карта
-│   │   └── ZoomedLocationView.swift       # Детали локации при зуме
-│   │
-│   ├── 🎲 Party/                          # МУЛЬТИПЛЕЕР UI
-│   │   ├── DungeonMasterDetailView.swift  # Детали игрока для ДМ-а
-│   │   ├── DungeonMasterView.swift        # 👑 View для ДМ-а
-│   │   ├── PartyLobbyView.swift           # 🚪 Лобби партии (выбор роли)
-│   │   ├── PartyStatusIndicator.swift     # 📶 Индикатор подключения
-│   │   ├── RestEffectOverlayView.swift    # 💤 Overlay эффекта отдыха
-│   │   ├── RestVoteOverlayView.swift      # 🗳️ Overlay голосования за отдых
-│   │   ├── DMComponents/                  # Компоненты для ДМ-а
-│   │   │   ├── DMBasicInfoSection.swift   # Базовая информация об игроке
-│   │   │   ├── DMDetailHeader.swift       # Шапка деталей игрока
+│   ├── 🎭 Party/                            # Мультиплеер и партии
+│   │   ├── PartyLobbyView.swift             # Главное лобби
+│   │   ├── DungeonMasterView.swift          # UI для ДМа
+│   │   ├── DungeonMasterDetailView.swift    # Детали игрока (ДМ)
+│   │   ├── PartyStatusIndicator.swift       # Индикатор подключения
+│   │   ├── RestVoteOverlayView.swift        # Оверлей голосования за отдых
+│   │   ├── RestEffectOverlayView.swift      # Оверлей эффекта отдыха
+│   │   │
+│   │   ├── DMComponents/                    # Компоненты для ДМа
+│   │   │   ├── CampaignSelectionView.swift  # Выбор кампании
+│   │   │   ├── DBasicInfoSection.swift      # Базовая инфа игрока
+│   │   │   ├── DMDetailHeader.swift         # Шапка деталей
 │   │   │   └── DMSections/
-│   │   │       ├── DMInventorySection.swift  # Инвентарь игрока (для ДМ)
-│   │   │       ├── DMSkillsSection.swift     # Навыки игрока (для ДМ)
-│   │   │       └── DMStatsSection.swift      # Характеристики игрока (для ДМ)
-│   │   └── LobbyComponents/               # Компоненты лобби
-│   │       ├── ConnectedView.swift        # Состояние: подключено
-│   │       ├── ConnectingView.swift       # Состояние: подключение
-│   │       ├── HostingView.swift          # ДМ создаёт комнату
-│   │       ├── PlayerFlowView.swift       # Поток игрока
-│   │       ├── RoleSelectionView.swift    # Выбор роли (ДМ/Игрок)
-│   │       ├── RulesConfigurationView.swift  # Настройка правил
-│   │       └── SearchingView.swift        # Игрок ищет комнату
+│   │   │       ├── DMStatsSection.swift     # Статы игрока
+│   │   │       ├── DMSkillsSection.swift    # Навыки игрока
+│   │   │       └── DMInventorySection.swift # Инвентарь игрока
+│   │   │
+│   │   └── LobbyComponents/                 # Компоненты лобби
+│   │       ├── RoleSelectionView.swift      # Выбор роли (ДМ/Игрок)
+│   │       ├── PlayerFlowView.swift         # ⭐ Выбор персонажа (игрок)
+│   │       ├── HostingView.swift            # UI хостинга (ДМ)
+│   │       ├── SearchingView.swift          # UI поиска (Игрок)
+│   │       ├── ConnectingView.swift       # Процесс подключения
+│   │       ├── ConnectedView.swift          # Успешное подключение
+│   │       └── RulesConfigurationView.swift # Настройка правил
 │   │
-│   ├── 🔗 Shared/                         # ОБЩИЕ КОМПОНЕНТЫ (используются везде)
-│   │   ├── AvatarView.swift               # 👤 Аватар персонажа
-│   │   ├── DatabaseRecoveryView.swift     # View восстановления БД
-│   │   ├── DSBadge.swift                  # 🏷️ Бейджи
-│   │   ├── DSHPButton.swift               # ❤️ Кнопка HP (+/-) — триггерит syncBasic
-│   │   ├── IconHelper.swift               # 🎨 Помощник иконок
-│   │   ├── InfoRow.swift                  # ℹ️ Информационная строка
-│   │   ├── LockedComponents.swift         # 🔒 Заблокированные компоненты
-│   │   ├── PartyMemberRow.swift           # 👥 Строка члена партии (для drawer)
-│   │   ├── RuleToggle.swift               # ⚙️ Переключатель правил
-│   │   ├── SkeletonCharacterRow.swift     # Скелетон строки персонажа
-│   │   ├── SkeletonLoader.swift           # 💀 Скелетон-загрузчики
-│   │   ├── SparkleEffect.swift            # ✨ Эффект искр (level up)
-│   │   └── StatRow.swift                  # 📊 Строка характеристики
+│   ├── 🎴 CharacterCreation/                # Создание персонажа
+│   │   ├── CharacterCreationView.swift      # Главный wizard
+│   │   ├── Steps/                           # Шаги создания
+│   │   │   ├── NameStepView.swift
+│   │   │   ├── RaceStepView.swift
+│   │   │   ├── ClassStepView.swift
+│   │   │   └── StatsStepView.swift
+│   │   └── Components/
+│   │       ├── RaceCard.swift
+│   │       └── PointBuyRow.swift
 │   │
-│   └── 🃏 Tarot/                          # МЕХАНИКА ТАРО
-│       ├── TarotCardEditorView.swift      # Редактор карты
-│       ├── TarotCardView.swift            # Просмотр карты
-│       └── TarotTabView.swift             # Вкладка таро
+│   ├── 📋 CharacterSheet/                   # Лист персонажа
+│   │   ├── CharacterSheetView.swift         # Главный экран
+│   │   ├── PreviewHelper.swift              # Превью для SwiftUI
+│   │   ├── Sections/                        # Секции листа
+│   │   │   ├── CharacterHeaderSection.swift
+│   │   │   ├── HPSection.swift              # Хиты
+│   │   │   ├── HPHistorySheet.swift         # История изменений HP
+│   │   │   ├── PartyMembersDrawer.swift     # Боковая панель партии
+│   │   │   └── TabSection.swift
+│   │   ├── Stats/
+│   │   │   ├── StatsTabView.swift
+│   │   │   ├── DSCombatStatsView.swift
+│   │   │   └── DSStatCard.swift
+│   │   ├── Skills/SkillsTabView.swift
+│   │   ├── Inventory/
+│   │   │   ├── InventoryTabView.swift
+│   │   │   ├── InventoryItemRow.swift
+│   │   │   └── ItemEditorView.swift
+│   │   ├── Equipment/                       # Экипировка (пусто?)
+│   │   ├── Stress/StressTrackerView.swift
+│   │   ├── InstrumentMods/                  # Модификации инструментов (бард)
+│   │   │   ├── InstrumentModsTabView.swift
+│   │   │   ├── InstrumentModSlotView.swift
+│   │   │   ├── InstrumentModPickerView.swift
+│   │   │   └── InstrumentModHeader.swift
+│   │   └── Components/
+│   │       ├── MilestonePopupView.swift
+│   │       └── DemotionPopupView.swift
+│   │
+│   ├── 🗺️ Map/                              # Карта мира
+│   │   ├── MapView.swift
+│   │   └── ZoomedLocationView.swift
+│   │
+│   ├── 🃏 Tarot/                            # Карты Таро
+│   │   ├── TarotTabView.swift
+│   │   ├── TarotCardView.swift
+│   │   └── TarotCardEditorView.swift
+│   │
+│   └── 🔧 Shared/                           # Общие компоненты
+│       ├── AvatarView.swift                 # Аватар персонажа
+│       ├── DSHPButton.swift                 # Кнопка HP
+│       ├── DSBadge.swift                    # Бейджи
+│       ├── StatRow.swift, InfoRow.swift     # Строки данных
+│       ├── RuleToggle.swift                 # Переключатель правил
+│       ├── PartyMemberRow.swift             # Строка участника
+│       ├── SkeletonLoader.swift             # Скелетоны загрузки
+│       ├── SkeletonCharacterRow.swift
+│       ├── SparkleEffect.swift              # Эффект искр
+│       ├── LockedComponents.swift           # Заблокированные UI
+│       ├── IconHelper.swift                 # Помощник иконок
+│       └── DatabaseRecoveryView.swift       # UI восстановления БД
 │
-└── 🧪 ClarityTests/                       # UNIT-ТЕСТЫ
-    ├── AbilityScoresTests.swift           # Тесты характеристик
-    ├── ClarityTests.swift                 # Базовые тесты приложения
-    ├── ConstantsTests.swift               # Тесты констант
-    ├── DNDCharacterTests.swift            # Тесты модели персонажа
-    ├── GameRulesTests.swift               # Тесты правил игры
-    ├── InventoryItemTests.swift           # Тесты инвентаря
-    ├── PartyMemberTests.swift             # Тесты члена партии
-    └── TarotCardTests.swift               # Тесты таро
+├── ⚙️ Core/                                 # Бизнес-логика
+│   │
+│   ├── 📦 Models/                           # Модели данных (SwiftData)
+│   │   ├── DNDCharacter.swift               # ⭐ ГЛАВНАЯ модель персонажа
+│   │   ├── AbilityScores.swift              # Характеристики (STR, DEX...)
+│   │   ├── Campaign.swift                   # Модель кампании
+│   │   ├── CharacterClass.swift             # Классы (fighter, bard...)
+│   │   ├── ClassProficiencies.swift         # Владение классами
+│   │   ├── DNDAlignment.swift               # Мировоззрение
+│   │   ├── EquipmentSlot.swift              # Слоты экипировки
+│   │   ├── HPChange.swift                   # Запись изменения HP
+│   │   ├── InstrumentType.swift             # Типы инструментов
+│   │   ├── InstrumentModification.swift     # Модификации
+│   │   ├── InstrumentModificationLibrary.swift
+│   │   ├── InstrumentModificationSlot.swift
+│   │   ├── InventoryItem.swift              # Предмет инвентаря
+│   │   ├── MapLocation.swift                # Локация на карте
+│   │   ├── Race.swift                       # Расы
+│   │   └── TarotCard.swift                  # Карта таро
+│   │
+│   ├── 🎉 Party/                            # Логика партии
+│   │   ├── PartyManager.swift               # ⭐ ГЛАВНЫЙ менеджер (Singleton)
+│   │   ├── PartyManager+Connection.swift    # MC делегаты (подключение)
+│   │   ├── PartyManager+Messages.swift      # Сетевые сообщения
+│   │   ├── PartyManager+Persistence.swift 
+│   │   ├── CampaignManager.swift            # ⭐ Менеджер кампаний
+│   │   ├── PartyMember.swift                # Участник партии
+│   │   ├── PartyMessage.swift               # Типы сообщений
+│   │   ├── RestVotingManager.swift          # Голосование за отдых
+│   │   └── GameRules.swift                  # Правила игры
+│   │
+│   ├── 📊 CharacterStore.swift              # ⭐ SwiftData store персонажей
+│   ├── 📚 Constants.swift                   # Константы приложения
+│   ├── 🎵 SoundManager.swift                # Звуки
+│   ├── 🏆 MilestoneLibrary.swift            # Библиотека достижений
+│   └── 🛠️ DatabaseRecovery.swift            # Восстановление БД
+│
+├── 🔨 Utils/                                # Утилиты
+│   ├── PlatformCompatibility.swift          # iOS/macOS совместимость
+│   └── ImageCompressor.swift                # Сжатие изображений
+│
+├── 🎵 Resources/
+│   └── Sounds/                              # Звуковые файлы
+│
+├── 🤖 ForAi/                                # Документация для ИИ
+│   ├── PROJECT_STRUCTURE.md
+│   └── TODO.md
+│
+└── 🧪 ClarityTests/                         # Unit тесты
+    ├── ClarityTests.swift
+    ├── AbilityScoresTests.swift
+    ├── ConstantsTests.swift
+    ├── DNDCharacterTests.swift
+    ├── GameRulesTests.swift
+    ├── InventoryItemTests.swift
+    ├── PartyMemberTests.swift
+    └── TarotCardTests.swift

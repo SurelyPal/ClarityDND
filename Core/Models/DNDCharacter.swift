@@ -183,7 +183,8 @@ extension DNDCharacter: Codable {
     // 🔑 Добавлен currentHP и money
     private enum CodingKeys: String, CodingKey {
         case id, name, race, characterClass, level, stats, background
-        case hitPoints, currentHP, alignment, stress, rerollPoints, instrument, money
+        case hitPoints, currentHP, alignment, stress, rerollPoints, instrument
+        case money
         case inventory, tarotCards, instrumentModStorage, avatarData
         case hpHistory
     }
@@ -200,10 +201,8 @@ extension DNDCharacter: Codable {
         self.stats = try container.decodeIfPresent(AbilityScores.self, forKey: .stats) ?? AbilityScores()
         self.background = try container.decodeIfPresent(String.self, forKey: .background) ?? ""
         self.hitPoints = try container.decodeIfPresent(Int.self, forKey: .hitPoints) ?? Constants.Character.defaultHP
-
         // 🔑 НОВОЕ: currentHP с fallback на hitPoints (для старых данных)
         self.currentHP = try container.decodeIfPresent(Int.self, forKey: .currentHP) ?? self.hitPoints
-
         self.alignment = try container.decodeIfPresent(DNDAlignment.self, forKey: .alignment) ?? .trueNeutral
         self.stress = try container.decodeIfPresent(Int.self, forKey: .stress) ?? 0
         self.rerollPoints = try container.decodeIfPresent(Int.self, forKey: .rerollPoints) ?? 0
@@ -211,7 +210,6 @@ extension DNDCharacter: Codable {
         
         // 🆕 ДЕНЬГИ с fallback на 0
         self.money = try container.decodeIfPresent(Int.self, forKey: .money) ?? 0
-
         self.inventory = try container.decodeIfPresent([InventoryItem].self, forKey: .inventory) ?? []
         self.tarotCards = try container.decodeIfPresent([TarotCard].self, forKey: .tarotCards) ?? []
         self.avatarData = try container.decodeIfPresent(Data.self, forKey: .avatarData)

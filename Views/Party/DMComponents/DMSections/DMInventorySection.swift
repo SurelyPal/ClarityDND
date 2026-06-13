@@ -41,17 +41,19 @@ struct DMInventorySection: View {
                 
                 Spacer()
                 
-                Button {
-                    showingMoneyDialog = true
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "plus.circle.fill")
-                        Text("Изменить")
+                if partyManager.role == .dungeonMaster {
+                    Button {
+                        showingMoneyDialog = true
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "plus.circle.fill")
+                            Text("Изменить")
+                        }
+                        .font(.system(size: 11))
+                        .foregroundColor(Color.dsGold)
                     }
-                    .font(.system(size: 11))
-                    .foregroundColor(Color.dsGold)
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
@@ -121,7 +123,12 @@ struct DMInventorySection: View {
                 .padding(.horizontal, 16)
             }
         }
-        .sheet(isPresented: $showingMoneyDialog) {
+        
+
+        .sheet(isPresented: Binding(
+                    get: { showingMoneyDialog && partyManager.role == .dungeonMaster },
+                    set: { showingMoneyDialog = $0 }
+                )) {
             VStack(spacing: 16) {
                 Text("✦ ИЗМЕНИТЬ ЗОЛОТО ✦")
                     .font(.system(size: 11, weight: .bold))
@@ -192,9 +199,12 @@ struct DMInventorySection: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 8)
             }
+            
             .padding(.vertical, 24)
             .background(Color.dsBackground)
             .presentationDetents([.height(320)])
+            
+            
         }
     }
 }

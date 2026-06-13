@@ -205,6 +205,7 @@ extension PartyManager: MCNearbyServiceBrowserDelegate {
             // НЕ создаём новый, чтобы избежать краша при чтении avatarData из detached объекта
             guard let snapshot = self.selectedCharacterSnapshot else {
                 self.log("⛔ КРИТИЧНО: Snapshot не найден! Убедитесь, что setSelectedCharacter был вызван до начала поиска")
+                
                 self.lastError = "Внутренняя ошибка: данные персонажа не загружены"
                 self.browser?.stopBrowsingForPeers()
                 self.connectionState = .selectingCharacter

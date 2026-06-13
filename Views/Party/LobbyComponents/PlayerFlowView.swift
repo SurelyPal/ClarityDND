@@ -53,7 +53,8 @@ struct PlayerFlowView: View {
             if !isLoadingCharacters && partyManager.selectedCharacter != nil {
                 Button {
                     guard let char = partyManager.selectedCharacter else { return }
-
+                    // 1. Явно передаем выбранного персонажа в PartyManager
+                    partyManager.setSelectedCharacter(char)
                     #if os(iOS)
                     UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
                     #endif

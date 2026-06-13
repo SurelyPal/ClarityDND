@@ -87,9 +87,9 @@ struct InventoryTabView: View {
                             value: "\(equippableItems.filter { $0.isEquipped }.count)"
                         )
                         inventoryStat(
-                            icon: "bag.fill",
+                            icon: "dollarsign.circle.fill",
                             label: "Золотые",
-                            value: "\(character.inventory.count)"
+                            value: "\(character.money)"
                         )
                     }
                     .padding(.horizontal, 16)
