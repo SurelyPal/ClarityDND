@@ -64,8 +64,31 @@ final class CharacterStore: ObservableObject {
                 PartyManager.shared.markCharacterAsDeleted(characterID: character.id)
                 print("🗑️ [CharacterStore] ДМ пометил игрока как удалённого: \(character.displayName)")
             }
+            // 🆕 4.5 АВТООТКЛЮЧЕНИЕ: если удаляется персонаж, привязанный к текущей активной кампании
+                    // Игрок автоматически отключается от партии
+                    if PartyManager.shared.role == .player,
+                       case .connected = PartyManager.shared.connectionState,
+                       let charCampaignID = character.campaignID,
+                       let currentCampaignID = PartyManager.shared.currentCampaignID,
+                       charCampaignID == currentCampaignID {
+                        
+                        print("🔌 [CharacterStore] Персонаж '\(character.displayName)' принадлежит текущей кампании — принудительное отключение")
+                        
+                        // Сохраняем причину отключения для UI
+                        PartyManager.shared.disconnectReason = "Персонаж был удалён"
+                        PartyManager.shared.lastError = "Вы отключены: удалён персонаж, привязанный к этой партии"
+                        
+                        // Полностью разрываем соединение
+                        PartyManager.shared.cleanupConnection(reason: "Удаление персонажа текущей кампании")
+                        
+                        // Сбрасываем состояние партии
+                        PartyManager.shared.partyMembers = []
+                        PartyManager.shared.connectionState = .disconnected
+                    
+                        print("✅ [CharacterStore] Игрок отключён от партии")
+                    }
             
-            // 4. Удаляем из базы данных SwiftData
+            // 5. Удаляем из базы данных SwiftData
             context.delete(character)
         }
         save()

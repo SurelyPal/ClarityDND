@@ -380,12 +380,26 @@ final class PartyManager: NSObject, ObservableObject {
 
     func startSearching(with character: DNDCharacter, allCharacters: [DNDCharacter] = []) {
         
+        // 🆕 ОЧИСТКА: сбрасываем старые данные перед новым поиском
+            if availableCharacters.isEmpty && !allCharacters.isEmpty {
+                availableCharacters = allCharacters.filter { !$0.isDeleted }
+            } else if !allCharacters.isEmpty {
+                // Обновляем список, убирая удалённых
+                availableCharacters = allCharacters.filter { !$0.isDeleted }
+            }
+        
         // 🆕 БЛОКИРОВКА: нельзя начать поиск удалённым персонажем
             guard !character.isDeleted else {
                 log("⛔ startSearching: персонаж '\(character.displayName)' удалён — поиск заблокирован")
                 lastError = "Этот персонаж удалён и не может подключиться к партии"
                 connectionState = .selectingCharacter
                 return
+            }
+        
+        // 🆕 ОЧИСТКА: сбрасываем старый snapshot если он не соответствует новому персонажу
+            if let oldSnapshot = selectedCharacterSnapshot, oldSnapshot.id != character.id {
+                log("🔄 Сбрасываем старый snapshot (ID не совпадает)")
+                selectedCharacterSnapshot = nil
             }
         
         self.selectedCharacter = character
