@@ -42,6 +42,8 @@ struct Campaign: Identifiable, Codable, Equatable, Sendable {
     /// Заметки ДМа о кампании (для будущих версий)
     var dmNotes: String
     
+    /// Хранилище предметов ДМа (предзагруженные предметы для выдачи игрокам)
+    var dmItemStorage: [InventoryItem] = [] // Шаблоны предметов для выдачи
     // MARK: - Инициализация
     
     init(
@@ -53,7 +55,8 @@ struct Campaign: Identifiable, Codable, Equatable, Sendable {
         gameRules: GameRules = GameRules(),
         members: [PartyMember] = [],
         isActive: Bool = false,
-        dmNotes: String = ""
+        dmNotes: String = "",
+        dmItemStorage: [InventoryItem] = [] // 🆕
     ) {
         self.id = id
         self.name = name
@@ -64,6 +67,7 @@ struct Campaign: Identifiable, Codable, Equatable, Sendable {
         self.members = members
         self.isActive = isActive
         self.dmNotes = dmNotes
+        self.dmItemStorage = dmItemStorage // 🆕
     }
     
     // MARK: - Вычисляемые свойства

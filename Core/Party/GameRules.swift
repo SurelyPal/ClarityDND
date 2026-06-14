@@ -19,9 +19,13 @@ nonisolated struct GameRules: Codable, Equatable, Sendable {
     // var allowPvP: Bool = false
     // var diceRollVisibility: DiceVisibility = .all
     
+    
     // 🛏️ Отдыхи за сессию
-        var maxShortRests: Int = 2
-        var maxLongRests: Int = 1
+    var maxShortRests: Int = 2
+    var maxLongRests: Int = 1
+
+    // 🆕 Разрешить игрокам создавать предметы в инвентаре
+    var canPlayersCreateItems: Bool = false // 🔧 По умолчанию запрещено — только ДМ выдаёт
         
         // 🆕 Доступные отдыхи (уменьшаются при использовании)
         var shortRestsAvailable: Int = 2
@@ -30,7 +34,8 @@ nonisolated struct GameRules: Codable, Equatable, Sendable {
         static let `default` = GameRules()
         
         static let strict = GameRules(
-            canEditCharacterOutsideParty: false
+            canEditCharacterOutsideParty: false,
+            canPlayersCreateItems: false // 🔧 В строгом режиме игроки не создают предметы
         )
         
         // 🆕 Проверка доступности отдыхов

@@ -10,7 +10,7 @@ struct DungeonMasterView: View {
     @Environment(\.theme) private var theme
     @ObservedObject private var partyManager = PartyManager.shared
     @State private var showDeletedCharacters = false
-    
+    @State private var showItemStorage = false // 🆕 Вкладка хранилища предметов
     var body: some View {
         ZStack {
             theme.background.ignoresSafeArea()
@@ -21,15 +21,61 @@ struct DungeonMasterView: View {
                     //Секция правил игры
                     GameRulesSection(partyManager: partyManager)
                     
-                    if partyManager.partyMembers.isEmpty {
+                    // 🆕 Переключатель между Партией и Хранилищем
+                    HStack(spacing: 0) {
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                showItemStorage = false
+                            }
+                        } label: {
+                            Text("ПАРТИЯ")
+                                .font(.system(size: 10, weight: .bold))
+                                .tracking(1)
+                                .foregroundColor(showItemStorage ? Color.dsTextDim : Color.dsBackground)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 10)
+                                .background(showItemStorage ? Color.clear : Color.dsGold)
+                                .cornerRadius(4)
+                        }
+                        .buttonStyle(.plain)
+
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                showItemStorage = true
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "bag.fill").font(.system(size: 10))
+                                Text("ХРАНИЛИЩЕ")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .tracking(1)
+                            }
+                            .foregroundColor(!showItemStorage ? Color.dsTextDim : Color.dsBackground)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .background(!showItemStorage ? Color.clear : Color.dsGold)
+                            .cornerRadius(4)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal, 20)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 4)
+                            .stroke(Color.dsGold.opacity(0.5), lineWidth: 1)
+                    )
+
+                    if showItemStorage {
+                        // 🆕 Вкладка хранилища предметов ДМа
+                        DMItemStorageView()
+                    } else if partyManager.partyMembers.isEmpty {
                         emptyState
                     } else {
                         partyGrid
-                        
-                        //Кнопка "Новая сессия" (сброс отдыхов)
+
+                        // 🆕 Кнопка "Новая сессия" (сброс отдыхов)
                         Button {
-                         PlatformCompatibility.hapticImpact(.medium)
-                         partyManager.resetSession()
+                            PlatformCompatibility.hapticImpact(.medium)
+                            partyManager.resetSession()
                         } label: {
                             HStack(spacing: 8) {
                                 Image(systemName: "arrow.counterclockwise.circle.fill")

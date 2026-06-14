@@ -12,7 +12,7 @@ struct InventoryTabView: View {
     @Binding var character: DNDCharacter
     let canEdit: Bool
     @EnvironmentObject var store: CharacterStore
-    
+    @EnvironmentObject var partyManager: PartyManager // 🆕
     @State private var editingItem: InventoryItem? = nil
     @State private var showingAddItem = false
     @State private var selectedSlot: EquipmentSlot? = nil
@@ -61,19 +61,22 @@ struct InventoryTabView: View {
                         
                         Spacer()
                         
+                        // 🆕 Проверяем разрешение на создание предметов
+                        let canCreateItems = canEdit && (PartyManager.shared.gameRules.canPlayersCreateItems || PartyManager.shared.role == .dungeonMaster)
+
                         Button { showingAddItem = true } label: {
                             HStack(spacing: 4) {
                                 Image(systemName: "plus.circle.fill")
                                     .font(.system(size: 22))
-                                if !canEdit {
+                                if !canCreateItems {
                                     Image(systemName: "lock.fill")
                                         .font(.system(size: 8))
                                 }
                             }
-                            .foregroundColor(canEdit ? theme.primary : theme.textDim)
+                            .foregroundColor(canCreateItems ? Color.dsGold : Color.dsTextDim)
                         }
                         .buttonStyle(.plain)
-                        .disabled(!canEdit)                  // 🆕
+                        .disabled(!canCreateItems) // 🔧 Блокируем если нет разрешения
                     }
                     .padding(.horizontal, 16)
                     
@@ -261,23 +264,26 @@ struct InventoryTabView: View {
                 .foregroundColor(theme.textDim)
             
             if selectedSlot == nil {
+                // 🆕 Проверяем разрешение на создание предметов
+                let canCreateItems = canEdit && (PartyManager.shared.gameRules.canPlayersCreateItems || PartyManager.shared.role == .dungeonMaster)
+                
                 Button {
                     showingAddItem = true
                 } label: {
                     HStack(spacing: 6) {
-                        if !canEdit { Image(systemName: "lock.fill").font(.system(size: 9)) }
-                        Text(canEdit ? "✦  Добавить первый предмет  ✦" : "🔒 Заблокировано")
+                        if !canCreateItems { Image(systemName: "lock.fill").font(.system(size: 9)) }
+                        Text(canCreateItems ? "✦ Добавить первый предмет ✦" : "🔒 Только ДМ может выдавать предметы")
                     }
-                        .font(.system(size: 12, weight: .medium))
-                        .tracking(1)
-                        .foregroundColor(canEdit ? theme.background : theme.textDim)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
-                        .background(canEdit ? theme.primary : theme.surfaceAlt)
-                        .cornerRadius(3)
+                    .font(.system(size: 12, weight: .medium))
+                    .tracking(1)
+                    .foregroundColor(canCreateItems ? Color.dsBackground : Color.dsTextDim)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(canCreateItems ? Color.dsGold : Color.dsSurfaceAlt)
+                    .cornerRadius(3)
                 }
                 .buttonStyle(.plain)
-                .disabled(!canEdit)
+                .disabled(!canCreateItems) // 🔧 Блокируем если нет разрешения
                 .padding(.top, 8)
             }
         }

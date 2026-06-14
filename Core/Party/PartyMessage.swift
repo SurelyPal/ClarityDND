@@ -112,4 +112,12 @@ enum PartyMessage: Codable, Sendable {
         fromCharacterName: String,
         toCharacterID: UUID
     )
+    // 🆕 ДМ выдаёт предмет из хранилища игроку
+    case dmGiveItem(
+        item: InventoryItem,
+        toCharacterID: UUID,
+        toCharacterName: String
+    )
+    // 🆕 ДМ обновляет хранилище предметов (синхронизация)
+    case dmItemStorageUpdate(items: [InventoryItem])
 }

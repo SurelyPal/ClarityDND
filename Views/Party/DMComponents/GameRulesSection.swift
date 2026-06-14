@@ -110,6 +110,25 @@ struct GameRulesSection: View {
                         .font(.system(size: 12))
                         .foregroundColor(partyManager.gameRules.canEditCharacterOutsideParty ? .green : Color.dsRed)
                 }
+                DSdivider()
+                    .padding(.horizontal, 4)
+                //Создание предметов игроками
+                
+                HStack(spacing: 8) {
+                    Image(systemName: "pencil.line")
+                        .foregroundColor(Color.dsGold)
+                        .font(.system(size: 12))
+                    
+                    Text("Создание предметов игроками")
+                        .font(.system(size: 12))
+                        .foregroundColor(Color.dsText)
+                    
+                    Spacer()
+                    
+                    Image(systemName: partyManager.gameRules.canPlayersCreateItems ? "checkmark.circle.fill" : "xmark.circle.fill")
+                        .font(.system(size: 12))
+                        .foregroundColor(partyManager.gameRules.canPlayersCreateItems ? .green : Color.dsRed)
+                }
             }
             .padding(12)
             .background(Color.dsSurface)
@@ -296,6 +315,12 @@ struct GameRulesEditorView: View {
                             description: "Игроки могут менять персонажей без подключения к ДМ",
                             isOn: $draftRules.canEditCharacterOutsideParty
                         )
+                        RuleToggle(
+                         icon: "bag.fill",
+                         title: "Создание предметов игроками",
+                         description: "Игроки могут добавлять предметы в инвентарь (иначе только ДМ выдаёт)",
+                         isOn: $draftRules.canPlayersCreateItems
+                         )
                     }
                     .padding(16)
                 }

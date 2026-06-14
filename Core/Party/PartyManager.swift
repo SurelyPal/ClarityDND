@@ -675,12 +675,76 @@ final class PartyManager: NSObject, ObservableObject {
             log("💤 Эффект отдыха применён к \(character.displayName)")
         }
         
-        func resetSession() {
-            gameRules.resetRests()
-            saveGameRules(gameRules)
-            send(.restsReset)
+    func resetSession() {
+        gameRules.resetRests()
+        saveGameRules(gameRules)
+        send(.restsReset)
+    }
+
+    // MARK: - 🆕 Хранилище предметов ДМа
+
+    /// Получить хранилище предметов из активной кампании
+    var dmItemStorage: [InventoryItem] {
+        get {
+            return campaignManager.activeCampaign?.dmItemStorage ?? []
         }
-    
+        set {
+            guard var campaign = campaignManager.activeCampaign else { return }
+            campaign.dmItemStorage = newValue
+            campaignManager.saveCampaign(campaign)
+            campaignManager.activeCampaign = campaign
+            
+            // Синхронизируем с подключёнными клиентами
+            send(.dmItemStorageUpdate(items: newValue))
+            log("📦 Хранилище предметов обновлено: \(newValue.count) предметов")
+        }
+    }
+
+    /// Добавить предмет в хранилище ДМа
+    func addItemToStorage(_ item: InventoryItem) {
+        var storage = dmItemStorage
+        storage.append(item)
+        dmItemStorage = storage
+        log("📦 Добавлен предмет в хранилище: \(item.name)")
+    }
+
+    /// Удалить предмет из хранилища ДМа
+    func removeItemFromStorage(itemID: UUID) {
+        var storage = dmItemStorage
+        storage.removeAll { $0.id == itemID }
+        dmItemStorage = storage
+        log("🗑️ Удалён предмет из хранилища: \(itemID)")
+    }
+
+    /// Выдать предмет из хранилища игроку
+    func giveItemToPlayer(item: InventoryItem, to member: PartyMember) {
+        // Создаём копию предмета с новым ID (чтобы у каждого игрока был уникальный экземпляр)
+        var newItem = item
+        newItem.id = UUID()
+        newItem.isEquipped = false
+        
+        // Отправляем сообщение игроку
+        let message = PartyMessage.dmGiveItem(
+            item: newItem,
+            toCharacterID: member.id,
+            toCharacterName: member.name
+        )
+        send(message)
+        
+        log("🎁 ДМ выдал предмет '\(item.name)' игроку \(member.name)")
+        
+        // Обновляем локальный partyMembers для отображения
+        if let idx = partyMembers.firstIndex(where: { $0.id == member.id }) {
+            var updatedMember = partyMembers[idx]
+            updatedMember.inventory?.append(newItem)
+            var newMembers = partyMembers
+            newMembers[idx] = updatedMember
+            partyMembers = newMembers
+            savePartyState()
+            broadcastPartyList()
+        }
+    }
+
     private func decrementRestCounter(restType: RestType) {
         if restType == .short {
             gameRules.shortRestsAvailable -= 1
@@ -690,8 +754,7 @@ final class PartyManager: NSObject, ObservableObject {
         saveGameRules(gameRules)
     }
 
-    // MARK: - Очистка ошибок
-
+    // Очистка ошибок
     func clearError() { self.lastError = nil }
     func clearDisconnectReason() { self.disconnectReason = nil }
     

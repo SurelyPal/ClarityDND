@@ -463,18 +463,26 @@ extension PartyManager {
                     toCharacterID: toID
                 )
            
-            // 🆕 Обработка передачи золота
-        case .goldTransfer(let amount, let fromID, let fromName, let toID):
-                        handleGoldTransfer(
-                            amount: amount,
-                            fromCharacterID: fromID,
-                            fromCharacterName: fromName,
-                            toCharacterID: toID
-                        )
+        // 🆕 Обработка передачи золота
             
-        }
+        case .goldTransfer(let amount, let fromID, let fromName, let toID):
+                handleGoldTransfer(
+                    amount: amount,
+                    fromCharacterID: fromID,
+                    fromCharacterName: fromName,
+                    toCharacterID: toID
+                )
+
+            // 🆕 ДМ выдал предмет
+        case .dmGiveItem(let item, let toID, let toName):
+                handleDMGiveItem(item: item, toCharacterID: toID, toCharacterName: toName)
+
+            // 🆕 Обновление хранилища предметов
+        case .dmItemStorageUpdate(let items):
+                handleDMItemStorageUpdate(items: items)
+
+            }
     }
-    
 // MARK: - Message Handlers (приватные)
 
     private func handlePlayerJoined(
@@ -1189,6 +1197,7 @@ extension PartyManager {
     }
     
     // 🆕 Обработка получения золота от другого игрока
+    // 🆕 Обработка получения золота от другого игрока
     private func handleGoldTransfer(
         amount: Int,
         fromCharacterID: UUID,
@@ -1201,9 +1210,37 @@ extension PartyManager {
             log("⚠️ goldTransfer: не мой персонаж или не игрок")
             return
         }
-        
+
         character.money += amount
         log("💰 Получено \(amount) золота от \(fromCharacterName)")
         PlatformCompatibility.hapticNotification(.success)
+    }
+
+    // 🆕 Обработка получения предмета от ДМа
+    private func handleDMGiveItem(
+        item: InventoryItem,
+        toCharacterID: UUID,
+        toCharacterName: String
+    ) {
+        guard role == .player,
+              let character = selectedCharacter,
+              character.id == toCharacterID else {
+            log("⚠️ dmGiveItem: не мой персонаж или не игрок")
+            return
+        }
+
+        character.inventory.append(item)
+        log("🎁 Получен предмет '\(item.name)' от ДМа")
+        PlatformCompatibility.hapticNotification(.success)
+        
+        // Синхронизируем с ДМом
+        syncBasic(character)
+    }
+
+    // 🆕 Обработка обновления хранилища предметов ДМа
+    private func handleDMItemStorageUpdate(items: [InventoryItem]) {
+        // Игрок может использовать это для отображения доступных предметов
+        // (если потребуется в будущем)
+        log("📦 Получено обновление хранилища ДМа: \(items.count) предметов")
     }
 }

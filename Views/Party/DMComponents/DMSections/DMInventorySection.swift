@@ -15,6 +15,7 @@ struct DMInventorySection: View {
     @State private var showingMoneyDialog = false
     @State private var moneyAmount = ""
     @State private var moneyReason = ""
+    @State private var showingItemPicker = false // 🆕 Выбор предмета из хранилища
     
     var body: some View {
         VStack(spacing: 12) {
@@ -62,6 +63,26 @@ struct DMInventorySection: View {
             .cornerRadius(6)
             .padding(.horizontal, 16)
             
+            // 🆕 Кнопка "Выдать предмет" (только для ДМа)
+            if partyManager.role == .dungeonMaster {
+                Button {
+                    showingItemPicker = true
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "plus.circle.fill")
+                        Text("Выдать предмет из хранилища")
+                    }
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(Color.dsBackground)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(Color.dsGold)
+                    .cornerRadius(4)
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 16)
+            }
+
             if let inventory = member.inventory, !inventory.isEmpty {
                 VStack(spacing: 0) {
                     ForEach(Array(inventory.enumerated()), id: \.element.id) { index, item in
@@ -202,10 +223,14 @@ struct DMInventorySection: View {
             }
             
             .padding(.vertical, 24)
-            .background(theme.background)
+            .background(Color.dsBackground)
             .presentationDetents([.height(320)])
-            
-            
-        }
+            }
+            // 🆕 Лист выбора предмета из хранилища ДМа
+            .sheet(isPresented: $showingItemPicker) {
+                DMItemPickerSheet(member: member) { selectedItem in
+                    partyManager.giveItemToPlayer(item: selectedItem, to: member)
+                }
+            }
     }
 }

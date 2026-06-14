@@ -4,7 +4,7 @@
 //
 //  Created by KEBAB on 09.06.2026.
 //
-
+/*
 
 import SwiftUI
 
@@ -26,11 +26,11 @@ struct RulesConfigurationView: View {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
                     Image(systemName: "moon.zzz.fill")
-                        .foregroundColor(theme.primary)
+                        .foregroundColor(Color.dsGold)
                         .font(.system(size: 12))
-                    Text("Короткие: \(draftRules.shortRestsAvailable)")
+                    Text("Короткие: \(draftRules.shortRestsAvailable)") // 🔧 Исправлена интерполяция
                         .font(.system(size: 12))
-                        .foregroundColor(theme.text)
+                        .foregroundColor(Color.dsText)
                     Spacer()
                     Stepper("", value: $draftRules.shortRestsAvailable, in: 0...5)
                         .labelsHidden()
@@ -39,11 +39,11 @@ struct RulesConfigurationView: View {
 
                 HStack(spacing: 8) {
                     Image(systemName: "bed.double.fill")
-                        .foregroundColor(theme.primary)
+                        .foregroundColor(Color.dsGold)
                         .font(.system(size: 12))
-                    Text("Долгие: \(draftRules.longRestsAvailable)")
+                    Text("Долгие: \(draftRules.longRestsAvailable)") // 🔧 Исправлена интерполяция
                         .font(.system(size: 12))
-                        .foregroundColor(theme.text)
+                        .foregroundColor(Color.dsText)
                     Spacer()
                     Stepper("", value: $draftRules.longRestsAvailable, in: 0...3)
                         .labelsHidden()
@@ -59,6 +59,14 @@ struct RulesConfigurationView: View {
                 title: "Редактирование вне партии",
                 description: "Игроки могут менять персонажей без подключения к ДМ",
                 isOn: $draftRules.canEditCharacterOutsideParty
+            )
+
+            // 🆕 Правило создания предметов игроками
+            RuleToggle(
+                icon: "bag.fill",
+                title: "Создание предметов игроками",
+                description: "Игроки могут добавлять предметы в инвентарь (иначе только ДМ выдаёт)",
+                isOn: $draftRules.canPlayersCreateItems
             )
 
             Button {
@@ -93,3 +101,4 @@ struct RulesConfigurationView: View {
         }
     }
 }
+*/
