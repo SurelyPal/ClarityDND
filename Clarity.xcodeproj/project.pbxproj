@@ -14,7 +14,6 @@
 		1503D3B42FD791630026C5DE /* RuleToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1503D3B32FD791630026C5DE /* RuleToggle.swift */; };
 		1503D3B72FD791A70026C5DE /* RoleSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1503D3B62FD791A70026C5DE /* RoleSelectionView.swift */; };
 		1503D3B92FD791C10026C5DE /* PlayerFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1503D3B82FD791C10026C5DE /* PlayerFlowView.swift */; };
-		1503D3BB2FD791F70026C5DE /* RulesConfigurationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1503D3BA2FD791F70026C5DE /* RulesConfigurationView.swift */; };
 		1503D3BD2FD7920C0026C5DE /* HostingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1503D3BC2FD7920C0026C5DE /* HostingView.swift */; };
 		1503D3BF2FD7921D0026C5DE /* SearchingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1503D3BE2FD7921D0026C5DE /* SearchingView.swift */; };
 		1503D3C12FD7922E0026C5DE /* ConnectingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1503D3C02FD7922E0026C5DE /* ConnectingView.swift */; };
@@ -112,7 +111,6 @@
 		1503D3B32FD791630026C5DE /* RuleToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleToggle.swift; sourceTree = "<group>"; };
 		1503D3B62FD791A70026C5DE /* RoleSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoleSelectionView.swift; sourceTree = "<group>"; };
 		1503D3B82FD791C10026C5DE /* PlayerFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerFlowView.swift; sourceTree = "<group>"; };
-		1503D3BA2FD791F70026C5DE /* RulesConfigurationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RulesConfigurationView.swift; sourceTree = "<group>"; };
 		1503D3BC2FD7920C0026C5DE /* HostingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostingView.swift; sourceTree = "<group>"; };
 		1503D3BE2FD7921D0026C5DE /* SearchingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchingView.swift; sourceTree = "<group>"; };
 		1503D3C02FD7922E0026C5DE /* ConnectingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectingView.swift; sourceTree = "<group>"; };
@@ -235,7 +233,6 @@
 				1503D3C02FD7922E0026C5DE /* ConnectingView.swift */,
 				1503D3BE2FD7921D0026C5DE /* SearchingView.swift */,
 				1503D3BC2FD7920C0026C5DE /* HostingView.swift */,
-				1503D3BA2FD791F70026C5DE /* RulesConfigurationView.swift */,
 				1503D3B82FD791C10026C5DE /* PlayerFlowView.swift */,
 				1503D3B62FD791A70026C5DE /* RoleSelectionView.swift */,
 			);
@@ -706,7 +703,6 @@
 				15DF92312FD21C60007A87F8 /* DSHPButton.swift in Sources */,
 				15DF92372FD21C8E007A87F8 /* HPSection.swift in Sources */,
 				1503D3BF2FD7921D0026C5DE /* SearchingView.swift in Sources */,
-				1503D3BB2FD791F70026C5DE /* RulesConfigurationView.swift in Sources */,
 				153EAAE32FDEC96E00F7E972 /* GameRulesSection.swift in Sources */,
 				15DF925E2FD22463007A87F8 /* MilestonePopupView.swift in Sources */,
 				15DF924B2FD21CF9007A87F8 /* EquipmentPanel.swift in Sources */,
