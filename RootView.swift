@@ -33,6 +33,7 @@ struct RootView: View {
     
     // MARK: - Body
     var body: some View {
+        
         ZStack {
             // Фон в стиле Dark Souls
             themeManager.currentTheme.background // 🔧 Динамический цвет
@@ -42,6 +43,7 @@ struct RootView: View {
                 //Как только store создан — показываем ContentView
                 // и передаём store + PartyManager + ThemeManager в Environment
                 ContentView()
+                    
                     .environmentObject(store)
                     .environmentObject(PartyManager.shared)
                     .environmentObject(themeManager) //Инъекция темы

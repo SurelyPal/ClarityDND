@@ -65,10 +65,14 @@ struct SettingsView: View {
                 }
                 
             }
+            #if os(macOS) // 🆕 Кроссплатформенность
+            .listStyle(.bordered)
+            #else
             .listStyle(.insetGrouped)
+            #endif
             .scrollContentBackground(.hidden) // ✅ Скрываем стандартный фон
             .background(theme.background) // 🔧 Используем тему
-        }
+            }
         .navigationTitle("Настройки")
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)

@@ -85,18 +85,18 @@ struct ContentView: View {
                                         .font(.system(size: 12, weight: .medium))
                                         .tracking(0.5)
                                 }
-                                .foregroundColor(theme.gold) // 🔧 Используем тему
+                                .foregroundColor(theme.primary) // 🔧 Используем тему
                             }
                             
                             NavigationLink(destination: SettingsView()) {
                                 Image(systemName: "gearshape.fill")
-                                    .foregroundColor(theme.gold) // 🔧 Используем тему
+                                    .foregroundColor(theme.primary) // 🔧 Используем тему
                                     .font(.system(size: 16, weight: .medium))
                             }
                             
                             Button(action: { showingCreation = true }) {
                                 Image(systemName: "plus")
-                                    .foregroundColor(theme.gold) // 🔧 Используем тему
+                                    .foregroundColor(theme.primary) // 🔧 Используем тему
                                     .font(.system(size: 16, weight: .medium))
                             }
                             .disabled(store == nil)

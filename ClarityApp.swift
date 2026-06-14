@@ -9,20 +9,12 @@ import SwiftData
 
 @main
 struct ClarityApp: App {
-    
-    init() {
-        print("🚀 Приложение запускается...")
-        _ = CampaignManager.shared
-        print("✅ CampaignManager инициализирован")
-    }
-    
+
     var body: some Scene {
         WindowGroup {
-            //Запускаем RootView вместо ContentView
             RootView()
-            
+                .injectTheme()
         }
         .modelContainer(for: DNDCharacter.self)
-        
     }
 }
