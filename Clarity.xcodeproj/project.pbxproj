@@ -275,7 +275,7 @@
 				15DF92C32FD2DDD5007A87F8 /* Clarity-Info.plist */,
 				15DF91E22FD21640007A87F8 /* ClarityApp.swift */,
 				15DF92A02FD26575007A87F8 /* Resources */,
-				15DF92C82FD309A1007A87F8 /* ForAi */,
+				15DF92C82FD309A1007A87F8 /* InfoFiles */,
 				15DF91EF2FD2172B007A87F8 /* Theme */,
 				15DF91EE2FD216F7007A87F8 /* Views */,
 				15DF91E12FD21640007A87F8 /* Core */,
@@ -527,13 +527,13 @@
 			path = Party;
 			sourceTree = "<group>";
 		};
-		15DF92C82FD309A1007A87F8 /* ForAi */ = {
+		15DF92C82FD309A1007A87F8 /* InfoFiles */ = {
 			isa = PBXGroup;
 			children = (
 				15DF92C92FD309B6007A87F8 /* PROJECT_STRUCTURE.md */,
 				15DF92D22FD31269007A87F8 /* TODO.md */,
 			);
-			path = ForAi;
+			path = InfoFiles;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
