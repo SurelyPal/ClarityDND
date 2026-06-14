@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ConnectedView: View {
+    @Environment(\.theme) private var theme
     @ObservedObject var partyManager: PartyManager
 
     var body: some View {
@@ -16,7 +17,7 @@ struct ConnectedView: View {
                 Text("ПАРТИЯ (\(partyManager.partyMembers.count))")
                     .font(.system(size: 10))
                     .tracking(2)
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                 Spacer()
             }
 
@@ -26,7 +27,7 @@ struct ConnectedView: View {
                         .padding(.vertical, 2)
                 }
             }
-            .background(Color.dsSurfaceAlt)
+            .background(theme.surfaceAlt)
             .cornerRadius(6)
 
             // 🆕 Кнопка перехода на экран мастера (только для ДМ)
@@ -40,10 +41,10 @@ struct ConnectedView: View {
                         Text("Экран мастера")
                     }
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(Color.dsBackground)
+                    .foregroundColor(theme.background)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(Color.dsGold)
+                    .background(theme.primary)
                     .cornerRadius(6)
                 }
                 .buttonStyle(.plain)
@@ -58,13 +59,13 @@ struct ConnectedView: View {
                     Text("Покинуть партию")
                 }
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(Color.dsRed)
+                .foregroundColor(theme.danger)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .background(Color.dsSurface)
+                .background(theme.surface)
                 .overlay(
                     RoundedRectangle(cornerRadius: 6)
-                        .stroke(Color.dsRed.opacity(0.4), lineWidth: 1)
+                        .stroke(theme.danger.opacity(0.4), lineWidth: 1)
                 )
                 .cornerRadius(6)
             }

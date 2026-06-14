@@ -9,6 +9,7 @@ import SwiftUI
 
 /// Skeleton для карточки персонажа в списке выбора
 struct SkeletonCharacterRow: View {
+    @Environment(\.theme) private var theme
     var body: some View {
         HStack(spacing: 12) {
             // Аватар
@@ -38,22 +39,23 @@ struct SkeletonCharacterRow: View {
             }
         }
         .padding(12)
-        .background(Color.dsSurfaceAlt.opacity(0.3))
+        .background(theme.surfaceAlt.opacity(0.3))
         .overlay(
             RoundedRectangle(cornerRadius: 6)
-                .stroke(Color.dsBorder.opacity(0.3), lineWidth: 0.5)
+                .stroke(theme.border.opacity(0.3), lineWidth: 0.5)
         )
         .cornerRadius(6)
     }
 }
 
 #Preview {
+    @Environment(\.theme) var theme
     VStack(spacing: 12) {
         SkeletonCharacterRow()
         SkeletonCharacterRow()
         SkeletonCharacterRow()
     }
     .padding()
-    .background(Color.dsBackground)
+    .background(theme.background)
     .preferredColorScheme(.dark)
 }

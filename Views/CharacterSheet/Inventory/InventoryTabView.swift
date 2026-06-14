@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct InventoryTabView: View {
+    @Environment(\.theme) private var theme
     @Binding var character: DNDCharacter
     let canEdit: Bool
     @EnvironmentObject var store: CharacterStore
@@ -69,7 +70,7 @@ struct InventoryTabView: View {
                                         .font(.system(size: 8))
                                 }
                             }
-                            .foregroundColor(canEdit ? Color.dsGold : Color.dsTextDim)
+                            .foregroundColor(canEdit ? theme.primary : theme.textDim)
                         }
                         .buttonStyle(.plain)
                         .disabled(!canEdit)                  // 🆕
@@ -103,7 +104,7 @@ struct InventoryTabView: View {
                         HStack {
                             Text("Фильтр: \(slot.rawValue)")
                                 .font(.system(size: 12))
-                                .foregroundColor(Color.dsGold)
+                                .foregroundColor(theme.primary)
                             
                             Spacer()
                             
@@ -115,17 +116,17 @@ struct InventoryTabView: View {
                                     Text("Сбросить")
                                 }
                                 .font(.system(size: 11))
-                                .foregroundColor(Color.dsTextDim)
+                                .foregroundColor(theme.textDim)
                             }
                             .buttonStyle(.plain)
                         }
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
-                        .background(Color.dsGold.opacity(0.1))
+                        .background(theme.primary.opacity(0.1))
                         .cornerRadius(6)
                         .overlay(
                             RoundedRectangle(cornerRadius: 6)
-                                .stroke(Color.dsGold.opacity(0.3), lineWidth: 0.5)
+                                .stroke(theme.primary.opacity(0.3), lineWidth: 0.5)
                         )
                         .padding(.horizontal, 16)
                     }
@@ -203,18 +204,18 @@ struct InventoryTabView: View {
         HStack(spacing: 4) {
             Image(systemName: icon)
                 .font(.system(size: 14))
-                .foregroundColor(Color.dsGold)
+                .foregroundColor(theme.primary)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(label)
                                 .font(.system(size: 10))
-                                .foregroundColor(Color.dsTextDim)
+                                .foregroundColor(theme.textDim)
                                 .fixedSize(horizontal: false, vertical: true) // ✅ Разрешаем перенос текста
                                 .lineLimit(2) // ✅ Максимум 2 строки
                             
                             Text(value)
                                 .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(Color.dsText)
+                                .foregroundColor(theme.text)
                                 .fixedSize(horizontal: false, vertical: true) // ✅ Разрешаем перенос текста
                                 .lineLimit(2) // ✅ Максимум 2 строки
             }
@@ -226,7 +227,7 @@ struct InventoryTabView: View {
                 Button(action: onTransfer) {
                     Image(systemName: "arrow.right.circle.fill")
                         .font(.system(size: 18))
-                        .foregroundColor(Color.dsGold)
+                        .foregroundColor(theme.primary)
                 }
                 .buttonStyle(.plain)
                 .padding(.trailing, 4)
@@ -239,11 +240,11 @@ struct InventoryTabView: View {
         .padding(12)
         .frame(maxWidth: .infinity)
         .frame(maxHeight: .infinity)
-        .background(Color.dsSurfaceAlt)
+        .background(theme.surfaceAlt)
         .cornerRadius(6)
         .overlay(
             RoundedRectangle(cornerRadius: 6)
-                .stroke(Color.dsBorder, lineWidth: 0.5)
+                .stroke(theme.border, lineWidth: 0.5)
         )
     }
     
@@ -253,11 +254,11 @@ struct InventoryTabView: View {
         VStack(spacing: 12) {
             Image(systemName: "bag.badge.questionmark")
                 .font(.system(size: 32))
-                .foregroundColor(Color.dsTextDim.opacity(0.5))
+                .foregroundColor(theme.textDim.opacity(0.5))
             
             Text(selectedSlot != nil ? "Нет предметов для этого слота" : "Инвентарь пуст")
                 .font(.system(size: 13))
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim)
             
             if selectedSlot == nil {
                 Button {
@@ -269,10 +270,10 @@ struct InventoryTabView: View {
                     }
                         .font(.system(size: 12, weight: .medium))
                         .tracking(1)
-                        .foregroundColor(canEdit ? Color.dsBackground : Color.dsTextDim)
+                        .foregroundColor(canEdit ? theme.background : theme.textDim)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 10)
-                        .background(canEdit ? Color.dsGold : Color.dsSurfaceAlt)
+                        .background(canEdit ? theme.primary : theme.surfaceAlt)
                         .cornerRadius(3)
                 }
                 .buttonStyle(.plain)
@@ -362,6 +363,7 @@ struct InventoryTabView: View {
 
 //MARK: 🆕 Лист для передачи золота
 struct TransferGoldSheet: View {
+    @Environment(\.theme) private var theme
     let currentGold: Int
     @EnvironmentObject var partyManager: PartyManager
     @Environment(\.dismiss) var dismiss
@@ -382,11 +384,11 @@ struct TransferGoldSheet: View {
             Text("✦ ПЕРЕДАТЬ ЗОЛОТО ✦")
                 .font(.system(size: 11, weight: .bold))
                 .tracking(3)
-                .foregroundColor(Color.dsGold)
+                .foregroundColor(theme.primary)
             
             Text("Доступно: \(currentGold)")
                 .font(.system(size: 14))
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim)
             
             DSdivider().padding(.horizontal, 40)
             
@@ -394,15 +396,15 @@ struct TransferGoldSheet: View {
                         TextField("Сумма", text: $amountText)
                             .font(.system(size: 24, weight: .bold))
                             .multilineTextAlignment(.center)
-                            .foregroundColor(Color.dsGold)
+                            .foregroundColor(theme.primary)
                             .padding()
-                            .background(Color.dsSurface)
+                            .background(theme.surface)
                             .cornerRadius(8)
                             .padding(.horizontal, 40)
             
             Text("Выберите игрока:")
                 .font(.system(size: 12))
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim)
             
             ScrollView {
                 VStack(spacing: 8) {
@@ -416,27 +418,27 @@ struct TransferGoldSheet: View {
                             HStack {
                                 Image(systemName: "person.circle.fill")
                                     .font(.system(size: 24))
-                                    .foregroundColor(Color.dsGold)
+                                    .foregroundColor(theme.primary)
                                 VStack(alignment: .leading) {
                                     Text(member.name)
                                         .font(.system(size: 14, weight: .medium))
-                                        .foregroundColor(Color.dsText)
+                                        .foregroundColor(theme.text)
                                     Text("\(member.characterClass) • Уровень \(member.level)")
                                         .font(.system(size: 11))
-                                        .foregroundColor(Color.dsTextDim)
+                                        .foregroundColor(theme.textDim)
                                 }
                                 Spacer()
                                 if selectedPlayerID == member.id {
                                     Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(Color.dsGold)
+                                        .foregroundColor(theme.primary)
                                 }
                             }
                             .padding(12)
-                            .background(Color.dsSurface)
+                            .background(theme.surface)
                             .cornerRadius(6)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 6)
-                                    .stroke(selectedPlayerID == member.id ? Color.dsGold : Color.dsBorder, lineWidth: 1)
+                                    .stroke(selectedPlayerID == member.id ? theme.primary : theme.border, lineWidth: 1)
                             )
                         }
                         .buttonStyle(.plain)
@@ -458,8 +460,8 @@ struct TransferGoldSheet: View {
                     .tracking(1)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
-                    .background(isValid ? Color.dsGold : Color.dsSurfaceAlt)
-                    .foregroundColor(isValid ? Color.dsBackground : Color.dsTextDim)
+                    .background(isValid ? theme.primary : theme.surfaceAlt)
+                    .foregroundColor(isValid ? theme.background : theme.textDim)
                     .cornerRadius(4)
             }
             .buttonStyle(.plain)
@@ -467,7 +469,7 @@ struct TransferGoldSheet: View {
             .disabled(!isValid)
         }
         .padding(.vertical, 24)
-        .background(Color.dsBackground)
+        .background(theme.background)
         .presentationDetents([.medium, .large])
         // 🔧 Кроссплатформенное скрытие клавиатуры
         .onTapGesture {

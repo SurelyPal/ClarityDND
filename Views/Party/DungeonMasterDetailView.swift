@@ -9,6 +9,7 @@ import SwiftUI
 
 /// Детальный экран игрока для ДМ и других игроков
 struct DungeonMasterDetailView: View {
+    @Environment(\.theme) private var theme 
     let memberID: UUID
     @EnvironmentObject var partyManager: PartyManager
 
@@ -35,18 +36,18 @@ struct DungeonMasterDetailView: View {
             VStack(spacing: 16) {
                 Image(systemName: "person.slash.fill")
                     .font(.system(size: 40))
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                 
                 Text("Игрок недоступен")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(Color.dsText)
+                    .foregroundColor(theme.text)
                 
                 Text("Этот игрок вышел из партии")
                     .font(.system(size: 11))
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.dsBackground)
+            .background(theme.background)
         }
     }
 }

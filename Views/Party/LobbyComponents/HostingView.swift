@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct HostingView: View {
+    @Environment(\.theme) private var theme
     @ObservedObject var partyManager: PartyManager
     let roomCode: String
 
@@ -17,25 +18,25 @@ struct HostingView: View {
                 Text("КОМНАТА СОЗДАНА")
                     .font(.system(size: 10))
                     .tracking(2)
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
 
                 HStack(spacing: 6) {
                     ForEach(Array(roomCode.enumerated()), id: \.offset) { _, char in
                         Text(String(char))
                             .font(.system(size: 36, weight: .light))
-                            .foregroundColor(Color.dsGold)
+                            .foregroundColor(theme.primary)
                             .frame(width: 42, height: 56)
-                            .background(Color.dsSurfaceAlt)
+                            .background(theme.surfaceAlt)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 4)
-                                    .stroke(Color.dsGold.opacity(0.4), lineWidth: 1)
+                                    .stroke(theme.primary.opacity(0.4), lineWidth: 1)
                             )
                     }
                 }
 
                 Text("Покажите этот код игрокам")
                     .font(.system(size: 11))
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
             }
 
             VStack(spacing: 8) {
@@ -43,7 +44,7 @@ struct HostingView: View {
                     Text("ИГРОКИ (\(partyManager.partyMembers.count))")
                         .font(.system(size: 10))
                         .tracking(2)
-                        .foregroundColor(Color.dsTextDim)
+                        .foregroundColor(theme.textDim)
                     Spacer()
                 }
 
@@ -53,7 +54,7 @@ struct HostingView: View {
                             .tint(.dsGold)
                         Text("Ожидание подключения...")
                             .font(.system(size: 11))
-                            .foregroundColor(Color.dsTextDim)
+                            .foregroundColor(theme.textDim)
                     }
                     .padding(.vertical, 16)
                 } else {
@@ -63,7 +64,7 @@ struct HostingView: View {
                                 .padding(.vertical, 2)
                         }
                     }
-                    .background(Color.dsSurfaceAlt)
+                    .background(theme.surfaceAlt)
                     .cornerRadius(6)
                 }
             }
@@ -78,10 +79,10 @@ struct HostingView: View {
                     Text("Экран мастера")
                 }
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(Color.dsBackground)
+                .foregroundColor(theme.background)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .background(Color.dsGold)
+                .background(theme.primary)
                 .cornerRadius(6)
             }
             .buttonStyle(.plain)
@@ -95,13 +96,13 @@ struct HostingView: View {
                         Text("Завершить сессию")
                 }
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(Color.dsRed)
+                .foregroundColor(theme.danger)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .background(Color.dsSurface)
+                .background(theme.surface)
                 .overlay(
                     RoundedRectangle(cornerRadius: 6)
-                        .stroke(Color.dsRed.opacity(0.4), lineWidth: 1)
+                        .stroke(theme.danger.opacity(0.4), lineWidth: 1)
                 )
                 .cornerRadius(6)
             }

@@ -9,6 +9,7 @@
 import SwiftUI
 
 struct MapView: View {
+    @Environment(\.theme) private var theme
     @Environment(\.dismiss) var dismiss
     @State private var selectedLocation: MapLocation? = nil
     
@@ -17,7 +18,7 @@ struct MapView: View {
     
     var body: some View {
         ZStack {
-            Color.dsBackground.ignoresSafeArea()
+            theme.background.ignoresSafeArea()
             
             GeometryReader { geo in
                 ZStack {
@@ -33,17 +34,17 @@ struct MapView: View {
                         } label: {
                             ZStack {
                                 Circle()
-                                    .stroke(Color.dsGold, lineWidth: 1)
+                                    .stroke(theme.primary, lineWidth: 1)
                                     .frame(width: 30, height: 30)
                                     .opacity(0.5)
                                 
                                 Circle()
-                                    .fill(Color.dsGold)
+                                    .fill(theme.primary)
                                     .frame(width: 12, height: 12)
                                 
                                 Image(systemName: location.icon)
                                     .font(.system(size: 8))
-                                    .foregroundColor(Color.dsBackground)
+                                    .foregroundColor(theme.background)
                             }
                         }
                         .position(
@@ -61,8 +62,8 @@ struct MapView: View {
                     Button { dismiss() } label: {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 32))
-                            .foregroundColor(Color.dsGold)
-                            .background(Color.dsBackground)
+                            .foregroundColor(theme.primary)
+                            .background(theme.background)
                             .clipShape(Circle())
                     }
                     .padding(.trailing, 20)

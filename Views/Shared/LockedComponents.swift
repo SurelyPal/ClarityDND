@@ -10,6 +10,7 @@ import SwiftUI
 // MARK: - 🔒 Заблокированное текстовое поле
 
 struct LockedField: View {
+    @Environment(\.theme) private var theme
     let label: String
     let value: String
     let isLocked: Bool
@@ -21,38 +22,38 @@ struct LockedField: View {
                 Text(label)
                     .font(.system(size: 10, weight: .medium))
                     .tracking(1.5)
-                    .foregroundColor(isLocked ? Color.dsTextDim : Color.dsGoldDim)
+                    .foregroundColor(isLocked ? theme.textDim : theme.primaryDim)
                 
                 if isLocked {
                     Image(systemName: "lock.fill")
                         .font(.system(size: 9))
-                        .foregroundColor(Color.dsRed.opacity(0.7))
+                        .foregroundColor(theme.danger.opacity(0.7))
                 }
             }
             
             if isLocked {
                 Text(value.isEmpty ? "—" : value)
                     .font(.system(size: 14))
-                    .foregroundColor(Color.dsText)
+                    .foregroundColor(theme.text)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 10)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.dsSurfaceAlt.opacity(0.5))
+                    .background(theme.surfaceAlt.opacity(0.5))
                     .overlay(
                         RoundedRectangle(cornerRadius: 4)
-                            .stroke(Color.dsRed.opacity(0.2), lineWidth: 0.5)
+                            .stroke(theme.danger.opacity(0.2), lineWidth: 0.5)
                     )
                     .cornerRadius(4)
             } else {
                 TextField("", text: $text)
                     .font(.system(size: 14))
-                    .foregroundColor(Color.dsText)
+                    .foregroundColor(theme.text)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 10)
-                    .background(Color.dsSurfaceAlt)
+                    .background(theme.surfaceAlt)
                     .overlay(
                         RoundedRectangle(cornerRadius: 4)
-                            .stroke(Color.dsBorder, lineWidth: 0.5)
+                            .stroke(theme.border, lineWidth: 0.5)
                     )
                     .cornerRadius(4)
             }
@@ -63,6 +64,7 @@ struct LockedField: View {
 // MARK: - 🔒 Заблокированная секция
 
 struct LockedSection<Content: View>: View {
+    @Environment(\.theme) private var theme
     let title: String
     let isLocked: Bool
     @ViewBuilder let content: () -> Content
@@ -73,7 +75,7 @@ struct LockedSection<Content: View>: View {
                 Text(title)
                     .font(.system(size: 10, weight: .semibold))
                     .tracking(2)
-                    .foregroundColor(isLocked ? Color.dsTextDim : Color.dsGold)
+                    .foregroundColor(isLocked ? theme.textDim : theme.primary)
                 
                 if isLocked {
                     Spacer()
@@ -84,10 +86,10 @@ struct LockedSection<Content: View>: View {
                             .font(.system(size: 8, weight: .semibold))
                             .tracking(1)
                     }
-                    .foregroundColor(Color.dsRed)
+                    .foregroundColor(theme.danger)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(Color.dsRed.opacity(0.15))
+                    .background(theme.danger.opacity(0.15))
                     .cornerRadius(3)
                 }
             }
@@ -99,7 +101,7 @@ struct LockedSection<Content: View>: View {
         .overlay(
             isLocked ?
             RoundedRectangle(cornerRadius: 6)
-                .stroke(Color.dsRed.opacity(0.3), lineWidth: 1)
+                .stroke(theme.danger.opacity(0.3), lineWidth: 1)
                 .allowsHitTesting(false)
             : nil
         )
@@ -109,6 +111,7 @@ struct LockedSection<Content: View>: View {
 // MARK: - 🔒 Заблокированная кнопка
 
 struct LockedButton: View {
+    @Environment(\.theme) private var theme
     let title: String
     let icon: String
     let isLocked: Bool
@@ -128,13 +131,13 @@ struct LockedButton: View {
                         .padding(.leading, 4)
                 }
             }
-            .foregroundColor(isLocked ? Color.dsTextDim : Color.dsGold)
+            .foregroundColor(isLocked ? theme.textDim : theme.primary)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
-            .background(isLocked ? Color.dsSurfaceAlt.opacity(0.3) : Color.dsSurfaceAlt)
+            .background(isLocked ? theme.surfaceAlt.opacity(0.3) : theme.surfaceAlt)
             .overlay(
                 RoundedRectangle(cornerRadius: 4)
-                    .stroke(isLocked ? Color.dsRed.opacity(0.3) : Color.dsGold.opacity(0.3), lineWidth: 0.5)
+                    .stroke(isLocked ? theme.danger.opacity(0.3) : theme.primary.opacity(0.3), lineWidth: 0.5)
             )
             .cornerRadius(4)
         }

@@ -11,6 +11,7 @@ import SwiftUI
 // MARK: - Экран выбора кампании для ДМа
 
 struct CampaignSelectionView: View {
+    @Environment(\.theme) private var theme
     
     // MARK: - Свойства
     
@@ -32,7 +33,7 @@ struct CampaignSelectionView: View {
         NavigationStack {
             ZStack {
                 // Фон в стиле Dark Souls
-                Color.dsBackground
+                theme.background
                     .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
@@ -211,7 +212,7 @@ struct CampaignSelectionView: View {
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
         .background(
-            Color.dsSurface
+            theme.surface
                 .shadow(color: .black.opacity(0.5), radius: 10, y: -5)
                 .ignoresSafeArea(edges: .bottom)
         )
@@ -261,7 +262,7 @@ struct CampaignSelectionView: View {
 // MARK: - Строка кампании (отдельный компонент)
 
 struct CampaignRowView: View {
-    
+    @Environment(\.theme) private var theme
     let campaign: Campaign
     let onStart: () -> Void
     let onRename: () -> Void
@@ -295,7 +296,7 @@ struct CampaignRowView: View {
                 
                 // Тонкий разделитель
                 Rectangle()
-                    .fill(Color.dsBorder)
+                    .fill(theme.border)
                     .frame(height: 1)
                 
                 // Информационная строка
@@ -333,11 +334,11 @@ struct CampaignRowView: View {
                 }
             }
             .padding(14)
-            .background(Color.dsSurface)
+            .background(theme.surface)
             .cornerRadius(4)
             .overlay(
                 RoundedRectangle(cornerRadius: 4)
-                    .stroke(Color.dsBorder, lineWidth: 1)
+                    .stroke(theme.border, lineWidth: 1)
             )
         }
         .buttonStyle(.plain)

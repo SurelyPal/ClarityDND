@@ -12,6 +12,7 @@ import AppKit
 #endif
 
 struct RestEffectOverlayView: View {
+    @Environment(\.theme) private var theme
     let effect: PartyManager.RestEffectEvent
     let onDismiss: () -> Void
     
@@ -81,7 +82,7 @@ struct RestEffectOverlayView: View {
                             Text(effect.restType.displayName.uppercased())
                                 .font(.system(size: 10))
                                 .tracking(4)
-                                .foregroundColor(Color.dsTextDim)
+                                .foregroundColor(theme.textDim)
                             
                             Text("Отдых начался")
                                 .font(.system(size: 26, weight: .light))
@@ -109,7 +110,7 @@ struct RestEffectOverlayView: View {
                     .frame(maxWidth: 320)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.dsSurface)
+                            .fill(theme.surface)
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
@@ -146,7 +147,7 @@ struct RestEffectOverlayView: View {
     private var effectColor: Color {
         switch effect.restType {
         case .short: return .green
-        case .long: return Color.dsGold
+        case .long: return theme.primary
         }
     }
     
@@ -189,6 +190,7 @@ struct RestEffectOverlayView: View {
 
 // MARK: - Вспомогательный компонент
 private struct EffectRow: View {
+    @Environment(\.theme) private var theme
     let icon: String
     let text: String
     let color: Color
@@ -202,7 +204,7 @@ private struct EffectRow: View {
             
             Text(text)
                 .font(.system(size: 13, weight: .medium))
-                .foregroundColor(Color.dsText)
+                .foregroundColor(theme.text)
             
             Spacer()
             
@@ -216,8 +218,9 @@ private struct EffectRow: View {
 
 // MARK: - Preview
 #Preview {
+    @Environment(\.theme) var theme
     ZStack {
-        Color.dsBackground.ignoresSafeArea()
+        theme.background.ignoresSafeArea()
         RestEffectOverlayView(
             effect: PartyManager.RestEffectEvent(
                 restType: .long,

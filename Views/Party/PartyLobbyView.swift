@@ -8,12 +8,13 @@
 import SwiftUI
 
 struct PartyLobbyView: View {
+    @Environment(\.theme) private var theme
     @ObservedObject private var partyManager = PartyManager.shared
     @EnvironmentObject var store: CharacterStore
 
     var body: some View {
         ZStack {
-            Color.dsBackground.ignoresSafeArea()
+            theme.background.ignoresSafeArea()
 
             ScrollView {
                 VStack(spacing: 24) {
@@ -41,14 +42,14 @@ struct PartyLobbyView: View {
             Text("CLARITY")
                 .font(.system(size: 28, weight: .thin))
                 .tracking(6)
-                .foregroundColor(Color.dsGold)
+                .foregroundColor(theme.primary)
 
             DSdivider().padding(.horizontal, 40)
 
             Text("МУЛЬТИПЛЕЕР")
                 .font(.system(size: 10))
                 .tracking(3)
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim)
         }
     }
 

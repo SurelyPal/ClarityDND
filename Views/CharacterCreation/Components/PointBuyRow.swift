@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct PointBuyRow: View {
+    @Environment(\.theme) private var theme
     let label: String
     @Binding var value: Int
     let pointsLeft: Int
@@ -33,16 +34,16 @@ struct PointBuyRow: View {
     }
     
     private var valueColor: Color {
-        if value >= 14 { return Color.dsGold }
-        if value >= 10 { return Color.dsText }
-        return Color.dsTextDim
+        if value >= 14 { return theme.primary }
+        if value >= 10 { return theme.text }
+        return theme.textDim
     }
     
     var body: some View {
         HStack(spacing: 8) {
             Text(label)
                 .font(.system(size: 14))
-                .foregroundColor(Color.dsText)
+                .foregroundColor(theme.text)
                 .frame(width: 120, alignment: .leading)
             
             Spacer()
@@ -56,7 +57,7 @@ struct PointBuyRow: View {
         .padding(.vertical, 12)
         .overlay(
             Rectangle()
-                .fill(Color.dsBorder)
+                .fill(theme.border)
                 .frame(height: 0.5),
             alignment: .bottom
         )
@@ -66,10 +67,10 @@ struct PointBuyRow: View {
         Group {
             if value < Constants.Stat.maxValue {
                 Text("+\(increasePrice)★")
-                    .foregroundColor(canIncrease ? Color.dsTextDim : Color.dsRed.opacity(0.6))
+                    .foregroundColor(canIncrease ? theme.textDim : theme.danger.opacity(0.6))
             } else {
                 Text("макс")
-                    .foregroundColor(Color.dsGoldDim)
+                    .foregroundColor(theme.primaryDim)
             }
         }
         .font(.system(size: 10))
@@ -83,12 +84,12 @@ struct PointBuyRow: View {
         } label: {
             Image(systemName: "minus")
                 .frame(width: 30, height: 30)
-                .background(canDecrease ? Color.dsSurfaceAlt : Color.dsSurface)
-                .foregroundColor(canDecrease ? Color.dsText : Color.dsTextDim)
+                .background(canDecrease ? theme.surfaceAlt : theme.surface)
+                .foregroundColor(canDecrease ? theme.text : theme.textDim)
                 .cornerRadius(2)
                 .overlay(
                     RoundedRectangle(cornerRadius: 2)
-                        .stroke(Color.dsBorder, lineWidth: 0.5)
+                        .stroke(theme.border, lineWidth: 0.5)
                 )
         }
         .buttonStyle(.plain)
@@ -101,7 +102,7 @@ struct PointBuyRow: View {
                 .foregroundColor(valueColor)
             Text(modText)
                 .font(.system(size: 10))
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim)
         }
         .frame(width: 36)
         .animation(.spring(response: 0.2), value: value)
@@ -114,12 +115,12 @@ struct PointBuyRow: View {
         } label: {
             Image(systemName: "plus")
                 .frame(width: 30, height: 30)
-                .background(canIncrease ? Color.dsSurfaceAlt : Color.dsSurface)
-                .foregroundColor(canIncrease ? Color.dsGold : Color.dsTextDim)
+                .background(canIncrease ? theme.surfaceAlt : theme.surface)
+                .foregroundColor(canIncrease ? theme.primary : theme.textDim)
                 .cornerRadius(2)
                 .overlay(
                     RoundedRectangle(cornerRadius: 2)
-                        .stroke(Color.dsBorder, lineWidth: 0.5)
+                        .stroke(theme.border, lineWidth: 0.5)
                 )
         }
         .buttonStyle(.plain)

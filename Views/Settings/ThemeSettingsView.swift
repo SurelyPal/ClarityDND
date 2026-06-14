@@ -5,12 +5,6 @@
 //  Created by KEBAB on 14.06.2026.
 //
 
-
-//
-// ThemeSettingsView.swift
-// Clarity
-//
-
 import SwiftUI
 
 struct ThemeSettingsView: View {
@@ -29,31 +23,10 @@ struct ThemeSettingsView: View {
                 VStack(spacing: 16) {
                     
                     // Заголовок секции
-                    VStack(spacing: 4) {
-                        Text("✦ ТЕМЫ ✦")
-                            .font(.system(size: 11, weight: .medium))
-                            .tracking(3)
-                            .foregroundColor(theme.goldDim) // 🔧 Используем тему
-                        
-                        Text("Выберите оформление")
-                            .font(.system(size: 13))
-                            .foregroundColor(theme.textDim) // 🔧 Используем тему
-                    }
-                    .padding(.top, 16)
-                    .padding(.bottom, 8)
+                    headerView
                     
                     // Список тем
-                    ForEach(themeManager.availableThemes, id: \.id) { availableTheme in
-                        ThemeCardView(
-                            theme: availableTheme,
-                            isSelected: availableTheme.id == themeManager.currentTheme.id
-                        )
-                        .onTapGesture {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                themeManager.selectTheme(withId: availableTheme.id)
-                            }
-                        }
-                    }
+                    themeList
                     
                     Spacer(minLength: 20)
                 }
@@ -65,7 +38,44 @@ struct ThemeSettingsView: View {
         .navigationBarTitleDisplayMode(.inline)
         #endif
     }
-}
+    
+    // MARK: - Subviews
+    
+    private var headerView: some View {
+        VStack(spacing: 4) {
+            Text("✦ ТЕМЫ ✦")
+                .font(.system(size: 11, weight: .medium))
+                .tracking(3)
+                .foregroundColor(theme.primaryDim) // 🔧 Используем тему
+            
+            Text("Выберите оформление")
+                .font(.system(size: 13))
+                .foregroundColor(theme.textDim) // 🔧 Используем тему
+        }
+        .padding(.top, 16)
+        .padding(.bottom, 8)
+    }
+
+    //Используем enumerated(), чтобы компилятор работал с конкретными индексами (Int),
+    // а не пытался вывести типы для абстрактного 'any Theme'
+    private var themeList: some View {
+        ForEach(Array(themeManager.availableThemes.enumerated()), id: \.element.id) { index, theme in
+            themeRow(for: theme)
+        }
+    }
+    
+    // 🆕 Выносим логику строки в отдельную функцию
+    @ViewBuilder
+    private func themeRow(for theme: Theme) -> some View {
+        let isSelected = theme.id == themeManager.currentTheme.id
+        
+        ThemeCardView(theme: theme, isSelected: isSelected)
+            .onTapGesture {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    themeManager.selectTheme(id: theme.id) // 🔧 Исправлен вызов метода
+                }
+            }
+    }}
 
 // MARK: - Карточка темы
 struct ThemeCardView: View {
@@ -89,7 +99,7 @@ struct ThemeCardView: View {
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 20))
-                        .foregroundColor(theme.gold) // 🔧 Используем тему
+                        .foregroundColor(theme.primary) // 🔧 Используем тему
                 }
             }
             
@@ -97,8 +107,8 @@ struct ThemeCardView: View {
             HStack(spacing: 8) {
                 ColorPreview(color: theme.background, label: "Фон")
                 ColorPreview(color: theme.surface, label: "Поверхность")
-                ColorPreview(color: theme.gold, label: "Золото")
-                ColorPreview(color: theme.red, label: "Красный")
+                ColorPreview(color: theme.primary, label: "Золото")
+                ColorPreview(color: theme.danger, label: "Красный")
                 ColorPreview(color: theme.text, label: "Текст")
             }
             
@@ -112,7 +122,7 @@ struct ThemeCardView: View {
         .cornerRadius(4)
         .overlay(
             RoundedRectangle(cornerRadius: 4)
-                .stroke(isSelected ? theme.gold : theme.border, lineWidth: isSelected ? 2 : 1) // 🔧 Используем тему
+                .stroke(isSelected ? theme.primary : theme.border, lineWidth: isSelected ? 2 : 1) // 🔧 Используем тему
         )
     }
 }

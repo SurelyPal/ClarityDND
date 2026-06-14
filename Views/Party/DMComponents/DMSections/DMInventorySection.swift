@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct DMInventorySection: View {
+    @Environment(\.theme) private var theme
     let member: PartyMember
     @ObservedObject var partyManager: PartyManager
     
@@ -21,12 +22,12 @@ struct DMInventorySection: View {
                 Text("ИНВЕНТАРЬ")
                     .font(.system(size: 10))
                     .tracking(2)
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                 Spacer()
                 if let inv = member.inventory {
                     Text("\(inv.count) предм.")
                         .font(.system(size: 10))
-                        .foregroundColor(Color.dsTextDim)
+                        .foregroundColor(theme.textDim)
                 }
             }
             .padding(.horizontal, 16)
@@ -34,10 +35,10 @@ struct DMInventorySection: View {
             // ✅ НОВОЕ: Секция денег (ВСЕГДА видна, даже если money == nil)
             HStack {
                 Image(systemName: "dollarsign.circle.fill")
-                    .foregroundColor(Color.dsGold)
+                    .foregroundColor(theme.primary)
                 Text("Золото: \(member.money ?? 0)")
                     .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(Color.dsGold)
+                    .foregroundColor(theme.primary)
                 
                 Spacer()
                 
@@ -50,14 +51,14 @@ struct DMInventorySection: View {
                             Text("Изменить")
                         }
                         .font(.system(size: 11))
-                        .foregroundColor(Color.dsGold)
+                        .foregroundColor(theme.primary)
                     }
                     .buttonStyle(.plain)
                 }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
-            .background(Color.dsGold.opacity(0.1))
+            .background(theme.primary.opacity(0.1))
             .cornerRadius(6)
             .padding(.horizontal, 16)
             
@@ -67,18 +68,18 @@ struct DMInventorySection: View {
                         HStack(spacing: 10) {
                             Image(systemName: IconHelper.iconForItem(item))
                                 .font(.system(size: 14))
-                                .foregroundColor(Color.dsGoldDim)
+                                .foregroundColor(theme.primaryDim)
                                 .frame(width: 24)
                             
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(item.name)
                                     .font(.system(size: 13, weight: .medium))
-                                    .foregroundColor(Color.dsText)
+                                    .foregroundColor(theme.text)
                                 
                                 if !item.description.isEmpty {
                                     Text(item.description)
                                         .font(.system(size: 10))
-                                        .foregroundColor(Color.dsTextDim)
+                                        .foregroundColor(theme.textDim)
                                         .lineLimit(2)
                                 }
                             }
@@ -88,10 +89,10 @@ struct DMInventorySection: View {
                             if item.isEquipped {
                                 Text("Экип.")
                                     .font(.system(size: 9, weight: .medium))
-                                    .foregroundColor(Color.dsGold)
+                                    .foregroundColor(theme.primary)
                                     .padding(.horizontal, 6)
                                     .padding(.vertical, 2)
-                                    .background(Color.dsGold.opacity(0.15))
+                                    .background(theme.primary.opacity(0.15))
                                     .cornerRadius(3)
                             }
                         }
@@ -100,7 +101,7 @@ struct DMInventorySection: View {
                         .overlay(alignment: .bottom) {
                             if index < inventory.count - 1 {
                                 Rectangle()
-                                    .fill(Color.dsBorder)
+                                    .fill(theme.border)
                                     .frame(height: 0.5)
                             }
                         }
@@ -112,10 +113,10 @@ struct DMInventorySection: View {
                 VStack(spacing: 8) {
                     Image(systemName: "bag")
                         .font(.system(size: 32))
-                        .foregroundColor(Color.dsTextDim.opacity(0.4))
+                        .foregroundColor(theme.textDim.opacity(0.4))
                     Text("Инвентарь пуст")
                         .font(.system(size: 12))
-                        .foregroundColor(Color.dsTextDim)
+                        .foregroundColor(theme.textDim)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 30)
@@ -133,11 +134,11 @@ struct DMInventorySection: View {
                 Text("✦ ИЗМЕНИТЬ ЗОЛОТО ✦")
                     .font(.system(size: 11, weight: .bold))
                     .tracking(3)
-                    .foregroundColor(Color.dsGold)
+                    .foregroundColor(theme.primary)
                 
                 Text("Текущий запас: \(member.money ?? 0) монет")
                     .font(.system(size: 13))
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                 
                 DSdivider()
                     .padding(.horizontal, 40)
@@ -165,8 +166,8 @@ struct DMInventorySection: View {
                             .tracking(1)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
-                            .background(Color.dsSurfaceAlt)
-                            .foregroundColor(Color.dsText)
+                            .background(theme.surfaceAlt)
+                            .foregroundColor(theme.text)
                             .cornerRadius(4)
                     }
                     .buttonStyle(.plain)
@@ -190,8 +191,8 @@ struct DMInventorySection: View {
                             .tracking(1)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
-                            .background(Color.dsGold)
-                            .foregroundColor(Color.dsBackground)
+                            .background(theme.primary)
+                            .foregroundColor(theme.background)
                             .cornerRadius(4)
                     }
                     .buttonStyle(.plain)
@@ -201,7 +202,7 @@ struct DMInventorySection: View {
             }
             
             .padding(.vertical, 24)
-            .background(Color.dsBackground)
+            .background(theme.background)
             .presentationDetents([.height(320)])
             
             

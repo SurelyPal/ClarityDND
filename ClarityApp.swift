@@ -18,7 +18,7 @@ struct ClarityApp: App {
     
     var body: some Scene {
         WindowGroup {
-            // 🆕 Запускаем RootView вместо ContentView
+            //Запускаем RootView вместо ContentView
             RootView()
             
         }

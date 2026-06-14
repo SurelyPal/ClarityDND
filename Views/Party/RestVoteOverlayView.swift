@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct RestVoteOverlayView: View {
+    @Environment(\.theme) private var theme
     let session: PartyManager.RestVoteSession
     let myVoteSent: Bool?
     let isDungeonMaster: Bool // 🆕
@@ -35,23 +36,23 @@ struct RestVoteOverlayView: View {
                             Text("ГОЛОСОВАНИЕ")
                                 .font(.system(size: 10, weight: .medium))
                                 .tracking(2)
-                                .foregroundColor(Color.dsTextDim)
+                                .foregroundColor(theme.textDim)
                         }
                         
                         Text(session.initiatorName)
                             .font(.system(size: 20, weight: .light))
-                            .foregroundColor(Color.dsGold)
+                            .foregroundColor(theme.primary)
                         
                         Text("предлагает \(session.restType.displayName.lowercased())")
                             .font(.system(size: 14))
-                            .foregroundColor(Color.dsText)
+                            .foregroundColor(theme.text)
                         
                         DSdivider()
                             .padding(.horizontal, 40)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 20)
-                    .background(Color.dsSurface)
+                    .background(theme.surface)
                     .overlay(
                         CornerOrnaments(size: 14)
                     )
@@ -68,11 +69,11 @@ struct RestVoteOverlayView: View {
                                 HStack {
                                     Image(systemName: "crown.fill")
                                         .font(.system(size: 12))
-                                        .foregroundColor(Color.dsGold)
+                                        .foregroundColor(theme.primary)
                                     
                                     Text("Отслеживание голосов")
                                         .font(.system(size: 12, weight: .medium))
-                                        .foregroundColor(Color.dsGold)
+                                        .foregroundColor(theme.primary)
                                     
                                     Spacer()
                                 }
@@ -81,24 +82,24 @@ struct RestVoteOverlayView: View {
                             HStack {
                                 Image(systemName: "person.3.fill")
                                     .font(.system(size: 12))
-                                    .foregroundColor(Color.dsGold)
+                                    .foregroundColor(theme.primary)
                                 
                                 Text("Голоса")
                                     .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(Color.dsText)
+                                    .foregroundColor(theme.text)
                                 
                                 Spacer()
                                 
                                 Text("\(session.votes.count) / \(session.totalVoters)")
                                     .font(.system(size: 14, weight: .semibold))
-                                    .foregroundColor(Color.dsGold)
+                                    .foregroundColor(theme.primary)
                             }
                             
                             // Прогресс-бар
                             GeometryReader { geo in
                                 ZStack(alignment: .leading) {
                                     RoundedRectangle(cornerRadius: 3)
-                                        .fill(Color.dsSurfaceAlt)
+                                        .fill(theme.surfaceAlt)
                                         .frame(height: 8)
                                     
                                     RoundedRectangle(cornerRadius: 3)
@@ -119,17 +120,17 @@ struct RestVoteOverlayView: View {
                                         HStack(spacing: 8) {
                                             Image(systemName: session.votes[voterID] == true ? "checkmark.circle.fill" : "xmark.circle.fill")
                                                 .font(.system(size: 12))
-                                                .foregroundColor(session.votes[voterID] == true ? .green : Color.dsRed)
+                                                .foregroundColor(session.votes[voterID] == true ? .green : theme.danger)
                                             
                                             Text(voterID == session.initiatorID ? "Инициатор" : "Игрок")
                                                 .font(.system(size: 11))
-                                                .foregroundColor(Color.dsTextDim)
+                                                .foregroundColor(theme.textDim)
                                             
                                             Spacer()
                                             
                                             Text(session.votes[voterID] == true ? "ЗА" : "ПРОТИВ")
                                                 .font(.system(size: 10, weight: .medium))
-                                                .foregroundColor(session.votes[voterID] == true ? .green : Color.dsRed)
+                                                .foregroundColor(session.votes[voterID] == true ? .green : theme.danger)
                                         }
                                     }
                                 }
@@ -138,7 +139,7 @@ struct RestVoteOverlayView: View {
                         }
                         .padding(20)
                     }
-                    .background(Color.dsSurfaceAlt)
+                    .background(theme.surfaceAlt)
                     
                     // ─── Кнопки голосования ───
                     if isDungeonMaster {
@@ -147,15 +148,15 @@ struct RestVoteOverlayView: View {
                             VStack(spacing: 8) {
                                 Image(systemName: "eye.fill")
                                     .font(.system(size: 20))
-                                    .foregroundColor(Color.dsGold)
+                                    .foregroundColor(theme.primary)
                                 
                                 Text("Наблюдение за голосованием")
                                     .font(.system(size: 13, weight: .medium))
-                                    .foregroundColor(Color.dsText)
+                                    .foregroundColor(theme.text)
                                 
                                 Text("Вы не участвуете в голосовании")
                                     .font(.system(size: 11))
-                                    .foregroundColor(Color.dsTextDim)
+                                    .foregroundColor(theme.textDim)
                             }
                             .padding(.vertical, 12)
                             
@@ -173,7 +174,7 @@ struct RestVoteOverlayView: View {
                                     .foregroundColor(.white)
                                     .frame(maxWidth: .infinity, maxHeight: .infinity) // ✅ Добавлено maxHeight
                                     .padding(.vertical, 14) // ✅ Увеличено с 12 до 14
-                                    .background(Color.dsRed)
+                                    .background(theme.danger)
                                     .cornerRadius(4)
                                 }
                                 .frame(maxWidth: .infinity) // ✅ Добавлено на Button
@@ -195,12 +196,12 @@ struct RestVoteOverlayView: View {
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity, maxHeight: .infinity) // ✅ Добавлено maxHeight
                                 .padding(.vertical, 18) // ✅ Увеличено с 16 до 18
-                                .background(Color.dsRed)
+                                .background(theme.danger)
                             }
                             .frame(maxWidth: .infinity) // ✅ Добавлено на Button
                             
                             Rectangle()
-                                .fill(Color.dsBorder)
+                                .fill(theme.border)
                                 .frame(width: 0.5)
                             
                             Button {
@@ -212,10 +213,10 @@ struct RestVoteOverlayView: View {
                                     Text("За")
                                         .font(.system(size: 14, weight: .medium))
                                 }
-                                .foregroundColor(Color.dsBackground)
+                                .foregroundColor(theme.background)
                                 .frame(maxWidth: .infinity, maxHeight: .infinity) // ✅ Добавлено maxHeight
                                 .padding(.vertical, 18) // ✅ Увеличено с 16 до 18
-                                .background(Color.dsGold)
+                                .background(theme.primary)
                             }
                             .frame(maxWidth: .infinity) // ✅ Добавлено на Button
                         }
@@ -226,16 +227,16 @@ struct RestVoteOverlayView: View {
                             HStack(spacing: 8) {
                                 Image(systemName: myVoteSent == true ? "checkmark.circle.fill" : "xmark.circle.fill")
                                     .font(.system(size: 16))
-                                    .foregroundColor(myVoteSent == true ? .green : Color.dsRed)
+                                    .foregroundColor(myVoteSent == true ? .green : theme.danger)
                                 
                                 Text("Вы проголосовали: \(myVoteSent == true ? "ЗА" : "ПРОТИВ")")
                                     .font(.system(size: 13, weight: .medium))
-                                    .foregroundColor(Color.dsText)
+                                    .foregroundColor(theme.text)
                             }
                             
                             Text("Ожидайте решения партии...")
                                 .font(.system(size: 11))
-                                .foregroundColor(Color.dsTextDim)
+                                .foregroundColor(theme.textDim)
                             
                             // Кнопка отмены для ДМа
                             if isDungeonMaster, let onCancel = onCancel {
@@ -248,10 +249,10 @@ struct RestVoteOverlayView: View {
                                         Text("Отменить голосование")
                                             .font(.system(size: 11, weight: .medium))
                                     }
-                                    .foregroundColor(Color.dsRed)
+                                    .foregroundColor(theme.danger)
                                     .padding(.horizontal, 16)
                                     .padding(.vertical, 8)
-                                    .background(Color.dsRed.opacity(0.1))
+                                    .background(theme.danger.opacity(0.1))
                                     .cornerRadius(4)
                                 }
                                 .buttonStyle(.plain)
@@ -260,7 +261,7 @@ struct RestVoteOverlayView: View {
                         }
                         .frame(maxWidth: .infinity, minHeight: 80) // ✅ Фиксированная минимальная высота
                         .padding(.vertical, 20)
-                        .background(Color.dsSurface)
+                        .background(theme.surface)
                     }
                 }
                 .frame(
@@ -269,7 +270,7 @@ struct RestVoteOverlayView: View {
                 )
                 .background(
                     RoundedRectangle(cornerRadius: 6)
-                        .fill(Color.dsSurface)
+                        .fill(theme.surface)
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 6)
@@ -289,16 +290,17 @@ struct RestVoteOverlayView: View {
     
     private var restTypeColor: Color {
         switch session.restType {
-        case .short: return Color.dsBlue
-        case .long: return Color.dsGold
+        case .short: return theme.tertiary
+        case .long: return theme.primary
         }
     }
 }
 
 // MARK: - Preview
 #Preview {
+    @Environment(\.theme) var theme
     ZStack {
-        Color.dsBackground.ignoresSafeArea()
+        theme.background.ignoresSafeArea()
         
         RestVoteOverlayView(
             session: PartyManager.RestVoteSession(

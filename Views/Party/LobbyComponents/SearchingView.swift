@@ -8,24 +8,25 @@
 import SwiftUI
 
 struct SearchingView: View {
+    @Environment(\.theme) private var theme
     @ObservedObject var partyManager: PartyManager
         
     var body: some View {
         VStack(spacing: 20) {
             ZStack {
                 Circle()
-                    .stroke(Color.dsGold.opacity(0.2), lineWidth: 2)
+                    .stroke(theme.primary.opacity(0.2), lineWidth: 2)
                     .frame(width: 120, height: 120)
                     .scaleEffect(1.3)
                     .opacity(0.3)
 
                 Circle()
-                    .stroke(Color.dsGold.opacity(0.4), lineWidth: 2)
+                    .stroke(theme.primary.opacity(0.4), lineWidth: 2)
                     .frame(width: 120, height: 120)
 
                 Image(systemName: "antenna.radiowaves.left.and.right")
                     .font(.system(size: 40))
-                    .foregroundColor(Color.dsGold)
+                    .foregroundColor(theme.primary)
             }
             .padding(.vertical, 20)
 
@@ -33,11 +34,11 @@ struct SearchingView: View {
                 Text("ПОИСК ПАРТИИ")
                     .font(.system(size: 12, weight: .semibold))
                     .tracking(2)
-                    .foregroundColor(Color.dsGold)
+                    .foregroundColor(theme.primary)
 
                 Text("Ожидание сигнала от Мастера...")
                     .font(.system(size: 11))
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                     .multilineTextAlignment(.center)
             }
 
@@ -47,15 +48,15 @@ struct SearchingView: View {
                     VStack(alignment: .leading) {
                         Text("Подключается:")
                             .font(.system(size: 9))
-                            .foregroundColor(Color.dsTextDim)
+                            .foregroundColor(theme.textDim)
                         Text(character.displayName)
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(Color.dsText)
+                            .foregroundColor(theme.text)
                     }
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
-                .background(Color.dsSurfaceAlt)
+                .background(theme.surfaceAlt)
                 .cornerRadius(6)
             }
 
@@ -65,7 +66,7 @@ struct SearchingView: View {
             } label: {
                 Text("Отмена поиска")
                     .font(.system(size: 13))
-                    .foregroundColor(Color.dsRed)
+                    .foregroundColor(theme.danger)
             }
             .buttonStyle(.plain)
         }

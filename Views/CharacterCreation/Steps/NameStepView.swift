@@ -10,6 +10,7 @@ import SwiftUI
 import PhotosUI
 
 struct NameStepView: View {
+    @Environment(\.theme) private var theme
     @Binding var character: DNDCharacter
     @State private var selectedItem: PhotosPickerItem? = nil
     
@@ -64,10 +65,10 @@ struct NameStepView: View {
                             .font(.system(size: 12, weight: .medium))
                             .tracking(0.5)
                     }
-                    .foregroundColor(Color.dsBackground)
+                    .foregroundColor(theme.background)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
-                    .background(Color.dsGold)
+                    .background(theme.primary)
                     .cornerRadius(3)
                 }
                 .buttonStyle(.plain)
@@ -78,10 +79,10 @@ struct NameStepView: View {
                     } label: {
                         Image(systemName: "trash")
                             .font(.system(size: 12))
-                            .foregroundColor(Color.dsRed)
+                            .foregroundColor(theme.danger)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 10)
-                            .background(Color.dsRed.opacity(0.15))
+                            .background(theme.danger.opacity(0.15))
                             .cornerRadius(3)
                     }
                     .buttonStyle(.plain)
@@ -95,15 +96,16 @@ struct NameStepView: View {
     // MARK: - Инструмент (для барда)
 
     private var instrumentPicker: some View {
+        
         VStack(alignment: .leading, spacing: 10) {
             Text("МУЗЫКАЛЬНЫЙ ИНСТРУМЕНТ")
                 .font(.system(size: 10))
                 .tracking(2)
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim)
             
             Text("Инструмент будет автоматически добавлен в инвентарь. Модификации привязаны к конкретному инструменту.")
                 .font(.system(size: 10))
-                .foregroundColor(Color.dsTextDim.opacity(0.7))
+                .foregroundColor(theme.textDim.opacity(0.7))
                 .fixedSize(horizontal: false, vertical: true)
             
             HStack(spacing: 10) {
@@ -141,16 +143,16 @@ struct NameStepView: View {
                 Text(type.icon).font(.system(size: 28))
                 Text(type.rawValue)
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(isSelected ? Color.dsGold : Color.dsTextDim)
+                    .foregroundColor(isSelected ? theme.primary : theme.textDim)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
-            .background(isSelected ? type.backgroundColor : Color.dsSurface)
+            .background(isSelected ? type.backgroundColor : theme.surface)
             .cornerRadius(3)
             .overlay(
                 RoundedRectangle(cornerRadius: 3)
                     .stroke(
-                        isSelected ? type.accentColor : Color.dsBorder,
+                        isSelected ? type.accentColor : theme.border,
                         lineWidth: isSelected ? 1 : 0.5
                     )
             )
@@ -164,10 +166,10 @@ struct NameStepView: View {
             Text("Шаг 4 из 4")
                 .font(.system(size: 11))
                 .tracking(2)
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim)
             Text("Имя и мировоззрение")
                 .font(.system(size: 24, weight: .light))
-                .foregroundColor(Color.dsGold)
+                .foregroundColor(theme.primary)
             DSdivider().padding(.top, 4)
         }
     }
@@ -177,16 +179,16 @@ struct NameStepView: View {
             Text("ИМЯ ГЕРОЯ")
                 .font(.system(size: 10))
                 .tracking(2)
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim)
             TextField("Aragorn, Legolas...", text: $character.name)
                 .font(.system(size: 15))
-                .foregroundColor(Color.dsText)
+                .foregroundColor(theme.text)
                 .padding(12)
-                .background(Color.dsSurface)
+                .background(theme.surface)
                 .cornerRadius(3)
                 .overlay(
                     RoundedRectangle(cornerRadius: 3)
-                        .stroke(Color.dsBorder, lineWidth: 0.5)
+                        .stroke(theme.border, lineWidth: 0.5)
                 )
         }
     }
@@ -196,16 +198,16 @@ struct NameStepView: View {
             Text("ПРЕДЫСТОРИЯ")
                 .font(.system(size: 10))
                 .tracking(2)
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim)
             TextField("Аколит, Преступник, Герой...", text: $character.background)
                 .font(.system(size: 15))
-                .foregroundColor(Color.dsText)
+                .foregroundColor(theme.text)
                 .padding(12)
-                .background(Color.dsSurface)
+                .background(theme.surface)
                 .cornerRadius(3)
                 .overlay(
                     RoundedRectangle(cornerRadius: 3)
-                        .stroke(Color.dsBorder, lineWidth: 0.5)
+                        .stroke(theme.border, lineWidth: 0.5)
                 )
         }
     }
@@ -215,7 +217,7 @@ struct NameStepView: View {
             Text("МИРОВОЗЗРЕНИЕ")
                 .font(.system(size: 10))
                 .tracking(2)
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim)
             
             LazyVGrid(
                 columns: Array(repeating: GridItem(.flexible()), count: 3),
@@ -234,6 +236,7 @@ struct NameStepView: View {
 }
 
 struct AlignmentButton: View {
+    @Environment(\.theme) private var theme
     let title: String
     let isSelected: Bool
     let action: () -> Void
@@ -247,13 +250,13 @@ struct AlignmentButton: View {
                 .padding(.vertical, 10)
                 .padding(.horizontal, 4)
                 .frame(maxWidth: .infinity)
-                .background(isSelected ? Color.dsGold.opacity(0.12) : Color.dsSurface)
-                .foregroundColor(isSelected ? Color.dsGold : Color.dsTextDim)
+                .background(isSelected ? theme.primary.opacity(0.12) : theme.surface)
+                .foregroundColor(isSelected ? theme.primary : theme.textDim)
                 .cornerRadius(3)
                 .overlay(
                     RoundedRectangle(cornerRadius: 3)
                         .stroke(
-                            isSelected ? Color.dsGold : Color.dsBorder,
+                            isSelected ? theme.primary : theme.border,
                             lineWidth: isSelected ? 1 : 0.5
                         )
                 )

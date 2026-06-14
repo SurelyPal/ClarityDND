@@ -5,27 +5,31 @@
 
 import SwiftUI
 
-// MARK: - Модификаторы карточек
+// MARK: - Модификаторы карточек (теперь используют Environment theme)
 struct DSCardStyle: ViewModifier {
+    @Environment(\.theme) private var theme // 🆕 Получаем тему из Environment
+    
     func body(content: Content) -> some View {
         content
-            .background(Color.dsSurface)
+            .background(theme.surface) // 🔧 Используем тему
             .cornerRadius(4)
             .overlay(
                 RoundedRectangle(cornerRadius: 4)
-                    .stroke(Color.dsBorder, lineWidth: 1)
+                    .stroke(theme.border, lineWidth: 1) // 🔧
             )
     }
 }
 
 struct DSInnerCardStyle: ViewModifier {
+    @Environment(\.theme) private var theme // 🆕
+    
     func body(content: Content) -> some View {
         content
-            .background(Color.dsSurfaceAlt)
+            .background(theme.surfaceAlt) // 🔧
             .cornerRadius(3)
             .overlay(
                 RoundedRectangle(cornerRadius: 3)
-                    .stroke(Color.dsBorder, lineWidth: 0.5)
+                    .stroke(theme.border, lineWidth: 0.5) // 🔧
             )
     }
 }

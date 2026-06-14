@@ -5,17 +5,10 @@
 //  Created by KEBAB on 09.06.2026.
 //
 
-
-//
-//  StatRow.swift
-//  Clarity
-//
-//  Created by Refactor on 09.06.2026.
-//
-
 import SwiftUI
 
 struct StatRow: View {
+    @Environment(\.theme) private var theme
     let name: String
     let value: Int
     let isLast: Bool
@@ -28,18 +21,18 @@ struct StatRow: View {
         HStack {
             Text(name)
                 .font(.system(size: 13))
-                .foregroundColor(Color.dsText)
+                .foregroundColor(theme.text)
             
             Spacer()
             
             Text("\(value)")
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(Color.dsText)
+                .foregroundColor(theme.text)
                 .frame(width: 30, alignment: .trailing)
             
             Text(Constants.Stat.formattedModifier(modifier))
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(Color.dsGold)
+                .foregroundColor(theme.primary)
                 .frame(width: 36, alignment: .trailing)
         }
         .padding(.horizontal, 16)
@@ -47,7 +40,7 @@ struct StatRow: View {
         .overlay(alignment: .bottom) {
             if !isLast {
                 Rectangle()
-                    .fill(Color.dsBorder)
+                    .fill(theme.border)
                     .frame(height: 0.5)
             }
         }

@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct RoleSelectionView: View {
+    @Environment(\.theme) private var theme
     @ObservedObject var partyManager: PartyManager
     
     var body: some View {
@@ -26,7 +27,7 @@ struct RoleSelectionView: View {
                 .foregroundColor(.dsBackground)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .background(Color.dsGold)
+                .background(theme.primary)
                 .cornerRadius(4)
             }
             .buttonStyle(.plain)
@@ -38,15 +39,15 @@ struct RoleSelectionView: View {
                     Text("🗡️").font(.system(size: 40))
                     Text("ИГРОК")
                         .font(.system(size: 14, weight: .semibold)).tracking(1.5)
-                        .foregroundColor(Color.dsText)
+                        .foregroundColor(theme.text)
                     Text("Выбрать персонажа и подключиться к Мастеру")
                         .font(.system(size: 11))
-                        .foregroundColor(Color.dsTextDim)
+                        .foregroundColor(theme.textDim)
                         .multilineTextAlignment(.center)
                 }
                 .padding(20).frame(maxWidth: .infinity)
-                .background(Color.dsSurfaceAlt)
-                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.dsBorder, lineWidth: 1))
+                .background(theme.surfaceAlt)
+                .overlay(RoundedRectangle(cornerRadius: 8).stroke(theme.border, lineWidth: 1))
                 .cornerRadius(8)
             }
             .buttonStyle(.plain)

@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct InstrumentModPickerView: View {
+    @Environment(\.theme) private var theme
     let instrument: InstrumentType
     let selectedSlot: InstrumentModificationSlot?
     let onSelect: (InstrumentModification) -> Void
@@ -16,7 +17,7 @@ struct InstrumentModPickerView: View {
     
     var body: some View {
         ZStack {
-            Color.dsBackground.ignoresSafeArea()
+            theme.background.ignoresSafeArea()
             
             ScrollView {
                 VStack(spacing: 20) {
@@ -28,11 +29,11 @@ struct InstrumentModPickerView: View {
                         Text("МОДИФИКАЦИИ")
                             .font(.system(size: 10))
                             .tracking(3)
-                            .foregroundColor(Color.dsTextDim)
+                            .foregroundColor(theme.textDim)
                         
                         Text(instrument.rawValue)
                             .font(.system(size: 24, weight: .light))
-                            .foregroundColor(Color.dsGold)
+                            .foregroundColor(theme.primary)
                         
                         DSdivider()
                             .padding(.horizontal, 40)
@@ -43,14 +44,14 @@ struct InstrumentModPickerView: View {
                     if let slot = selectedSlot {
                         HStack {
                             Image(systemName: slot.icon)
-                                .foregroundColor(Color.dsGold)
+                                .foregroundColor(theme.primary)
                             Text("Слот: \(slot.rawValue)")
                                 .font(.system(size: 12))
-                                .foregroundColor(Color.dsText)
+                                .foregroundColor(theme.text)
                         }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
-                        .background(Color.dsSurface)
+                        .background(theme.surface)
                         .cornerRadius(6)
                     }
                     
@@ -78,12 +79,12 @@ struct InstrumentModPickerView: View {
                             Text("Создать свою модификацию")
                         }
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(Color.dsGold)
+                        .foregroundColor(theme.primary)
                         .padding(.horizontal, 20)
                         .padding(.vertical, 12)
                         .overlay(
                             RoundedRectangle(cornerRadius: 6)
-                                .stroke(Color.dsGold, lineWidth: 1)
+                                .stroke(theme.primary, lineWidth: 1)
                         )
                     }
                     .buttonStyle(.plain)
@@ -105,6 +106,7 @@ struct InstrumentModPickerView: View {
 // MARK: - Карточка модификации
 
 struct InstrumentModCard: View {
+    @Environment(\.theme) private var theme
     let modification: InstrumentModification
     let onSelect: () -> Void
     
@@ -135,30 +137,30 @@ struct InstrumentModCard: View {
                 // Описание
                 Text(modification.description)
                     .font(.system(size: 12))
-                    .foregroundColor(Color.dsText)
+                    .foregroundColor(theme.text)
                     .multilineTextAlignment(.leading)
                 
                 // Эффект
                 HStack(alignment: .top, spacing: 6) {
                     Image(systemName: "sparkles")
                         .font(.system(size: 10))
-                        .foregroundColor(Color.dsGold)
+                        .foregroundColor(theme.primary)
                         .padding(.top, 2)
                     
                     Text(modification.effect)
                         .font(.system(size: 11))
-                        .foregroundColor(Color.dsGold)
+                        .foregroundColor(theme.primary)
                         .multilineTextAlignment(.leading)
                 }
                 .padding(10)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.dsGold.opacity(0.08))
+                .background(theme.primary.opacity(0.08))
                 .cornerRadius(4)
             }
             .padding(16)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.dsSurface)
+                    .fill(theme.surface)
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
                             .stroke(modification.rarity.color.opacity(0.3), lineWidth: 1)

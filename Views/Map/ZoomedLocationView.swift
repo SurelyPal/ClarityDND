@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ZoomedLocationView: View {
+    @Environment(\.theme) private var theme
     let location: MapLocation
     let onClose: () -> Void
     
@@ -19,7 +20,7 @@ struct ZoomedLocationView: View {
     
     var body: some View {
         ZStack {
-            Color.dsBackground.opacity(0.95).ignoresSafeArea()
+            theme.background.opacity(0.95).ignoresSafeArea()
             
             // Увеличенная карта
             GeometryReader { geo in
@@ -62,18 +63,18 @@ struct ZoomedLocationView: View {
             VStack {
                 HStack(spacing: 12) {
                     Image(systemName: location.icon)
-                        .foregroundColor(Color.dsGold)
+                        .foregroundColor(theme.primary)
                         .font(.system(size: 20))
                     
                     VStack(alignment: .leading, spacing: 2) {
                         Text(location.name.uppercased())
                             .font(.system(size: 16, weight: .medium))
                             .tracking(2)
-                            .foregroundColor(Color.dsGold)
+                            .foregroundColor(theme.primary)
                         
                         Text(location.description)
                             .font(.system(size: 12))
-                            .foregroundColor(Color.dsTextDim)
+                            .foregroundColor(theme.textDim)
                             .lineLimit(2)
                     }
                     
@@ -82,14 +83,14 @@ struct ZoomedLocationView: View {
                     Button(action: onClose) {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 28))
-                            .foregroundColor(Color.dsGold)
+                            .foregroundColor(theme.primary)
                     }
                 }
                 .padding(16)
-                .background(Color.dsSurface.opacity(0.95))
+                .background(theme.surface.opacity(0.95))
                 .overlay(
                     Rectangle()
-                        .fill(Color.dsBorder)
+                        .fill(theme.border)
                         .frame(height: 0.5),
                     alignment: .bottom
                 )
@@ -100,10 +101,10 @@ struct ZoomedLocationView: View {
                 Text("Сожмите пальцы чтобы увеличить • Перетащите чтобы посмотреть вокруг")
                     .font(.system(size: 11))
                     .tracking(1)
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                     .padding(.vertical, 10)
                     .padding(.horizontal, 16)
-                    .background(Color.dsSurface.opacity(0.8))
+                    .background(theme.surface.opacity(0.8))
                     .cornerRadius(3)
                     .padding(.bottom, 30)
             }

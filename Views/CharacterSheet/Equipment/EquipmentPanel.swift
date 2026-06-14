@@ -7,6 +7,7 @@
 import SwiftUI
 
 struct EquipmentPanel: View {
+    
     @Binding var character: DNDCharacter
     @Binding var selectedSlot: EquipmentSlot?
     
@@ -100,6 +101,7 @@ struct EquipmentPanel: View {
 // MARK: - Один слот экипировки
 
 struct EquipmentSlotView: View {
+    @Environment(\.theme) private var theme
     let slot: EquipmentSlot
     let item: InventoryItem?
     let isSelected: Bool
@@ -112,12 +114,12 @@ struct EquipmentSlotView: View {
                 ZStack {
                     // Фон слота
                     RoundedRectangle(cornerRadius: 3)
-                        .fill(item != nil ? Color.dsGold.opacity(0.08) : Color.dsSurfaceAlt)
+                        .fill(item != nil ? theme.primary.opacity(0.08) : theme.surfaceAlt)
                         .frame(height: 52)
                         .overlay(
                             RoundedRectangle(cornerRadius: 3)
                                 .stroke(
-                                    isSelected ? Color.dsGold : (item != nil ? Color.dsGold : Color.dsBorder),
+                                    isSelected ? theme.primary : (item != nil ? theme.primary : theme.border),
                                     lineWidth: isSelected ? 2 : (item != nil ? 1 : 0.5)
                                 )
                         )
@@ -127,24 +129,24 @@ struct EquipmentSlotView: View {
                         VStack(spacing: 2) {
                             Image(systemName: slot.icon)
                                 .font(.system(size: 14))
-                                .foregroundColor(Color.dsGold)
+                                .foregroundColor(theme.primary)
                             Text(item.name)
                                 .font(.system(size: 8))
-                                .foregroundColor(Color.dsText)
+                                .foregroundColor(theme.text)
                                 .lineLimit(1)
                                 .padding(.horizontal, 2)
                         }
                     } else {
                         Image(systemName: slot.icon)
                             .font(.system(size: 16))
-                            .foregroundColor(Color.dsTextDim.opacity(0.5))
+                            .foregroundColor(theme.textDim.opacity(0.5))
                     }
                 }
                 
                 Text(slot.rawValue)
                     .font(.system(size: 8))
                     .tracking(0.5)
-                    .foregroundColor(isSelected ? Color.dsGold : Color.dsTextDim)
+                    .foregroundColor(isSelected ? theme.primary : theme.textDim)
                     .lineLimit(1)
             }
         }

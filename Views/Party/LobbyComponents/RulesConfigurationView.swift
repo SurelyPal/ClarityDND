@@ -9,6 +9,7 @@
 import SwiftUI
 
 struct RulesConfigurationView: View {
+    @Environment(\.theme) private var theme
     @ObservedObject var partyManager: PartyManager
     @State private var draftRules: GameRules = .default
 
@@ -18,18 +19,18 @@ struct RulesConfigurationView: View {
                 Text("НАСТРОЙКА ПРАВИЛ ПАРТИИ")
                     .font(.system(size: 10))
                     .tracking(2)
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                 Spacer()
             }
 
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
                     Image(systemName: "moon.zzz.fill")
-                        .foregroundColor(Color.dsGold)
+                        .foregroundColor(theme.primary)
                         .font(.system(size: 12))
                     Text("Короткие: \(draftRules.shortRestsAvailable)")
                         .font(.system(size: 12))
-                        .foregroundColor(Color.dsText)
+                        .foregroundColor(theme.text)
                     Spacer()
                     Stepper("", value: $draftRules.shortRestsAvailable, in: 0...5)
                         .labelsHidden()
@@ -38,11 +39,11 @@ struct RulesConfigurationView: View {
 
                 HStack(spacing: 8) {
                     Image(systemName: "bed.double.fill")
-                        .foregroundColor(Color.dsGold)
+                        .foregroundColor(theme.primary)
                         .font(.system(size: 12))
                     Text("Долгие: \(draftRules.longRestsAvailable)")
                         .font(.system(size: 12))
-                        .foregroundColor(Color.dsText)
+                        .foregroundColor(theme.text)
                     Spacer()
                     Stepper("", value: $draftRules.longRestsAvailable, in: 0...3)
                         .labelsHidden()
@@ -50,7 +51,7 @@ struct RulesConfigurationView: View {
                 }
             }
             .padding(12)
-            .background(Color.dsSurfaceAlt)
+            .background(theme.surfaceAlt)
             .cornerRadius(6)
 
             RuleToggle(
@@ -69,10 +70,10 @@ struct RulesConfigurationView: View {
                     Text("Создать комнату")
                 }
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(Color.dsBackground)
+                .foregroundColor(theme.background)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .background(Color.dsGold)
+                .background(theme.primary)
                 .cornerRadius(6)
             }
             .buttonStyle(.plain)
@@ -83,7 +84,7 @@ struct RulesConfigurationView: View {
             } label: {
                 Text("Отмена")
                     .font(.system(size: 13))
-                    .foregroundColor(Color.dsRed)
+                    .foregroundColor(theme.danger)
             }
             .buttonStyle(.plain)
         }

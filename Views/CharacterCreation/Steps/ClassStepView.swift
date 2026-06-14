@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ClassStepView: View {
+    @Environment(\.theme) private var theme
     @Binding var selected: CharacterClass
     
     var body: some View {
@@ -41,10 +42,10 @@ struct ClassStepView: View {
             Text("Шаг 2 из 4")
                 .font(.system(size: 11))
                 .tracking(2)
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim)
             Text("Выберите класс")
                 .font(.system(size: 24, weight: .light))
-                .foregroundColor(Color.dsGold)
+                .foregroundColor(theme.primary)
                 .padding(.bottom, 8)
         }
     }

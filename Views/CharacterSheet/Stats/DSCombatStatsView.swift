@@ -7,6 +7,7 @@
 import SwiftUI
 
 struct DSCombatStatsView: View {
+    
     let character: DNDCharacter
     
     var body: some View {
@@ -29,6 +30,7 @@ struct DSCombatStatsView: View {
 }
 
 struct DSCombatRow: View {
+    @Environment(\.theme) private var theme
     let icon: String
     let label: String
     let value: String
@@ -37,23 +39,23 @@ struct DSCombatRow: View {
     var body: some View {
         HStack {
             Image(systemName: icon)
-                .foregroundColor(Color.dsGoldDim)
+                .foregroundColor(theme.primaryDim)
                 .font(.system(size: 13))
                 .frame(width: 24)
             Text(label)
                 .font(.system(size: 14))
-                .foregroundColor(Color.dsText)
+                .foregroundColor(theme.text)
             Spacer()
             Text(value)
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(Color.dsGold)
+                .foregroundColor(theme.primary)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .overlay(alignment: .bottom) {
             if !isLast {
                 Rectangle()
-                    .fill(Color.dsBorder)
+                    .fill(theme.border)
                     .frame(height: 0.5)
             }
         }

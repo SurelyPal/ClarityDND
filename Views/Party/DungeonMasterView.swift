@@ -7,21 +7,26 @@
 import SwiftUI
 
 struct DungeonMasterView: View {
+    @Environment(\.theme) private var theme
     @ObservedObject private var partyManager = PartyManager.shared
     @State private var showDeletedCharacters = false
     
     var body: some View {
         ZStack {
-            Color.dsBackground.ignoresSafeArea()
+            theme.background.ignoresSafeArea()
             ScrollView {
                 VStack(spacing: 20) {
                     header
+                    
+                    //Секция правил игры
+                    GameRulesSection(partyManager: partyManager)
+                    
                     if partyManager.partyMembers.isEmpty {
                         emptyState
                     } else {
                         partyGrid
                         
-                        // 🆕 Кнопка "Новая сессия" (сброс отдыхов)
+                        //Кнопка "Новая сессия" (сброс отдыхов)
                         Button {
                          PlatformCompatibility.hapticImpact(.medium)
                          partyManager.resetSession()
@@ -32,10 +37,10 @@ struct DungeonMasterView: View {
                                 Text("Новая сессия")
                                     .font(.system(size: 13, weight: .medium))
                             }
-                            .foregroundColor(Color.dsBackground)
+                            .foregroundColor(theme.background)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 14)
-                            .background(Color.dsGold)
+                            .background(theme.primary)
                             .cornerRadius(6)
                         }
                         .buttonStyle(.plain)
@@ -43,7 +48,7 @@ struct DungeonMasterView: View {
                         
                         Text("Сбросить все отдыхи для начала новой сессии")
                             .font(.system(size: 10))
-                            .foregroundColor(Color.dsTextDim)
+                            .foregroundColor(theme.textDim)
                     }
                 }
                 .padding(.horizontal, 16).padding(.vertical, 20)
@@ -105,7 +110,7 @@ struct DungeonMasterView: View {
         VStack(spacing: 12) {
             Text("👑").font(.system(size: 40))
             Text("ПАРТИЯ").font(.system(size: 10)).tracking(3)
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim)
             
             // ✅ НОВОЕ: Счётчики активных и удалённых
             let activeCount = partyManager.partyMembers.filter { !$0.isCharacterDeleted }.count
@@ -114,15 +119,15 @@ struct DungeonMasterView: View {
             HStack(spacing: 16) {
                 Text("\(activeCount) \(activeMemberWord)")
                     .font(.system(size: 18, weight: .light))
-                    .foregroundColor(showDeletedCharacters ? Color.dsTextDim : Color.dsGold)
+                    .foregroundColor(showDeletedCharacters ? theme.textDim : theme.primary)
                 
                 if deletedCount > 0 {
                     Text("·")
-                        .foregroundColor(Color.dsTextDim)
+                        .foregroundColor(theme.textDim)
                     
                     Text("\(deletedCount) \(deletedMemberWord)")
                         .font(.system(size: 18, weight: .light))
-                        .foregroundColor(showDeletedCharacters ? Color.dsGold : Color.dsTextDim)
+                        .foregroundColor(showDeletedCharacters ? theme.primary : theme.textDim)
                 }
             }
             
@@ -137,11 +142,11 @@ struct DungeonMasterView: View {
                         Text("АКТИВНЫЕ")
                             .font(.system(size: 10, weight: .bold))
                             .tracking(1)
-                            .foregroundColor(showDeletedCharacters ? Color.dsTextDim : Color.dsBackground)
+                            .foregroundColor(showDeletedCharacters ? theme.textDim : theme.background)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
-                            .background(showDeletedCharacters ? Color.clear : Color.dsGold)
-                            .cornerRadius(4)  // ✅ Кроссплатформенное решение
+                            .background(showDeletedCharacters ? Color.clear : theme.primary)
+                            .cornerRadius(4)  //Кроссплатформенное решение
                     }
                     .buttonStyle(.plain)
                     
@@ -157,11 +162,11 @@ struct DungeonMasterView: View {
                             Image(systemName: "trash.fill")
                                 .font(.system(size: 8))
                         }
-                        .foregroundColor(!showDeletedCharacters ? Color.dsTextDim : Color.dsBackground)
+                        .foregroundColor(!showDeletedCharacters ? theme.textDim : theme.background)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 8)
-                        .background(!showDeletedCharacters ? Color.clear : Color.dsRed.opacity(0.8))
-                        .cornerRadius(4)  // ✅ Кроссплатформенное решение
+                        .background(!showDeletedCharacters ? Color.clear : theme.danger.opacity(0.8))
+                        .cornerRadius(4)  //Кроссплатформенное решение
                     }
                     .buttonStyle(.plain)
                 }
@@ -169,7 +174,7 @@ struct DungeonMasterView: View {
                 .padding(.top, 8)
                 .overlay(
                     RoundedRectangle(cornerRadius: 4)
-                        .stroke(Color.dsGold.opacity(0.5), lineWidth: 1)
+                        .stroke(theme.primary.opacity(0.5), lineWidth: 1)
                 )
             }
                 
@@ -208,24 +213,24 @@ struct DungeonMasterView: View {
             Spacer().frame(height: 60)
             
             if showDeletedCharacters {
-                // ✅ Empty state для удалённых персонажей
+                //Empty state для удалённых персонажей
                 Image(systemName: "graveyard")
                     .font(.system(size: 60))
-                    .foregroundColor(Color.dsTextDim.opacity(0.4))
+                    .foregroundColor(theme.textDim.opacity(0.4))
                 Text("Кладбище пусто")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(Color.dsText)
+                    .foregroundColor(theme.text)
                 Text("Здесь будут отображаться персонажи,\nкоторые покинули партию")
                     .font(.system(size: 11))
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                     .multilineTextAlignment(.center)
             } else {
-                // ✅ Empty state для активных персонажей
+                //Empty state для активных персонажей
                 Image(systemName: "person.3")
                     .font(.system(size: 60))
-                    .foregroundColor(Color.dsTextDim.opacity(0.4))
+                    .foregroundColor(theme.textDim.opacity(0.4))
                 Text("Пока никто не подключился")
-                    .font(.system(size: 14)).foregroundColor(Color.dsTextDim)
+                    .font(.system(size: 14)).foregroundColor(theme.textDim)
             }
             
             Spacer().frame(height: 60)
@@ -237,7 +242,7 @@ struct DungeonMasterView: View {
             columns: [GridItem(.flexible()), GridItem(.flexible())],
             spacing: 16
         ) {
-            // ✅ Фильтруем по текущей вкладке
+            //Фильтруем по текущей вкладке
             let filteredMembers = showDeletedCharacters
                 ? partyManager.partyMembers.filter { $0.isCharacterDeleted }
                 : partyManager.partyMembers.filter { !$0.isCharacterDeleted }
@@ -255,6 +260,7 @@ struct DungeonMasterView: View {
 }
 
 struct DungeonMasterMemberCard: View {
+    @Environment(\.theme) private var theme
     let member: PartyMember
     
     var body: some View {
@@ -265,10 +271,10 @@ struct DungeonMasterMemberCard: View {
                 
                 // 🟢🔴 Индикатор онлайн/офлайн
                 Circle()
-                    .fill(member.isConnected ? Color.green : Color.dsRed)
+                    .fill(member.isConnected ? Color.green : theme.danger)
                     .frame(width: 16, height: 16)
                     .overlay(
-                        Circle().stroke(Color.dsSurface, lineWidth: 2)
+                        Circle().stroke(theme.surface, lineWidth: 2)
                     )
                     .offset(x: 4, y: 4)
             }
@@ -277,20 +283,20 @@ struct DungeonMasterMemberCard: View {
             VStack(spacing: 4) {
                 Text(member.name)
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(member.isConnected ? Color.dsGold : Color.dsTextDim)
+                    .foregroundColor(member.isConnected ? theme.primary : theme.textDim)
                     .lineLimit(1)
                 
                 if !member.isConnected {
                     Text("⚫ ОФЛАЙН")
                         .font(.system(size: 9, weight: .medium))
                         .tracking(1)
-                        .foregroundColor(Color.dsRed)
+                        .foregroundColor(theme.danger)
                 }
             }
             
             Text("\(member.race.rawValue) · \(member.characterClass)")
                 .font(.system(size: 10))
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim)
                 .lineLimit(1)
             
             DSdivider()
@@ -301,7 +307,7 @@ struct DungeonMasterMemberCard: View {
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
                         RoundedRectangle(cornerRadius: 2)
-                            .fill(Color.dsSurfaceAlt)
+                            .fill(theme.surfaceAlt)
                             .frame(height: 6)
                         RoundedRectangle(cornerRadius: 2)
                          .fill(hpColor)
@@ -314,7 +320,7 @@ struct DungeonMasterMemberCard: View {
                 HStack {
                     Image(systemName: "heart.fill")
                         .font(.system(size: 9))
-                        .foregroundColor(Color.dsRed)
+                        .foregroundColor(theme.danger)
                     Text("\(member.currentHP) / \(member.maxHP)")
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(hpColor)
@@ -326,7 +332,7 @@ struct DungeonMasterMemberCard: View {
                 Spacer()
                 Text("Стресс: \(member.stress)")
                     .font(.system(size: 9))
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
             }
             
             if member.hasFullProfile {
@@ -336,17 +342,17 @@ struct DungeonMasterMemberCard: View {
                     Text("Подробно")
                         .font(.system(size: 9))
                 }
-                .foregroundColor(Color.dsGoldDim)
+                .foregroundColor(theme.primaryDim)
                 .padding(.top, 4)
             }
         }
         .padding(16)
         .frame(maxWidth: .infinity)
-        .background(Color.dsSurface)
+        .background(theme.surface)
         .overlay(
             RoundedRectangle(cornerRadius: 6)
                 .stroke(
-                    member.isConnected ? Color.dsGold.opacity(0.3) : Color.dsRed.opacity(0.3),
+                    member.isConnected ? theme.primary.opacity(0.3) : theme.danger.opacity(0.3),
                     lineWidth: 0.5
                 )
         )
@@ -356,9 +362,9 @@ struct DungeonMasterMemberCard: View {
     
     private var hpColor: Color {
         let f = member.hpFraction
-        if f > 0.5 { return Color.dsGold }
+        if f > 0.5 { return theme.primary }
         if f > 0.25 { return .orange }
-        return Color.dsRed
+        return theme.danger
     }
 }
 

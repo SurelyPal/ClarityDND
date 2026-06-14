@@ -5,17 +5,10 @@
 //  Created by KEBAB on 09.06.2026.
 //
 
-
-//
-//  DMStatsSection.swift
-//  Clarity
-//
-//  Created by Refactor on 09.06.2026.
-//
-
 import SwiftUI
 
 struct DMStatsSection: View {
+    @Environment(\.theme) private var theme
     let member: PartyMember
     
     var body: some View {
@@ -24,7 +17,7 @@ struct DMStatsSection: View {
                 Text("ХАРАКТЕРИСТИКИ")
                     .font(.system(size: 10))
                     .tracking(2)
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                 Spacer()
             }
             .padding(.horizontal, 16)
@@ -43,7 +36,7 @@ struct DMStatsSection: View {
             } else {
                 Text("Данные ещё не получены")
                     .font(.system(size: 12))
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                     .padding()
             }
         }

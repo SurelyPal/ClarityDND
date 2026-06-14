@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct AvatarView: View {
+    @Environment(\.theme) private var theme
     let avatarData: Data?
     let race: Race
     var size: CGFloat = 90
@@ -15,11 +16,11 @@ struct AvatarView: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 4)
-                .fill(Color.dsSurface)
+                .fill(theme.surface)
                 .frame(width: size, height: size)
                 .overlay(
                     RoundedRectangle(cornerRadius: 4)
-                        .stroke(Color.dsBorderBright, lineWidth: 1)
+                        .stroke(theme.borderBright, lineWidth: 1)
                 )
 
             if let data = avatarData, let image = PlatformImage(data: data) {
@@ -31,7 +32,7 @@ struct AvatarView: View {
             } else {
                 Image(systemName: race.icon)
                     .font(.system(size: size * 0.45))
-                    .foregroundColor(Color.dsGold)
+                    .foregroundColor(theme.primary)
             }
             
             // ❌ УДАЛЕНО: CornerOrnaments больше не отображаются

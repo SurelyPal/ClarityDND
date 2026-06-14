@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct DatabaseRecoveryView: View {
+    @Environment(\.theme) private var theme
     let state: RecoveryState
     @Environment(\.dismiss) var dismiss
     @State private var isRestoring = false
@@ -20,7 +21,7 @@ struct DatabaseRecoveryView: View {
     
     var body: some View {
         ZStack {
-            Color.dsBackground.ignoresSafeArea()
+            theme.background.ignoresSafeArea()
             
             ScrollView {
                 VStack(spacing: 24) {
@@ -41,23 +42,23 @@ struct DatabaseRecoveryView: View {
                     
                     VStack(spacing: 16) {
                         ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: Color.dsGold))
+                            .progressViewStyle(CircularProgressViewStyle(tint: theme.primary))
                             .scaleEffect(1.5)
                         
                         Text("Восстановление...")
                             .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(Color.dsGold)
+                            .foregroundColor(theme.primary)
                         
                         Text("Пожалуйста, подождите")
                             .font(.system(size: 12))
-                            .foregroundColor(Color.dsTextDim)
+                            .foregroundColor(theme.textDim)
                     }
                     .padding(30)
-                    .background(Color.dsSurface)
+                    .background(theme.surface)
                     .cornerRadius(12)
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.dsGold.opacity(0.3), lineWidth: 1)
+                            .stroke(theme.primary.opacity(0.3), lineWidth: 1)
                     )
                 }
             }
@@ -104,11 +105,11 @@ struct DatabaseRecoveryView: View {
             
             Text(titleForState)
                 .font(.system(size: 22, weight: .light))
-                .foregroundColor(Color.dsGold)
+                .foregroundColor(theme.primary)
             
             Text(subtitleForState)
                 .font(.system(size: 13))
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim)
                 .multilineTextAlignment(.center)
         }
         .padding(.top, 20)
@@ -120,24 +121,24 @@ struct DatabaseRecoveryView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: "info.circle.fill")
-                    .foregroundColor(Color.dsGold)
+                    .foregroundColor(theme.primary)
                 Text("Что произошло")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(Color.dsGold)
+                    .foregroundColor(theme.primary)
             }
             
             Text(descriptionForState)
                 .font(.system(size: 12))
-                .foregroundColor(Color.dsText)
+                .foregroundColor(theme.text)
                 .lineSpacing(4)
             
             if case .recoveredFromBackup(let url) = state {
                 HStack(spacing: 8) {
                     Image(systemName: "externaldrive.fill")
-                        .foregroundColor(Color.dsGoldDim)
+                        .foregroundColor(theme.primaryDim)
                     Text("Backup: \(url.lastPathComponent)")
                         .font(.system(size: 10))
-                        .foregroundColor(Color.dsTextDim)
+                        .foregroundColor(theme.textDim)
                         .lineLimit(1)
                 }
                 .padding(.top, 4)
@@ -145,7 +146,7 @@ struct DatabaseRecoveryView: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.dsSurface)
+        .background(theme.surface)
         .cornerRadius(8)
         .overlay(
             RoundedRectangle(cornerRadius: 8)
@@ -172,10 +173,10 @@ struct DatabaseRecoveryView: View {
                         Text("Восстановить из backup")
                     }
                     .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(Color.dsBackground)
+                    .foregroundColor(theme.background)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(Color.dsGold)
+                    .background(theme.primary)
                     .cornerRadius(6)
                 }
                 .buttonStyle(.plain)
@@ -194,10 +195,10 @@ struct DatabaseRecoveryView: View {
                         Text("Экспортировать backup в Files")
                     }
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(Color.dsGold)
+                    .foregroundColor(theme.primary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
-                    .background(Color.dsGold.opacity(0.1))
+                    .background(theme.primary.opacity(0.1))
                     .cornerRadius(6)
                 }
                 .buttonStyle(.plain)
@@ -212,10 +213,10 @@ struct DatabaseRecoveryView: View {
                     Text("Начать заново")
                 }
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(Color.dsRed)
+                .foregroundColor(theme.danger)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .background(Color.dsRed.opacity(0.1))
+                .background(theme.danger.opacity(0.1))
                 .cornerRadius(6)
             }
             .buttonStyle(.plain)
@@ -227,7 +228,7 @@ struct DatabaseRecoveryView: View {
                 } label: {
                     Text("Продолжить (данные не сохраняются)")
                         .font(.system(size: 13))
-                        .foregroundColor(Color.dsTextDim)
+                        .foregroundColor(theme.textDim)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
                 }
@@ -241,10 +242,10 @@ struct DatabaseRecoveryView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: "clock.arrow.circlepath")
-                    .foregroundColor(Color.dsGold)
+                    .foregroundColor(theme.primary)
                 Text("История backup'ов")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(Color.dsGold)
+                    .foregroundColor(theme.primary)
             }
             
             let backups = DatabaseRecovery.listBackups()
@@ -252,7 +253,7 @@ struct DatabaseRecoveryView: View {
             if backups.isEmpty {
                 Text("Нет доступных backup'ов")
                     .font(.system(size: 12))
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 20)
             } else {
@@ -278,7 +279,7 @@ struct DatabaseRecoveryView: View {
             }
         }
         .padding(16)
-        .background(Color.dsSurface)
+        .background(theme.surface)
         .cornerRadius(8)
     }
     
@@ -337,13 +338,13 @@ struct DatabaseRecoveryView: View {
     private var colorForState: Color {
         switch state {
         case .healthy:
-            return Color.dsGold
+            return theme.primary
         case .recoveredFromBackup:
             return .orange
         case .inMemoryFallback:
-            return Color.dsRed
+            return theme.danger
         case .failed:
-            return Color.dsRed
+            return theme.danger
         }
     }
     
@@ -404,6 +405,7 @@ struct DatabaseRecoveryView: View {
 // MARK: - Backup Row
 
 struct BackupRow: View {
+    @Environment(\.theme) private var theme
     let backup: DatabaseRecovery.BackupInfo
     let onRestore: () -> Void
     let onExport: () -> Void  // 🆕 Добавили callback для экспорта
@@ -411,17 +413,17 @@ struct BackupRow: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: "externaldrive.fill")
-                .foregroundColor(Color.dsGold)
+                .foregroundColor(theme.primary)
                 .font(.system(size: 20))
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(backup.date.formatted(date: .abbreviated, time: .shortened))
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(Color.dsText)
+                    .foregroundColor(theme.text)
                 
                 Text(backup.timestamp)
                     .font(.system(size: 10))
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
             }
             
             Spacer()
@@ -432,9 +434,9 @@ struct BackupRow: View {
             } label: {
                 Image(systemName: "square.and.arrow.up")
                     .font(.system(size: 12))
-                    .foregroundColor(Color.dsGold)
+                    .foregroundColor(theme.primary)
                     .padding(8)
-                    .background(Color.dsGold.opacity(0.1))
+                    .background(theme.primary.opacity(0.1))
                     .cornerRadius(4)
             }
             .buttonStyle(.plain)
@@ -445,16 +447,16 @@ struct BackupRow: View {
             } label: {
                 Text("Восстановить")
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(Color.dsBackground)
+                    .foregroundColor(theme.background)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(Color.dsGold)
+                    .background(theme.primary)
                     .cornerRadius(4)
             }
             .buttonStyle(.plain)
         }
         .padding(12)
-        .background(Color.dsSurfaceAlt)
+        .background(theme.surfaceAlt)
         .cornerRadius(6)
     }
 }

@@ -9,13 +9,14 @@
 import SwiftUI
 
 struct ItemEditorView: View {
+    @Environment(\.theme) private var theme
     @Environment(\.dismiss) var dismiss
     @State var item: InventoryItem
     let onSave: (InventoryItem) -> Void
     
     var body: some View {
         ZStack {
-            Color.dsBackground.ignoresSafeArea()
+            theme.background.ignoresSafeArea()
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
@@ -23,10 +24,10 @@ struct ItemEditorView: View {
                         Text("ПРЕДМЕТ")
                             .font(.system(size: 10))
                             .tracking(3)
-                            .foregroundColor(Color.dsTextDim)
+                            .foregroundColor(theme.textDim)
                         Text(item.name.isEmpty ? "Новый предмет" : item.name)
                             .font(.system(size: 24, weight: .light))
-                            .foregroundColor(Color.dsGold)
+                            .foregroundColor(theme.primary)
                         DSdivider()
                     }
                     
@@ -55,11 +56,11 @@ struct ItemEditorView: View {
             Text("ТИП ПРЕДМЕТА")
                 .font(.system(size: 10))
                 .tracking(2)
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim)
             
             HStack {
                 Image(systemName: item.slot.icon)
-                    .foregroundColor(Color.dsGold)
+                    .foregroundColor(theme.primary)
                     .frame(width: 20)
                 
                 Picker("Тип", selection: $item.slot) {
@@ -71,17 +72,17 @@ struct ItemEditorView: View {
                     }
                 }
                 .pickerStyle(.menu)
-                .tint(Color.dsText)
+                .tint(theme.text)
                 
                 Spacer()
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
-            .background(Color.dsSurface)
+            .background(theme.surface)
             .cornerRadius(3)
             .overlay(
                 RoundedRectangle(cornerRadius: 3)
-                    .stroke(Color.dsBorder, lineWidth: 0.5)
+                    .stroke(theme.border, lineWidth: 0.5)
             )
         }
     }
@@ -91,24 +92,24 @@ struct ItemEditorView: View {
             Text("ОПИСАНИЕ")
                 .font(.system(size: 10))
                 .tracking(2)
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim)
             
             TextEditor(text: $item.description)
                 .font(.system(size: 14))
-                .foregroundColor(Color.dsText)
+                .foregroundColor(theme.text)
                 .frame(minHeight: 120)
                 .padding(10)
-                .background(Color.dsSurface)
+                .background(theme.surface)
                 .cornerRadius(3)
                 .overlay(
                     RoundedRectangle(cornerRadius: 3)
-                        .stroke(Color.dsBorder, lineWidth: 0.5)
+                        .stroke(theme.border, lineWidth: 0.5)
                 )
                 .overlay(alignment: .topLeading) {
                     if item.description.isEmpty {
                         Text("Опишите предмет, его историю, особые свойства...")
                             .font(.system(size: 14))
-                            .foregroundColor(Color.dsTextDim.opacity(0.6))
+                            .foregroundColor(theme.textDim.opacity(0.6))
                             .padding(14)
                             .allowsHitTesting(false)
                     }
@@ -135,10 +136,10 @@ struct ItemEditorView: View {
             Text("✦  Сохранить предмет  ✦")
                 .font(.system(size: 15, weight: .medium))
                 .tracking(1)
-                .foregroundColor(Color.dsBackground)
+                .foregroundColor(theme.background)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .background(item.name.isEmpty ? Color.dsGoldDim : Color.dsGold)
+                .background(item.name.isEmpty ? theme.primaryDim : theme.primary)
                 .cornerRadius(3)
         }
         .disabled(item.name.isEmpty)
@@ -150,16 +151,16 @@ struct ItemEditorView: View {
             Text(label)
                 .font(.system(size: 10))
                 .tracking(2)
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim)
             TextField(placeholder, text: text)
                 .font(.system(size: 15))
-                .foregroundColor(Color.dsText)
+                .foregroundColor(theme.text)
                 .padding(12)
-                .background(Color.dsSurface)
+                .background(theme.surface)
                 .cornerRadius(3)
                 .overlay(
                     RoundedRectangle(cornerRadius: 3)
-                        .stroke(Color.dsBorder, lineWidth: 0.5)
+                        .stroke(theme.border, lineWidth: 0.5)
                 )
         }
     }

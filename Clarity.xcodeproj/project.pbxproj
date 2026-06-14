@@ -36,6 +36,11 @@
 		1521C0A32FD58D1300FD2981 /* RestEffectOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1521C0A22FD58D1300FD2981 /* RestEffectOverlayView.swift */; };
 		153EAAD32FDADED700F7E972 /* CharacterInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 153EAAD22FDADED700F7E972 /* CharacterInfoView.swift */; };
 		153EAAD82FDB939F00F7E972 /* View+CornerRadius.swift in Sources */ = {isa = PBXBuildFile; fileRef = 153EAAD72FDB939800F7E972 /* View+CornerRadius.swift */; };
+		153EAADA2FDE1A9E00F7E972 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 153EAAD92FDE1A9E00F7E972 /* Theme.swift */; };
+		153EAADC2FDE1ABF00F7E972 /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 153EAADB2FDE1ABF00F7E972 /* ThemeManager.swift */; };
+		153EAADF2FDE200D00F7E972 /* ThemeSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 153EAADE2FDE200D00F7E972 /* ThemeSettingsView.swift */; };
+		153EAAE12FDE201F00F7E972 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 153EAAE02FDE201F00F7E972 /* SettingsView.swift */; };
+		153EAAE32FDEC96E00F7E972 /* GameRulesSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 153EAAE22FDEC96E00F7E972 /* GameRulesSection.swift */; };
 		15408BE72FD746D7005F24EA /* HPHistorySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15408BE62FD746D7005F24EA /* HPHistorySheet.swift */; };
 		15DF91E32FD21640007A87F8 /* ClarityApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF91E22FD21640007A87F8 /* ClarityApp.swift */; };
 		15DF91E52FD21640007A87F8 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF91E42FD21640007A87F8 /* ContentView.swift */; };
@@ -127,6 +132,11 @@
 		1521C0A22FD58D1300FD2981 /* RestEffectOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestEffectOverlayView.swift; sourceTree = "<group>"; };
 		153EAAD22FDADED700F7E972 /* CharacterInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacterInfoView.swift; sourceTree = "<group>"; };
 		153EAAD72FDB939800F7E972 /* View+CornerRadius.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+CornerRadius.swift"; sourceTree = "<group>"; };
+		153EAAD92FDE1A9E00F7E972 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		153EAADB2FDE1ABF00F7E972 /* ThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeManager.swift; sourceTree = "<group>"; };
+		153EAADE2FDE200D00F7E972 /* ThemeSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeSettingsView.swift; sourceTree = "<group>"; };
+		153EAAE02FDE201F00F7E972 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		153EAAE22FDEC96E00F7E972 /* GameRulesSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameRulesSection.swift; sourceTree = "<group>"; };
 		15408BE62FD746D7005F24EA /* HPHistorySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HPHistorySheet.swift; sourceTree = "<group>"; };
 		15DF91E22FD21640007A87F8 /* ClarityApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClarityApp.swift; sourceTree = "<group>"; };
 		15DF91E42FD21640007A87F8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -232,6 +242,7 @@
 			isa = PBXGroup;
 			children = (
 				1503D3D52FD7EE3C0026C5DE /* DMSections */,
+				153EAAE22FDEC96E00F7E972 /* GameRulesSection.swift */,
 				1503D46C2FD8DBFA0026C5DE /* CampaignSelectionView.swift */,
 				1503D3CD2FD7EE1F0026C5DE /* DMBasicInfoSection.swift */,
 				1503D3CB2FD7EE0C0026C5DE /* DMDetailHeader.swift */,
@@ -247,6 +258,15 @@
 				1503D3CF2FD7EE280026C5DE /* DMStatsSection.swift */,
 			);
 			path = DMSections;
+			sourceTree = "<group>";
+		};
+		153EAADD2FDE1FF000F7E972 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				153EAAE02FDE201F00F7E972 /* SettingsView.swift */,
+				153EAADE2FDE200D00F7E972 /* ThemeSettingsView.swift */,
+			);
+			path = Settings;
 			sourceTree = "<group>";
 		};
 		15DF91D62FD21640007A87F8 = {
@@ -270,6 +290,7 @@
 		15DF91EE2FD216F7007A87F8 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				153EAADD2FDE1FF000F7E972 /* Settings */,
 				153EAAD22FDADED700F7E972 /* CharacterInfoView.swift */,
 				15DF91E42FD21640007A87F8 /* ContentView.swift */,
 				15DF92BD2FD2DCAD007A87F8 /* Party */,
@@ -285,6 +306,8 @@
 		15DF91EF2FD2172B007A87F8 /* Theme */ = {
 			isa = PBXGroup;
 			children = (
+				153EAADB2FDE1ABF00F7E972 /* ThemeManager.swift */,
+				153EAAD92FDE1A9E00F7E972 /* Theme.swift */,
 				153EAAD72FDB939800F7E972 /* View+CornerRadius.swift */,
 				15DF92182FD219CE007A87F8 /* DSColors.swift */,
 				15DF92192FD219EC007A87F8 /* DSModifiers.swift */,
@@ -666,7 +689,9 @@
 				15DF923B2FD21CA1007A87F8 /* DSStatCard.swift in Sources */,
 				15DF91E32FD21640007A87F8 /* ClarityApp.swift in Sources */,
 				1503D46D2FD8DBFA0026C5DE /* CampaignSelectionView.swift in Sources */,
+				153EAADA2FDE1A9E00F7E972 /* Theme.swift in Sources */,
 				15DF923D2FD21CA8007A87F8 /* StatsTabView.swift in Sources */,
+				153EAADF2FDE200D00F7E972 /* ThemeSettingsView.swift in Sources */,
 				1503D2A82FD74B7F0026C5DE /* SkeletonCharacterRow.swift in Sources */,
 				1503D3C52FD7EDDA0026C5DE /* InfoRow.swift in Sources */,
 				15DF922D2FD21ADB007A87F8 /* AvatarView.swift in Sources */,
@@ -674,10 +699,12 @@
 				15DF92372FD21C8E007A87F8 /* HPSection.swift in Sources */,
 				1503D3BF2FD7921D0026C5DE /* SearchingView.swift in Sources */,
 				1503D3BB2FD791F70026C5DE /* RulesConfigurationView.swift in Sources */,
+				153EAAE32FDEC96E00F7E972 /* GameRulesSection.swift in Sources */,
 				15DF925E2FD22463007A87F8 /* MilestonePopupView.swift in Sources */,
 				15DF924B2FD21CF9007A87F8 /* EquipmentPanel.swift in Sources */,
 				15DF92552FD220C5007A87F8 /* TarotCardView.swift in Sources */,
 				15DF92332FD21C6F007A87F8 /* CharacterSheetView.swift in Sources */,
+				153EAADC2FDE1ABF00F7E972 /* ThemeManager.swift in Sources */,
 				15DF923F2FD21CB2007A87F8 /* DSCombatStatsView.swift in Sources */,
 				1503D3B92FD791C10026C5DE /* PlayerFlowView.swift in Sources */,
 				1521C0A12FD58BA900FD2981 /* RestVoteOverlayView.swift in Sources */,
@@ -694,6 +721,7 @@
 				1503D3B42FD791630026C5DE /* RuleToggle.swift in Sources */,
 				1503D3C72FD7EDE70026C5DE /* StatRow.swift in Sources */,
 				1503D3CE2FD7EE1F0026C5DE /* DMBasicInfoSection.swift in Sources */,
+				153EAAE12FDE201F00F7E972 /* SettingsView.swift in Sources */,
 				1503D3D22FD7EE2F0026C5DE /* DMSkillsSection.swift in Sources */,
 				1503D3D02FD7EE280026C5DE /* DMStatsSection.swift in Sources */,
 				1503D3C12FD7922E0026C5DE /* ConnectingView.swift in Sources */,

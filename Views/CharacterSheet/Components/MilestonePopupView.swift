@@ -9,7 +9,7 @@ struct MilestonePopupView: View {
     let newMilestone: Int
     let rewards: [MilestoneReward]
     let onConfirm: () -> Void
-    
+    @Environment(\.theme) private var theme
     // MARK: - Состояния анимации
     @State private var showPopup = false
     @State private var showRewards = false
@@ -45,8 +45,8 @@ struct MilestonePopupView: View {
                     .fill(
                         RadialGradient(
                             colors: [
-                                Color.dsGold.opacity(glowIntensity * 0.4),
-                                Color.dsGold.opacity(glowIntensity * 0.2),
+                                theme.primary.opacity(glowIntensity * 0.4),
+                                theme.primary.opacity(glowIntensity * 0.2),
                                 Color.clear
                             ],
                             center: .center,
@@ -70,7 +70,7 @@ struct MilestonePopupView: View {
                         Text("НОВАЯ ВЕХА")
                             .font(.system(size: 10))
                             .tracking(3)
-                            .foregroundColor(Color.dsTextDim)
+                            .foregroundColor(theme.textDim)
                             .opacity(showPopup ? 1 : 0)
                         
                         // Анимированное число уровня с glow
@@ -79,7 +79,7 @@ struct MilestonePopupView: View {
                             Text("УРОВЕНЬ \(newMilestone)")
                                 .font(.system(size: 28, weight: .light))
                                 .tracking(2)
-                                .foregroundColor(Color.dsGold)
+                                .foregroundColor(theme.primary)
                                 .blur(radius: 20)
                                 .opacity(levelOpacity * 0.5)
                             
@@ -87,7 +87,7 @@ struct MilestonePopupView: View {
                             Text("УРОВЕНЬ \(newMilestone)")
                                 .font(.system(size: 28, weight: .light))
                                 .tracking(2)
-                                .foregroundColor(Color.dsGold)
+                                .foregroundColor(theme.primary)
                                 .scaleEffect(levelScale)
                                 .opacity(levelOpacity)
                         }
@@ -97,13 +97,13 @@ struct MilestonePopupView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 20)
-                    .background(Color.dsSurface)
+                    .background(theme.surface)
                     .overlay(
                         CornerOrnaments(size: 16)
                     )
                     
                     Rectangle()
-                        .fill(Color.dsBorder)
+                        .fill(theme.border)
                         .frame(height: 0.5)
                     
                     // ─── Список наград (появляются последовательно) ───
@@ -112,17 +112,17 @@ struct MilestonePopupView: View {
                             HStack(alignment: .top, spacing: 12) {
                                 Image(systemName: reward.icon)
                                     .font(.system(size: 18))
-                                    .foregroundColor(Color.dsGold)
+                                    .foregroundColor(theme.primary)
                                     .frame(width: 32)
                                     .padding(.top, 2)
                                 
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(reward.title)
                                         .font(.system(size: 14, weight: .medium))
-                                        .foregroundColor(Color.dsText)
+                                        .foregroundColor(theme.text)
                                     Text(reward.description)
                                         .font(.system(size: 12))
-                                        .foregroundColor(Color.dsTextDim)
+                                        .foregroundColor(theme.textDim)
                                         .fixedSize(horizontal: false, vertical: true)
                                 }
                                 
@@ -140,13 +140,13 @@ struct MilestonePopupView: View {
                             .overlay(alignment: .bottom) {
                                 if index < rewards.count - 1 {
                                     Rectangle()
-                                        .fill(Color.dsBorder)
+                                        .fill(theme.border)
                                         .frame(height: 0.5)
                                 }
                             }
                         }
                     }
-                    .background(Color.dsSurfaceAlt)
+                    .background(theme.surfaceAlt)
                     
                     // ─── Кнопка подтверждения ───
                     Button(action: confirmAction) {
@@ -157,10 +157,10 @@ struct MilestonePopupView: View {
                                 .font(.system(size: 15, weight: .medium))
                                 .tracking(1)
                         }
-                        .foregroundColor(Color.dsBackground)
+                        .foregroundColor(theme.background)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
-                        .background(Color.dsGold)
+                        .background(theme.primary)
                     }
                     .buttonStyle(.plain)
                     .opacity(showButton ? 1 : 0)
@@ -174,7 +174,7 @@ struct MilestonePopupView: View {
                 .frame(maxWidth: 340)
                 .background(
                     RoundedRectangle(cornerRadius: 6)
-                        .fill(Color.dsSurface)
+                        .fill(theme.surface)
                 )
                 // 🔆 ЗОЛОТОЕ СВЕЧЕНИЕ (многослойное)
                 .overlay(
@@ -182,9 +182,9 @@ struct MilestonePopupView: View {
                         .stroke(
                             LinearGradient(
                                 colors: [
-                                    Color.dsGold,
-                                    Color.dsGoldDim,
-                                    Color.dsGold
+                                    theme.primary,
+                                    theme.primaryDim,
+                                    theme.primary
                                 ],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
@@ -193,13 +193,13 @@ struct MilestonePopupView: View {
                         )
                 )
                 // Три слоя тени для реалистичного свечения
-                .shadow(color: Color.dsGold.opacity(glowIntensity * 0.8), radius: 15)
-                .shadow(color: Color.dsGold.opacity(glowIntensity * 0.5), radius: 30)
-                .shadow(color: Color.dsGold.opacity(glowIntensity * 0.3), radius: 50)
+                .shadow(color: theme.primary.opacity(glowIntensity * 0.8), radius: 15)
+                .shadow(color: theme.primary.opacity(glowIntensity * 0.5), radius: 30)
+                .shadow(color: theme.primary.opacity(glowIntensity * 0.3), radius: 50)
                 // Внутренняя тонкая подсветка
                 .overlay(
                     RoundedRectangle(cornerRadius: 6)
-                        .stroke(Color.dsGold.opacity(0.3), lineWidth: 0.5)
+                        .stroke(theme.primary.opacity(0.3), lineWidth: 0.5)
                         .padding(2)
                 )
                 .shadow(color: Color.black.opacity(0.6), radius: 20, x: 0, y: 10)
@@ -279,8 +279,9 @@ struct MilestonePopupView: View {
 
 // MARK: - Preview
 #Preview {
+    @Environment(\.theme) var theme
     ZStack {
-        Color.dsBackground.ignoresSafeArea()
+        theme.background.ignoresSafeArea()
         
         MilestonePopupView(
             newMilestone: 3,

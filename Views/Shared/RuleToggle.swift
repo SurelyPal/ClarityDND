@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct RuleToggle: View {
+    @Environment(\.theme) private var theme
     let icon: String
     let title: String
     let description: String
@@ -17,16 +18,16 @@ struct RuleToggle: View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 22))
-                .foregroundColor(Color.dsGold)
+                .foregroundColor(theme.primary)
                 .frame(width: 30)
             
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
                     .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(Color.dsText)
+                    .foregroundColor(theme.text)
                 Text(description)
                     .font(.system(size: 10))
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                     .lineLimit(2)
             }
             
@@ -34,7 +35,7 @@ struct RuleToggle: View {
             
             Toggle("", isOn: $isOn)
                 .labelsHidden()
-                .tint(Color.dsGold)
+                .tint(theme.primary)
         }
         .padding(.vertical, 6)
     }

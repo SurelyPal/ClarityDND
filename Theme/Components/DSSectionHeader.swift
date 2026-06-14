@@ -6,6 +6,7 @@
 import SwiftUI
 
 struct DSSectionHeader: View {
+    @Environment(\.theme) private var theme
     let title: String
     
     var body: some View {
@@ -14,7 +15,7 @@ struct DSSectionHeader: View {
             Text(title.uppercased())
                 .font(.system(size: 10, weight: .medium))
                 .tracking(2)
-                .foregroundColor(Color.dsGoldDim)
+                .foregroundColor(theme.primaryDim)
             DSdivider()
         }
         .padding(.horizontal, 16)

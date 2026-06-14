@@ -9,6 +9,7 @@ import SwiftUI
 import PhotosUI
 
 struct CharacterHeaderSection: View, Equatable {
+    @Environment(\.theme) private var theme
     @Binding var character: DNDCharacter
     @Binding var currentHP: Int
     let canEdit: Bool
@@ -47,13 +48,13 @@ struct CharacterHeaderSection: View, Equatable {
                         } label: {
                             Image(systemName: "camera.fill")
                                 .font(.system(size: 13, weight: .semibold))
-                                .foregroundColor(Color.dsBackground)
+                                .foregroundColor(theme.background)
                                 .frame(width: 32, height: 32)
-                                .background(Color.dsGold)
+                                .background(theme.primary)
                                 .clipShape(Circle())
                                 .overlay(
                                     Circle()
-                                        .stroke(Color.dsBackground, lineWidth: 2)
+                                        .stroke(theme.background, lineWidth: 2)
                                 )
                                 .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
                         }
@@ -67,7 +68,7 @@ struct CharacterHeaderSection: View, Equatable {
                     Text(character.displayName.uppercased())
                         .font(.system(size: 20, weight: .light))
                         .tracking(3)
-                        .foregroundColor(Color.dsGold)
+                        .foregroundColor(theme.primary)
                         .lineLimit(2)
                         .minimumScaleFactor(0.7)
                     
@@ -84,7 +85,7 @@ struct CharacterHeaderSection: View, Equatable {
                     Text(character.alignment.rawValue.uppercased())
                         .font(.system(size: 10))
                         .tracking(2)
-                        .foregroundColor(Color.dsTextDim)
+                        .foregroundColor(theme.textDim)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
@@ -106,13 +107,13 @@ struct CharacterHeaderSection: View, Equatable {
                                     .font(.system(size: 9, weight: .medium))
                                     .tracking(0.5)
                             }
-                            .foregroundColor(canEdit ? Color.dsBackground : Color.dsTextDim)
+                            .foregroundColor(canEdit ? theme.background : theme.textDim)
                             .frame(width: 58, height: 58)
-                            .background(canEdit ? Color.dsGold : Color.dsSurfaceAlt)
+                            .background(canEdit ? theme.primary : theme.surfaceAlt)
                             .cornerRadius(8)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .stroke(canEdit ? Color.dsGold.opacity(0.5) : Color.clear, lineWidth: 1)
+                                    .stroke(canEdit ? theme.primary.opacity(0.5) : Color.clear, lineWidth: 1)
                             )
                         }
                         .buttonStyle(.plain)
@@ -127,7 +128,7 @@ struct CharacterHeaderSection: View, Equatable {
                         } label: {
                             Image(systemName: "arrow.uturn.backward.circle")
                                 .font(.system(size: 28))
-                                .foregroundColor(canEdit ? Color.dsRed.opacity(0.8) : Color.dsTextDim)
+                                .foregroundColor(canEdit ? theme.danger.opacity(0.8) : theme.textDim)
                         }
                         .buttonStyle(.plain)
                         .disabled(!canEdit)
@@ -137,7 +138,7 @@ struct CharacterHeaderSection: View, Equatable {
                     if !canEdit {
                         Image(systemName: "lock.fill")
                             .font(.system(size: 10))
-                            .foregroundColor(Color.dsTextDim)
+                            .foregroundColor(theme.textDim)
                     }
                 }
             }

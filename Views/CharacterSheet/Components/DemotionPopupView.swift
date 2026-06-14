@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct DemotionPopupView: View {
+    @Environment(\.theme) private var theme
     let currentLevel: Int
     let rewards: [MilestoneReward]
     let onConfirm: () -> Void
@@ -44,7 +45,7 @@ struct DemotionPopupView: View {
                             Text("ОТКАТ ВЕХИ")
                                 .font(.system(size: 10))
                                 .tracking(3)
-                                .foregroundColor(Color.dsRed.opacity(0.8))
+                                .foregroundColor(theme.danger.opacity(0.8))
                                 .opacity(showPopup ? 1 : 0)
                             
                             // Анимированные числа уровня со стрелкой
@@ -53,26 +54,26 @@ struct DemotionPopupView: View {
                                 Text("\(currentLevel)")
                                     .font(.system(size: 32, weight: .light))
                                     .tracking(2)
-                                    .foregroundColor(Color.dsTextDim)
-                                    .strikethrough(true, color: Color.dsRed)
+                                    .foregroundColor(theme.textDim)
+                                    .strikethrough(true, color: theme.danger)
                                 
                                 Image(systemName: "arrow.left")
                                     .font(.system(size: 18, weight: .light))
-                                    .foregroundColor(Color.dsRed)
+                                    .foregroundColor(theme.danger)
                                 
                                 // Новый уровень (появляется)
                                 ZStack {
                                     Text("\(currentLevel - 1)")
                                         .font(.system(size: 32, weight: .light))
                                         .tracking(2)
-                                        .foregroundColor(Color.dsRed)
+                                        .foregroundColor(theme.danger)
                                         .blur(radius: 15)
                                         .opacity(levelOpacity * 0.6)
                                     
                                     Text("\(currentLevel - 1)")
                                         .font(.system(size: 32, weight: .light))
                                         .tracking(2)
-                                        .foregroundColor(Color.dsRed)
+                                        .foregroundColor(theme.danger)
                                         .scaleEffect(levelScale)
                                         .opacity(levelOpacity)
                                 }
@@ -83,13 +84,13 @@ struct DemotionPopupView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 20)
-                        .background(Color.dsSurface)
+                        .background(theme.surface)
                         .overlay(
                             CornerOrnaments(size: 16)
                         )
                         
                         Rectangle()
-                            .fill(Color.dsRed.opacity(0.3))
+                            .fill(theme.danger.opacity(0.3))
                             .frame(height: 0.5)
                         
                         // ─── Список отзываемых наград ───
@@ -99,20 +100,20 @@ struct DemotionPopupView: View {
                                     HStack(alignment: .top, spacing: 12) {
                                         Image(systemName: reward.icon)
                                             .font(.system(size: 16))
-                                            .foregroundColor(Color.dsRed.opacity(0.7))
+                                            .foregroundColor(theme.danger.opacity(0.7))
                                             .frame(width: 28)
                                             .padding(.top, 2)
                                         
                                         VStack(alignment: .leading, spacing: 3) {
                                             Text(reward.title)
                                                 .font(.system(size: 13, weight: .medium))
-                                                .foregroundColor(Color.dsText)
-                                                .strikethrough(true, color: Color.dsRed.opacity(0.7))
+                                                .foregroundColor(theme.text)
+                                                .strikethrough(true, color: theme.danger.opacity(0.7))
                                             
                                             Text(reward.description)
                                                 .font(.system(size: 11))
-                                                .foregroundColor(Color.dsTextDim)
-                                                .strikethrough(true, color: Color.dsRed.opacity(0.4))
+                                                .foregroundColor(theme.textDim)
+                                                .strikethrough(true, color: theme.danger.opacity(0.4))
                                                 .fixedSize(horizontal: false, vertical: true)
                                         }
                                         
@@ -120,7 +121,7 @@ struct DemotionPopupView: View {
                                         
                                         Image(systemName: "xmark.circle.fill")
                                             .font(.system(size: 14))
-                                            .foregroundColor(Color.dsRed.opacity(0.7))
+                                            .foregroundColor(theme.danger.opacity(0.7))
                                             .padding(.top, 2)
                                     }
                                     .padding(.horizontal, 20)
@@ -135,7 +136,7 @@ struct DemotionPopupView: View {
                                     .overlay(alignment: .bottom) {
                                         if index < rewards.count - 1 {
                                             Rectangle()
-                                                .fill(Color.dsBorder)
+                                                .fill(theme.border)
                                                 .frame(height: 0.5)
                                         }
                                     }
@@ -145,23 +146,23 @@ struct DemotionPopupView: View {
                                 HStack(spacing: 10) {
                                     Image(systemName: "heart.slash.fill")
                                         .font(.system(size: 16))
-                                        .foregroundColor(Color.dsRed)
+                                        .foregroundColor(theme.danger)
                                     
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text("Максимум HP уменьшится на 5")
                                             .font(.system(size: 12, weight: .medium))
-                                            .foregroundColor(Color.dsRed.opacity(0.9))
+                                            .foregroundColor(theme.danger.opacity(0.9))
                                         
                                         Text("Текущее здоровье будет ограничено новым максимумом")
                                             .font(.system(size: 10))
-                                            .foregroundColor(Color.dsTextDim)
+                                            .foregroundColor(theme.textDim)
                                     }
                                     
                                     Spacer()
                                 }
                                 .padding(12)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(Color.dsRed.opacity(0.08))
+                                .background(theme.danger.opacity(0.08))
                                 .opacity(showRewards ? 1 : 0)
                                 .animation(
                                     .easeInOut(duration: 0.4)
@@ -170,7 +171,7 @@ struct DemotionPopupView: View {
                                 )
                             }
                         }
-                        .background(Color.dsSurfaceAlt)
+                        .background(theme.surfaceAlt)
                         
                         // ─── Кнопки действий ───
                         HStack(spacing: 0) {
@@ -182,15 +183,15 @@ struct DemotionPopupView: View {
                                         .font(.system(size: 14, weight: .medium))
                                         .tracking(0.5)
                                 }
-                                .foregroundColor(Color.dsText)
+                                .foregroundColor(theme.text)
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                                 .padding(.vertical, 18)
-                                .background(Color.dsSurface)
+                                .background(theme.surface)
                             }
                             .frame(maxWidth: .infinity)
                             
                             Rectangle()
-                                .fill(Color.dsBorder)
+                                .fill(theme.border)
                                 .frame(width: 0.5)
                             
                             Button(action: confirmAction) {
@@ -204,7 +205,7 @@ struct DemotionPopupView: View {
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                                 .padding(.vertical, 18)
-                                .background(Color.dsRed)
+                                .background(theme.danger)
                             }
                             .frame(maxWidth: .infinity)
                         }
@@ -223,7 +224,7 @@ struct DemotionPopupView: View {
                     )
                     .background(
                         RoundedRectangle(cornerRadius: 6)
-                            .fill(Color.dsSurface)
+                            .fill(theme.surface)
                     )
                     // 🔴 КРАСНОЕ СВЕЧЕНИЕ (многослойное)
                     .overlay(
@@ -231,9 +232,9 @@ struct DemotionPopupView: View {
                             .stroke(
                                 LinearGradient(
                                     colors: [
-                                        Color.dsRed,
-                                        Color.dsRed.opacity(0.5),
-                                        Color.dsRed
+                                        theme.danger,
+                                        theme.danger.opacity(0.5),
+                                        theme.danger
                                     ],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
@@ -241,12 +242,12 @@ struct DemotionPopupView: View {
                                 lineWidth: 1.5
                             )
                     )
-                    .shadow(color: Color.dsRed.opacity(glowIntensity * 0.8), radius: 15)
-                    .shadow(color: Color.dsRed.opacity(glowIntensity * 0.5), radius: 30)
-                    .shadow(color: Color.dsRed.opacity(glowIntensity * 0.3), radius: 50)
+                    .shadow(color: theme.danger.opacity(glowIntensity * 0.8), radius: 15)
+                    .shadow(color: theme.danger.opacity(glowIntensity * 0.5), radius: 30)
+                    .shadow(color: theme.danger.opacity(glowIntensity * 0.3), radius: 50)
                     .overlay(
                         RoundedRectangle(cornerRadius: 6)
-                            .stroke(Color.dsRed.opacity(0.3), lineWidth: 0.5)
+                            .stroke(theme.danger.opacity(0.3), lineWidth: 0.5)
                             .padding(2)
                     )
                     .shadow(color: Color.black.opacity(0.6), radius: 20, x: 0, y: 10)
@@ -330,6 +331,7 @@ struct DemotionPopupView: View {
 
 // MARK: - Тёмные искры (для отката)
 struct DarkSparkleEffect: View {
+    @Environment(\.theme) private var theme
     @State private var particles: [Particle] = []
     let trigger: Bool
     
@@ -350,7 +352,7 @@ struct DarkSparkleEffect: View {
                 ForEach(particles) { particle in
                     Image(systemName: "xmark")
                         .font(.system(size: particle.size, weight: .bold))
-                        .foregroundColor(Color.dsRed)
+                        .foregroundColor(theme.danger)
                         .opacity(particle.opacity)
                         .position(x: particle.x, y: particle.y)
                         .rotationEffect(.degrees(particle.rotation))

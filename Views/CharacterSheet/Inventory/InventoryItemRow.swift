@@ -7,6 +7,7 @@
 import SwiftUI
 
 struct InventoryItemRow: View {
+    @Environment(\.theme) private var theme
     @Binding var item: InventoryItem
     let isHighlighted: Bool
     let canEdit: Bool
@@ -25,7 +26,7 @@ struct InventoryItemRow: View {
             // Иконка предмета
             Image(systemName: IconHelper.iconForItem(item))
                 .font(.system(size: 20))
-                .foregroundColor(item.isEquipped ? Color.dsGold : Color.dsTextDim)
+                .foregroundColor(item.isEquipped ? theme.primary : theme.textDim)
                 .frame(width: 32)
             
             // Информация о предмете
@@ -33,16 +34,16 @@ struct InventoryItemRow: View {
                 HStack {
                     Text(item.name.isEmpty ? "Без названия" : item.name)
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(Color.dsText)
+                        .foregroundColor(theme.text)
                     
                     if item.isEquipped {
                         Text("ЭКИПИРОВАНО")
                             .font(.system(size: 9, weight: .bold))
                             .tracking(1)
-                            .foregroundColor(Color.dsGold)
+                            .foregroundColor(theme.primary)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(Color.dsGold.opacity(0.15))
+                            .background(theme.primary.opacity(0.15))
                             .cornerRadius(3)
                     }
                 }
@@ -50,14 +51,14 @@ struct InventoryItemRow: View {
                 if !item.description.isEmpty {
                     Text(item.description)
                         .font(.system(size: 11))
-                        .foregroundColor(Color.dsTextDim)
+                        .foregroundColor(theme.textDim)
                         .lineLimit(2)
                 }
                 
                 if !item.stats.isEmpty {
                     Text(item.stats)
                         .font(.system(size: 10))
-                        .foregroundColor(Color.dsGold.opacity(0.8))
+                        .foregroundColor(theme.primary.opacity(0.8))
                 }
             }
             
@@ -85,7 +86,7 @@ struct InventoryItemRow: View {
                 } label: {
                     Image(systemName: "ellipsis.circle")
                         .font(.system(size: 20))
-                        .foregroundColor(Color.dsTextDim)
+                        .foregroundColor(theme.textDim)
                 }
                 .buttonStyle(.plain)
             }
@@ -93,11 +94,11 @@ struct InventoryItemRow: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .background(
-            isHighlighted ? Color.dsGold.opacity(0.08) : Color.clear
+            isHighlighted ? theme.primary.opacity(0.08) : Color.clear
         )
         .overlay(
             Rectangle()
-                .fill(Color.dsBorder)
+                .fill(theme.border)
                 .frame(height: 0.5),
             alignment: .bottom
         )
@@ -127,20 +128,20 @@ struct InventoryItemRow: View {
                 // Индикатор состояния (надет/в инвентаре)
                 Image(systemName: item.isEquipped ? "checkmark.circle.fill" : "circle")
                     .font(.system(size: 9))
-                    .foregroundColor(item.isEquipped ? Color.dsGold : Color.dsTextDim.opacity(0.5))
+                    .foregroundColor(item.isEquipped ? theme.primary : theme.textDim.opacity(0.5))
             }
-            .foregroundColor(item.isEquipped ? Color.dsGold : Color.dsTextDim)
+            .foregroundColor(item.isEquipped ? theme.primary : theme.textDim)
             .padding(.horizontal, 8)
             .padding(.vertical, 6)
             .background(
                 item.isEquipped
-                ? Color.dsGold.opacity(0.12)
-                : Color.dsSurfaceAlt
+                ? theme.primary.opacity(0.12)
+                : theme.surfaceAlt
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 3)
                     .stroke(
-                        item.isEquipped ? Color.dsGold.opacity(0.4) : Color.dsBorder,
+                        item.isEquipped ? theme.primary.opacity(0.4) : theme.border,
                         lineWidth: 0.5
                     )
             )
@@ -155,6 +156,7 @@ struct InventoryItemRow: View {
 
 // Лист для передачи предмета (Только UI, логика в InventoryTabView)
 struct TransferItemSheet: View {
+    @Environment(\.theme) private var theme
     let item: InventoryItem
     @EnvironmentObject var partyManager: PartyManager
     @Environment(\.dismiss) var dismiss
@@ -168,17 +170,17 @@ struct TransferItemSheet: View {
             Text("✦ ПЕРЕДАТЬ ПРЕДМЕТ ✦")
                 .font(.system(size: 11, weight: .bold))
                 .tracking(3)
-                .foregroundColor(Color.dsGold)
+                .foregroundColor(theme.primary)
             
             Text(item.name)
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(Color.dsText)
+                .foregroundColor(theme.text)
             
             DSdivider().padding(.horizontal, 40)
             
             Text("Выберите игрока:")
                 .font(.system(size: 12))
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim)
             
             ScrollView {
                 VStack(spacing: 8) {
@@ -196,27 +198,27 @@ struct TransferItemSheet: View {
                             HStack {
                                 Image(systemName: "person.circle.fill")
                                     .font(.system(size: 24))
-                                    .foregroundColor(Color.dsGold)
+                                    .foregroundColor(theme.primary)
                                 VStack(alignment: .leading) {
                                     Text(member.name)
                                         .font(.system(size: 14, weight: .medium))
-                                        .foregroundColor(Color.dsText)
+                                        .foregroundColor(theme.text)
                                     Text("\(member.characterClass) • Уровень \(member.level)")
                                         .font(.system(size: 11))
-                                        .foregroundColor(Color.dsTextDim)
+                                        .foregroundColor(theme.textDim)
                                 }
                                 Spacer()
                                 if selectedPlayerID == member.id {
                                     Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(Color.dsGold)
+                                        .foregroundColor(theme.primary)
                                 }
                             }
                             .padding(12)
-                            .background(Color.dsSurface)
+                            .background(theme.surface)
                             .cornerRadius(6)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 6)
-                                    .stroke(selectedPlayerID == member.id ? Color.dsGold : Color.dsBorder, lineWidth: 1)
+                                    .stroke(selectedPlayerID == member.id ? theme.primary : theme.border, lineWidth: 1)
                             )
                         }
                         .buttonStyle(.plain)
@@ -231,15 +233,15 @@ struct TransferItemSheet: View {
                     .tracking(1)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
-                    .background(Color.dsSurfaceAlt)
-                    .foregroundColor(Color.dsText)
+                    .background(theme.surfaceAlt)
+                    .foregroundColor(theme.text)
                     .cornerRadius(4)
             }
             .buttonStyle(.plain)
             .padding(.horizontal, 20)
         }
         .padding(.vertical, 24)
-        .background(Color.dsBackground)
+        .background(theme.background)
         .presentationDetents([.medium])
     }
 }

@@ -16,6 +16,7 @@
 import SwiftUI
 
 struct DMSkillsSection: View {
+    @Environment(\.theme) private var theme
     let member: PartyMember
     
     var body: some View {
@@ -24,7 +25,7 @@ struct DMSkillsSection: View {
                 Text("НАВЫКИ")
                     .font(.system(size: 10))
                     .tracking(2)
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                 Spacer()
             }
             .padding(.horizontal, 16)
@@ -35,25 +36,25 @@ struct DMSkillsSection: View {
                         HStack {
                             Image(systemName: "diamond.fill")
                                 .font(.system(size: 7))
-                                .foregroundColor(Color.dsGold)
+                                .foregroundColor(theme.primary)
                                 .frame(width: 16)
                             
                             Text(skill)
                                 .font(.system(size: 13))
-                                .foregroundColor(Color.dsText)
+                                .foregroundColor(theme.text)
                             
                             Spacer()
                             
                             Text("Мастерство")
                                 .font(.system(size: 10))
-                                .foregroundColor(Color.dsGold)
+                                .foregroundColor(theme.primary)
                         }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 10)
                         .overlay(alignment: .bottom) {
                             if index < proficiencies.count - 1 {
                                 Rectangle()
-                                    .fill(Color.dsBorder)
+                                    .fill(theme.border)
                                     .frame(height: 0.5)
                                     .padding(.leading, 32)
                             }
@@ -65,7 +66,7 @@ struct DMSkillsSection: View {
             } else {
                 Text("Нет proficient навыков")
                     .font(.system(size: 12))
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                     .padding()
             }
         }

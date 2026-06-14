@@ -6,6 +6,7 @@
 import SwiftUI
 
 struct CornerOrnaments: View {
+    @Environment(\.theme) private var theme
     var size: CGFloat = 12
     
     var body: some View {
@@ -30,7 +31,7 @@ struct CornerOrnaments: View {
     private var ornament: some View {
         Image(systemName: "diamond.fill")
             .font(.system(size: size * 0.4))
-            .foregroundColor(Color.dsGoldDim)
+            .foregroundColor(theme.primaryDim)
     }
 }
 

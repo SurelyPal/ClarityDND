@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct StressTrackerView: View, Equatable {
+    @Environment(\.theme) private var theme
     @Binding var character: DNDCharacter
     let canEdit: Bool
     @EnvironmentObject var store: CharacterStore
@@ -25,7 +26,7 @@ struct StressTrackerView: View, Equatable {
                 Text("ДУШЕВНОЕ СОСТОЯНИЕ")
                     .font(.system(size: 9))
                     .tracking(2)
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                 Spacer()
                 Text(Constants.Stress.label(for: character.stress).uppercased())
                     .font(.system(size: 11, weight: .medium))
@@ -49,17 +50,17 @@ struct StressTrackerView: View, Equatable {
                 Text("Паника")
                     .font(.system(size: 9))
                     .tracking(1)
-                    .foregroundColor(Color.dsRed.opacity(0.6))
+                    .foregroundColor(theme.danger.opacity(0.6))
                 Spacer()
                 Text("Баланс")
                     .font(.system(size: 9))
                     .tracking(1)
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                 Spacer()
                 Text("Дзен")
                     .font(.system(size: 9))
                     .tracking(1)
-                    .foregroundColor(Color.dsBlue.opacity(0.6))
+                    .foregroundColor(theme.tertiary.opacity(0.6))
             }
             
             DSdivider()
@@ -137,12 +138,12 @@ struct StressTrackerView: View, Equatable {
     
     private func color(for level: Int) -> Color {
         switch level {
-        case -3, -2: return Color.dsRed
-        case -1:     return .orange
-        case 0:      return Color.dsTextDim
-        case 1:      return Color.dsGoldDim
-        case 2, 3:   return Color.dsBlue
-        default:     return Color.dsTextDim
+        case -3, -2: return theme.danger
+        case -1:     return theme.dangerDim
+        case 0:      return theme.textDim
+        case 1:      return theme.primaryDim
+        case 2, 3:   return theme.secondary
+        default:     return theme.textDim
         }
     }
 }
@@ -150,6 +151,7 @@ struct StressTrackerView: View, Equatable {
 // MARK: - Очки переброса
 
 struct RerollPointsSection: View {
+    @Environment(\.theme) private var theme
     @Binding var character: DNDCharacter
     let canEdit: Bool
     @EnvironmentObject var store: CharacterStore
@@ -160,7 +162,7 @@ struct RerollPointsSection: View {
                 Text("ОЧКИ ПЕРЕБРОСА")
                     .font(.system(size: 9))
                     .tracking(2)
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                 
                 HStack(spacing: 8) {
                     ForEach(0..<Constants.Character.maxRerollPoints, id: \.self) { index in
@@ -196,14 +198,14 @@ struct RerollPointsSection: View {
                         .font(.system(size: 12, weight: .medium))
                         .tracking(0.5)
                 }
-                .foregroundColor(character.rerollPoints > 0 ? Color.dsBackground : Color.dsTextDim)
+                .foregroundColor(character.rerollPoints > 0 ? theme.background : theme.textDim)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
-                .background(character.rerollPoints > 0 ? Color.dsGold : Color.dsSurfaceAlt)
+                .background(character.rerollPoints > 0 ? theme.primary : theme.surfaceAlt)
                 .cornerRadius(3)
                 .overlay(
                     RoundedRectangle(cornerRadius: 3)
-                        .stroke(Color.dsBorder, lineWidth: 0.5)
+                        .stroke(theme.border, lineWidth: 0.5)
                 )
             }
             .buttonStyle(.plain)
@@ -216,26 +218,27 @@ struct RerollPointsSection: View {
 // MARK: - Компоненты
 
 struct RerollPointIcon: View {
+    @Environment(\.theme) private var theme
     let isFilled: Bool
     
     var body: some View {
         ZStack {
             Image(systemName: "diamond.fill")
                 .font(.system(size: 22))
-                .foregroundColor(isFilled ? Color.dsGold.opacity(0.15) : Color.dsSurfaceAlt)
+                .foregroundColor(isFilled ? theme.primary.opacity(0.15) : theme.surfaceAlt)
             
             Image(systemName: "diamond.fill")
                 .font(.system(size: 22))
-                .foregroundColor(isFilled ? Color.dsGold : Color.clear)
+                .foregroundColor(isFilled ? theme.primary : Color.clear)
             
             Image(systemName: "diamond")
                 .font(.system(size: 22))
-                .foregroundColor(isFilled ? Color.dsGold : Color.dsBorder)
+                .foregroundColor(isFilled ? theme.primary : theme.border)
             
             if isFilled {
                 Image(systemName: "diamond.fill")
                     .font(.system(size: 8))
-                    .foregroundColor(Color.dsBackground)
+                    .foregroundColor(theme.background)
             }
         }
         .animation(.spring(response: 0.3), value: isFilled)
@@ -243,6 +246,7 @@ struct RerollPointIcon: View {
 }
 
 struct DSStressBox: View {
+    @Environment(\.theme) private var theme 
     let level: Int
     let currentStress: Int
     let color: Color
@@ -261,17 +265,17 @@ struct DSStressBox: View {
         Button(action: action) {
             ZStack {
                 RoundedRectangle(cornerRadius: 2)
-                    .fill(isFilled ? color.opacity(0.25) : Color.dsSurfaceAlt)
+                    .fill(isFilled ? color.opacity(0.25) : theme.surfaceAlt)
                     .frame(height: 38)
                 
                 RoundedRectangle(cornerRadius: 2)
-                    .stroke(isSelected ? color : Color.dsBorder,
+                    .stroke(isSelected ? color : theme.border,
                             lineWidth: isSelected ? 1.5 : 0.5)
                     .frame(height: 38)
                 
                 Text(level > 0 ? "+\(level)" : "\(level)")
                     .font(.system(size: 12, weight: isSelected ? .medium : .regular))
-                    .foregroundColor(isFilled ? color : Color.dsTextDim)
+                    .foregroundColor(isFilled ? color : theme.textDim)
             }
         }
         .buttonStyle(.plain)

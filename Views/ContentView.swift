@@ -16,18 +16,17 @@ struct ContentView: View {
     
     /// Контекст SwiftData из окружения (доступен внутри WindowGroup)
     @Environment(\.modelContext) private var modelContext
-    
     /// Хранилище персонажей (создаётся отложенно, когда context доступен)
     @EnvironmentObject var store: CharacterStore
-    
+    /// Тема из окружения
+    @Environment(\.theme) private var theme //Получаем тему
     /// Показать экран создания персонажа
     @State private var showingCreation = false
-    
     @State private var selectedCharacterForInfo: DNDCharacter? = nil
     
     @Query(
         filter: #Predicate<DNDCharacter> { character in
-            !character.isDeleted  // ✅ НОВОЕ: Показываем только не удалённых
+            !character.isDeleted  //НОВОЕ: Показываем только не удалённых
         },
         sort: \DNDCharacter.name,
         order: .forward
@@ -37,14 +36,21 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.dsBackground
+                theme.background
                     .ignoresSafeArea()
                 
                 mainContent(store: store)
                 
-                
                     .toolbar {
 #if os(iOS)
+                        // Справа: кнопка настроек
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            NavigationLink(destination: SettingsView()) {
+                                Image(systemName: "gearshape.fill")
+                                    .foregroundColor(theme.primary) // 🔧 Используем тему
+                                    .font(.system(size: 16, weight: .medium))
+                                }
+                            }
                         // Слева: кнопка Партии (MultiPeerConnectivity)
                         ToolbarItem(placement: .navigationBarLeading) {
                             NavigationLink(destination: PartyLobbyView()) {
@@ -55,7 +61,7 @@ struct ContentView: View {
                                         .font(.system(size: 12, weight: .medium))
                                         .tracking(0.5)
                                 }
-                                .foregroundColor(Color.dsGold)
+                                .foregroundColor(theme.primary) // 🔧 Используем тему
                             }
                         }
                         
@@ -63,13 +69,13 @@ struct ContentView: View {
                         ToolbarItem(placement: .navigationBarTrailing) {
                             Button(action: { showingCreation = true }) {
                                 Image(systemName: "plus")
-                                    .foregroundColor(Color.dsGold)
+                                    .foregroundColor(theme.primary) // 🔧 Используем тему
                                     .font(.system(size: 16, weight: .medium))
                             }
                             .disabled(store == nil)
                         }
 #elseif os(macOS)
-                        // macOS: используем primaryAction для обеих кнопок
+                        // macOS: используем primaryAction для всех кнопок
                         ToolbarItemGroup(placement: .primaryAction) {
                             NavigationLink(destination: PartyLobbyView()) {
                                 HStack(spacing: 4) {
@@ -79,12 +85,18 @@ struct ContentView: View {
                                         .font(.system(size: 12, weight: .medium))
                                         .tracking(0.5)
                                 }
-                                .foregroundColor(Color.dsGold)
+                                .foregroundColor(theme.gold) // 🔧 Используем тему
+                            }
+                            
+                            NavigationLink(destination: SettingsView()) {
+                                Image(systemName: "gearshape.fill")
+                                    .foregroundColor(theme.gold) // 🔧 Используем тему
+                                    .font(.system(size: 16, weight: .medium))
                             }
                             
                             Button(action: { showingCreation = true }) {
                                 Image(systemName: "plus")
-                                    .foregroundColor(Color.dsGold)
+                                    .foregroundColor(theme.gold) // 🔧 Используем тему
                                     .font(.system(size: 16, weight: .medium))
                             }
                             .disabled(store == nil)
@@ -101,7 +113,7 @@ struct ContentView: View {
                         
                     }
             }
-            .background(Color.dsBackground)
+            .background(theme.background)
             .preferredColorScheme(.dark)
         }
     }
@@ -116,11 +128,11 @@ struct ContentView: View {
                 Text("✦ КНИГА СУДЕБ ✦")
                     .font(.system(size: 11, weight: .medium))
                     .tracking(4)
-                    .foregroundColor(Color.dsGoldDim)
+                    .foregroundColor(theme.primaryDim) // 🔧 Используем тему
                 
                 Text("Герои")
                     .font(.system(size: 28, weight: .light))
-                    .foregroundColor(Color.dsGold)
+                    .foregroundColor(theme.primary) // 🔧 Используем тему
             }
             .padding(.top, 16)
             .padding(.bottom, 12)
@@ -134,7 +146,7 @@ struct ContentView: View {
                 characterList(store: store)
             }
         }
-        .background(Color.dsBackground)  // ✅ НОВОЕ: фон для всего mainContent
+        .background(theme.background)  // ✅ НОВОЕ: фон для всего mainContent
         .environmentObject(store)
         .onAppear {
             // 🆕 Автопереподключение при запуске приложения
@@ -153,24 +165,24 @@ struct ContentView: View {
             
             Image(systemName: "book.closed")
                 .font(.system(size: 48))
-                .foregroundColor(Color.dsGoldDim)
+                .foregroundColor(theme.primaryDim) // 🔧 Используем тему
             
             Text("Книга пуста")
                 .font(.system(size: 20, weight: .light))
-                .foregroundColor(Color.dsText)
+                .foregroundColor(theme.text) // 🔧 Используем тему
             
             Text("Создайте своего первого героя")
                 .font(.system(size: 13))
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim) // 🔧 Используем тему
             
             Button(action: { showingCreation = true }) {
                 Text("✦ Призвать героя ✦")
                     .font(.system(size: 16, weight: .medium))
                     .tracking(1)
-                    .foregroundColor(Color.dsBackground)
+                    .foregroundColor(theme.background) // 🔧 Используем тему
                     .padding(.horizontal, 24)
                     .padding(.vertical, 12)
-                    .background(Color.dsGold)
+                    .background(theme.primary) // 🔧 Используем тему
                     .cornerRadius(3)
             }
             .buttonStyle(.plain)
@@ -188,8 +200,8 @@ struct ContentView: View {
                     .environmentObject(store)) {
                         CharacterRowView(character: character)
                     }
-                    .listRowBackground(Color.dsSurface)
-                    .listRowSeparatorTint(Color.dsBorder)
+                    .listRowBackground(theme.surface) // 🔧 Используем тему
+                    .listRowSeparatorTint(theme.border) // 🔧 Используем тему
                     .contextMenu {
                         // ✅ НОВОЕ: Кнопка информации о персонаже
                         Button(action: {
@@ -222,9 +234,9 @@ struct ContentView: View {
         
         // ✅ ЭТИ МОДИФИКАТОРЫ ДОЛЖНЫ БЫТЬ ПОСЛЕ LIST, А НЕ ВНУТРИ!
         .listStyle(.plain)
-        .scrollContentBackground(.hidden)  // ✅ Скрываем стандартный фон ячеек
-        .background(Color.dsBackground)     // ✅ Фон для самого List
-        .animation(nil, value: characters)
+            .scrollContentBackground(.hidden) //Скрываем стандартный фон ячеек
+            .background(theme.background) // Используем тему
+            .animation(nil, value: characters)
         // 🆕 PULL-TO-REFRESH: потяни вниз для переподключения к партии
         .refreshable {
             SoundManager.shared.play(.equip, haptic: .light)
@@ -243,6 +255,7 @@ struct ContentView: View {
     struct CharacterRowView: View {
         
         let character: DNDCharacter
+        @Environment(\.theme) private var theme // 🆕 Получаем тему
         
         var body: some View {
             HStack(spacing: 12) {
@@ -256,11 +269,11 @@ struct ContentView: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(character.displayName)
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(Color.dsText)
+                        .foregroundColor(theme.text) // 🔧 Используем тему
                     
                     Text("\(character.race.rawValue) · \(character.characterClass.rawValue)")
                         .font(.system(size: 12))
-                        .foregroundColor(Color.dsTextDim)
+                        .foregroundColor(theme.textDim) // 🔧 Используем тему
                 }
                 
                 Spacer()
@@ -269,12 +282,12 @@ struct ContentView: View {
                     Text("Веха \(character.level)")
                         .font(.system(size: 11, weight: .medium))
                         .tracking(1)
-                        .foregroundColor(Color.dsGold)
+                        .foregroundColor(theme.primary) // 🔧 Используем тему
                     
                     HStack(spacing: 4) {
                         Image(systemName: "heart.fill")
                             .font(.system(size: 9))
-                            .foregroundColor(Color.dsRed)
+                            .foregroundColor(theme.danger) // 🔧 Используем тему
                         
                         Text("\(character.currentHP)/\(character.hitPoints)")
                             .font(.system(size: 11, weight: .medium))
@@ -289,12 +302,12 @@ struct ContentView: View {
             let fraction = Double(character.currentHP) / Double(max(character.hitPoints, 1))
             
             if fraction > 0.5 {
-                return Color.dsGold
+                return theme.primary // 🔧 Используем тему
             }
             if fraction > 0.25 {
                 return .orange
             }
-            return Color.dsRed
+            return theme.danger// 🔧 Используем тему
         }
     }
 }

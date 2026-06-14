@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct InstrumentModSlotView: View {
+    @Environment(\.theme) private var theme
     let instrument: InstrumentType
     
     let slot: InstrumentModificationSlot
@@ -47,7 +48,7 @@ struct InstrumentModSlotView: View {
                     } else {
                         Image(systemName: slot.icon)
                             .font(.system(size: 20))
-                            .foregroundColor(Color.dsTextDim.opacity(0.5))
+                            .foregroundColor(theme.textDim.opacity(0.5))
                     }
                     
                     // Кнопка удаления (если есть модификация)
@@ -58,8 +59,8 @@ struct InstrumentModSlotView: View {
                                 Button(action: removeAction) {
                                     Image(systemName: "xmark.circle.fill")
                                         .font(.system(size: 16))
-                                        .foregroundColor(Color.dsRed)
-                                        .background(Color.dsBackground)
+                                        .foregroundColor(theme.danger)
+                                        .background(theme.background)
                                         .clipShape(Circle())
                                 }
                                 .offset(x: 6, y: -6)
@@ -72,12 +73,12 @@ struct InstrumentModSlotView: View {
                 // Название слота
                 Text(slot.rawValue)
                     .font(.system(size: 10, weight: .medium))
-                    .foregroundColor(Color.dsText)
+                    .foregroundColor(theme.text)
                 
                 // Описание слота (скрываем, если не влезает)
                 Text(slot.description)
                     .font(.system(size: 8))
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
                     .minimumScaleFactor(0.8)
@@ -87,10 +88,10 @@ struct InstrumentModSlotView: View {
             .frame(maxWidth: .infinity)
             .background(
                 RoundedRectangle(cornerRadius: 6)
-                    .fill(Color.dsSurface)
+                    .fill(theme.surface)
                     .overlay(
                         RoundedRectangle(cornerRadius: 6)
-                            .stroke(Color.dsBorder, lineWidth: 0.5)
+                            .stroke(theme.border, lineWidth: 0.5)
                     )
             )
         }
@@ -102,17 +103,17 @@ struct InstrumentModSlotView: View {
     
     private var instrumentAccentColor: Color {
         switch instrument {
-        case .lute: return Color.dsGold
-        case .flute: return Color.dsBlue
-        case .drum: return Color.dsRed
+        case .lute: return theme.primary
+        case .flute: return theme.tertiary
+        case .drum: return theme.danger
         }
     }
     
     private var instrumentBackgroundColor: Color {
         switch instrument {
-        case .lute: return Color.dsGold.opacity(0.08)
-        case .flute: return Color.dsBlue.opacity(0.08)
-        case .drum: return Color.dsRed.opacity(0.08)
+        case .lute: return theme.primary.opacity(0.08)
+        case .flute: return theme.tertiary.opacity(0.08)
+        case .drum: return theme.danger.opacity(0.08)
         }
     }
 }

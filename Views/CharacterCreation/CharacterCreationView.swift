@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct CharacterCreationView: View {
+    @Environment(\.theme) private var theme
     @EnvironmentObject var store: CharacterStore
     @Environment(\.dismiss) var dismiss
     
@@ -20,7 +21,7 @@ struct CharacterCreationView: View {
         
         NavigationStack {
             ZStack {
-                Color.dsBackground.ignoresSafeArea()
+                theme.background.ignoresSafeArea()
                 
                 VStack(spacing: 0) {
                     StepProgressBar(currentStep: currentStep, totalSteps: totalSteps)
@@ -86,8 +87,8 @@ struct CharacterCreationView: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 15)
-            .background(Color.dsGold)
-            .foregroundColor(Color.dsBackground)
+            .background(theme.primary)
+            .foregroundColor(theme.background)
             .font(.system(size: 16, weight: .medium))
             .cornerRadius(3)
         }
@@ -109,6 +110,7 @@ struct CharacterCreationView: View {
 // MARK: - Прогресс-бар
 
 struct StepProgressBar: View {
+    @Environment(\.theme) private var theme
     let currentStep: Int
     let totalSteps: Int
     
@@ -116,7 +118,7 @@ struct StepProgressBar: View {
         HStack(spacing: 6) {
             ForEach(0..<totalSteps, id: \.self) { index in
                 RoundedRectangle(cornerRadius: 2)
-                    .fill(index <= currentStep ? Color.dsGold : Color.dsSurfaceAlt)
+                    .fill(index <= currentStep ? theme.primary : theme.surfaceAlt)
                     .frame(height: 4)
             }
         }

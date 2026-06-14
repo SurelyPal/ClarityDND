@@ -1,6 +1,6 @@
 import SwiftUI
 
-// ✅ Кроссплатформенный OptionSet для указания углов (заменяет UIRectCorner)
+//Кроссплатформенный OptionSet для указания углов (заменяет UIRectCorner)
 public struct RectCorner: OptionSet {
     public let rawValue: Int
     
@@ -15,7 +15,7 @@ public struct RectCorner: OptionSet {
     public static let allCorners: RectCorner = [.topLeft, .topRight, .bottomLeft, .bottomRight]
 }
 
-// ✅ Кастомный Shape, который рисует путь вручную (без UIBezierPath)
+// Кастомный Shape, который рисует путь вручную (без UIBezierPath)
 struct RoundedCornerShape: Shape {
     var radius: CGFloat = .infinity
     var corners: RectCorner = .allCorners

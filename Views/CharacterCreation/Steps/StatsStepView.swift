@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct StatsStepView: View {
+    @Environment(\.theme) private var theme
     @Binding var stats: AbilityScores
     
     private var pointsSpent: Int {
@@ -56,10 +57,10 @@ struct StatsStepView: View {
             Text("Шаг 3 из 4")
                 .font(.system(size: 11))
                 .tracking(2)
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim)
             Text("Характеристики")
                 .font(.system(size: 24, weight: .light))
-                .foregroundColor(Color.dsGold)
+                .foregroundColor(theme.primary)
         }
     }
     
@@ -67,10 +68,10 @@ struct StatsStepView: View {
         HStack(spacing: 6) {
             Image(systemName: "star.fill")
                 .font(.caption)
-                .foregroundColor(pointsLeft == 0 ? Color.dsGoldDim : Color.dsGold)
+                .foregroundColor(pointsLeft == 0 ? theme.primaryDim : theme.primary)
             Text("Осталось очков: \(pointsLeft)")
                 .font(.system(size: 14))
-                .foregroundColor(pointsLeft == 0 ? Color.dsGoldDim : Color.dsGold)
+                .foregroundColor(pointsLeft == 0 ? theme.primaryDim : theme.primary)
             Spacer()
             Button("Сбросить") {
                 withAnimation(.spring(response: 0.3)) {
@@ -78,15 +79,15 @@ struct StatsStepView: View {
                 }
             }
             .font(.system(size: 12))
-            .foregroundColor(Color.dsTextDim)
+            .foregroundColor(theme.textDim)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background(Color.dsSurface)
+        .background(theme.surface)
         .cornerRadius(3)
         .overlay(
             RoundedRectangle(cornerRadius: 3)
-                .stroke(Color.dsBorder, lineWidth: 0.5)
+                .stroke(theme.border, lineWidth: 0.5)
         )
         .padding(.top, 4)
     }
@@ -95,7 +96,7 @@ struct StatsStepView: View {
         Text("14→15 стоит 2 очка · максимум \(Constants.Stat.maxValue) · минимум \(Constants.Stat.minValue)")
             .font(.system(size: 10))
             .tracking(0.5)
-            .foregroundColor(Color.dsTextDim)
+            .foregroundColor(theme.textDim)
             .padding(.top, 4)
             .padding(.bottom, 4)
     }

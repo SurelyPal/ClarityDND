@@ -1,4 +1,12 @@
 //
+//  SettingsView.swift
+//  Clarity
+//
+//  Created by KEBAB on 14.06.2026.
+//
+
+
+//
 // SettingsView.swift
 // Clarity
 //
@@ -23,7 +31,7 @@ struct SettingsView: View {
                     NavigationLink(destination: ThemeSettingsView()) {
                         SettingsRow(
                             icon: "paintbrush.fill",
-                            iconColor: theme.gold, // 🔧 Используем тему
+                            iconColor: theme.primary, // 🔧 Используем тему
                             title: "Темы",
                             subtitle: "Оформление и цвета"
                         )
@@ -31,14 +39,14 @@ struct SettingsView: View {
                     .listRowBackground(theme.surface) // 🔧 Используем тему
                 } header: {
                     Text("Внешний вид")
-                        .foregroundColor(theme.goldDim) // 🔧 Используем тему
+                        .foregroundColor(theme.primaryDim) // 🔧 Используем тему
                 }
                 
                 // MARK: - Секция: О приложении
                 Section {
                     SettingsRow(
                         icon: "info.circle.fill",
-                        iconColor: theme.blue, // 🔧 Используем тему
+                        iconColor: theme.info, // 🔧 Используем тему
                         title: "О приложении",
                         subtitle: "Версия 1.0"
                     )
@@ -46,14 +54,14 @@ struct SettingsView: View {
                     
                     SettingsRow(
                         icon: "book.fill",
-                        iconColor: theme.estus, // 🔧 Используем тему
+                        iconColor: theme.secondary, // 🔧 Используем тему
                         title: "Руководство",
                         subtitle: "Как играть"
                     )
                     .listRowBackground(theme.surface) // 🔧 Используем тему
                 } header: {
                     Text("Информация")
-                        .foregroundColor(theme.goldDim) // 🔧 Используем тему
+                        .foregroundColor(theme.primaryDim) // 🔧 Используем тему
                 }
                 
             }

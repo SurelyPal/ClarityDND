@@ -6,12 +6,13 @@
 import SwiftUI
 
 struct DSdivider: View {
+    @Environment(\.theme) private var theme
     var body: some View {
         HStack(spacing: 6) {
             line
             Image(systemName: "diamond.fill")
                 .font(.system(size: 5))
-                .foregroundColor(Color.dsGoldDim)
+                .foregroundColor(theme.primaryDim)
             line
         }
         .padding(.vertical, 2)
@@ -19,7 +20,7 @@ struct DSdivider: View {
     
     private var line: some View {
         Rectangle()
-            .fill(Color.dsBorder)
+            .fill(theme.border)
             .frame(height: 0.5)
     }
 }

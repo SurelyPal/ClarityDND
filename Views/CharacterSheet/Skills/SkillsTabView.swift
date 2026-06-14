@@ -6,6 +6,7 @@
 import SwiftUI
 
 struct SkillsTabView: View {
+    @Environment(\.theme) private var theme
     let character: DNDCharacter
     
     // Список навыков с указанием базовой характеристики
@@ -54,6 +55,7 @@ struct SkillsTabView: View {
 }
 
 private struct SkillRow: View {
+    @Environment(\.theme) private var theme
     let name: String
     let statAbbr: String
     let modifier: Int
@@ -64,23 +66,23 @@ private struct SkillRow: View {
         HStack {
             Image(systemName: isProficient ? "diamond.fill" : "diamond")
                 .font(.system(size: 7))
-                .foregroundColor(isProficient ? Color.dsGold : Color.dsTextDim)
+                .foregroundColor(isProficient ? theme.primary : theme.textDim)
                 .frame(width: 16)
             
             Text(name)
                 .font(.system(size: 14))
-                .foregroundColor(Color.dsText)
+                .foregroundColor(theme.text)
             
             Spacer()
             
             Text(statAbbr)
                 .font(.system(size: 11))
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim)
                 .frame(width: 30, alignment: .trailing)
             
             Text(Constants.Stat.formattedModifier(modifier))
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(Color.dsGold)
+                .foregroundColor(theme.primary)
                 .frame(width: 36, alignment: .trailing)
         }
         .padding(.horizontal, 16)
@@ -88,7 +90,7 @@ private struct SkillRow: View {
         .overlay(alignment: .bottom) {
             if !isLast {
                 Rectangle()
-                    .fill(Color.dsBorder)
+                    .fill(theme.border)
                     .frame(height: 0.5)
                     .padding(.leading, 32)
             }

@@ -8,6 +8,7 @@ import SwiftUI
 /// Глобальный индикатор статуса партии.
 /// Размещается поверх всего приложения в AppRootView.
 struct PartyStatusIndicator: View {
+    @Environment(\.theme) private var theme
     @ObservedObject private var partyManager = PartyManager.shared // ✅ Исправлено: @StateObject → @ObservedObject
     @State private var pulse: Double = 0.6
     @State private var showDisconnectError: Bool = false
@@ -116,7 +117,7 @@ struct PartyStatusIndicator: View {
             if showDisconnectError {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.system(size: 10))
-                    .foregroundColor(Color.dsRed)
+                    .foregroundColor(theme.danger)
             } else {
                 EmptyView()
             }
@@ -145,7 +146,7 @@ struct PartyStatusIndicator: View {
             if partyManager.role == .dungeonMaster {
                 Image(systemName: "crown.fill")
                     .font(.system(size: 10))
-                    .foregroundColor(Color.dsGold)
+                    .foregroundColor(theme.primary)
             } else {
                 // ✅ Показываем warning если heartbeat пропущен
                 if partyManager.missedHeartbeats > 0 {
@@ -169,7 +170,7 @@ struct PartyStatusIndicator: View {
         case .disconnected:
             if showDisconnectError {
                 Text("Связь потеряна")
-                    .foregroundColor(Color.dsRed)
+                    .foregroundColor(theme.danger)
             } else {
                 EmptyView()
             }
@@ -221,7 +222,7 @@ struct PartyStatusIndicator: View {
     private var textColor: Color {
         switch partyManager.connectionState {
         case .selectingCharacter, .searching, .connecting:
-            return Color.dsTextDim
+            return theme.textDim
             
         case .configuringRules:
             return Color.dsSoul
@@ -230,7 +231,7 @@ struct PartyStatusIndicator: View {
             return partyManager.role == .dungeonMaster ? Color.dsSoul : .white
             
         case .disconnected:
-            return showDisconnectError ? Color.dsRed : Color.dsTextDim
+            return showDisconnectError ? theme.danger : theme.textDim
         }
     }
     
@@ -251,10 +252,10 @@ struct PartyStatusIndicator: View {
             : Color.dsEstus.opacity(0.30)        // ✅ Было 0.15
             
         case .searching, .connecting:
-            return Color.dsSurfaceAlt
+            return theme.surfaceAlt
             
         case .disconnected:
-            return showDisconnectError ? Color.dsRed.opacity(0.30) : Color.dsSurfaceAlt  // ✅ Было 0.15
+            return showDisconnectError ? theme.danger.opacity(0.30) : theme.surfaceAlt  // ✅ Было 0.15
         }
     }
     
@@ -275,10 +276,10 @@ struct PartyStatusIndicator: View {
             : Color.dsEstus.opacity(0.8)        // ✅ Было 0.5
             
         case .searching, .connecting:
-            return Color.dsBorder
+            return theme.border
             
         case .disconnected:
-            return showDisconnectError ? Color.dsRed.opacity(0.8) : Color.clear  // ✅ Было 0.5
+            return showDisconnectError ? theme.danger.opacity(0.8) : Color.clear  // ✅ Было 0.5
         }
     }
     
@@ -290,6 +291,7 @@ struct PartyStatusIndicator: View {
 // MARK: - Sheet с деталями подключения
 
 struct ConnectionDetailsSheet: View {
+    @Environment(\.theme) private var theme
     let connectionState: PartyManager.ConnectionState
     let role: PartyManager.Role
     let partyMembers: [PartyMember]
@@ -300,7 +302,7 @@ struct ConnectionDetailsSheet: View {
     
     var body: some View {
         ZStack {
-            Color.dsBackground.ignoresSafeArea()
+            theme.background.ignoresSafeArea()
             
             VStack(alignment: .leading, spacing: 20) {
                 // Заголовок
@@ -316,7 +318,7 @@ struct ConnectionDetailsSheet: View {
                         dismiss()
                     }
                     .font(.system(size: 13))
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                 }
                 
                 DSdivider()
@@ -349,7 +351,7 @@ struct ConnectionDetailsSheet: View {
                     icon: connectionIcon,
                     title: "Статус",
                     value: connectionStatusText,
-                    valueColor: connectionStatusColor
+                    //valueColor: connectionStatusColor
                 )
                 
                 // Причина отключения (если есть)
@@ -358,7 +360,7 @@ struct ConnectionDetailsSheet: View {
                         icon: "exclamationmark.triangle.fill",
                         title: "Последняя ошибка",
                         value: reason,
-                        valueColor: Color.dsRed
+                       // valueColor: theme.danger
                     )
                 }
                 
@@ -391,10 +393,10 @@ struct ConnectionDetailsSheet: View {
     
     private var connectionStatusColor: Color {
         switch connectionState {
-        case .connected: return .dsEstus
-        case .connecting, .searching: return Color.dsSoul
-        case .disconnected: return Color.dsRed
-        default: return Color.dsTextDim
+        case .connected: return .secondary
+        case .connecting, .searching: return theme.tertiary
+        case .disconnected: return theme.danger
+        default: return theme.textDim
         }
     }
     
@@ -414,10 +416,11 @@ struct ConnectionDetailsSheet: View {
 // MARK: - Компонент строки деталей
 
 struct DetailRow: View {
+    @Environment(\.theme) private var theme
     let icon: String
     let title: String
     let value: String
-    var valueColor: Color = Color.dsText
+    var valueColor: Color { theme.text }
     
     var body: some View {
         HStack(spacing: 12) {
@@ -429,7 +432,7 @@ struct DetailRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.system(size: 11))
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                 
                 Text(value)
                     .font(.system(size: 14, weight: .medium))
@@ -442,8 +445,9 @@ struct DetailRow: View {
 }
 
 #Preview {
+    @Environment(\.theme) var theme
     ZStack {
-        Color.dsBackground.ignoresSafeArea()
+        theme.background.ignoresSafeArea()
         
         VStack {
             HStack {

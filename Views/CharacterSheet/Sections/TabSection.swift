@@ -6,6 +6,7 @@
 import SwiftUI
 
 struct TabSection: View, Equatable {
+    @Environment(\.theme) private var theme
     @Binding var character: DNDCharacter
     @Binding var selectedTab: Int
     let canEdit: Bool
@@ -48,21 +49,21 @@ struct TabSection: View, Equatable {
                             // 🎯 ИКОНКА СВЕРХУ (отдельно от текста)
                             Image(systemName: tab.icon)
                                 .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(selectedTab == index ? Color.dsGold : Color.dsTextDim)
+                                .foregroundColor(selectedTab == index ? theme.primary : theme.textDim)
                                 .frame(height: 18)
                             
                             // 🎯 ТЕКСТ СНИЗУ с авто-сжатием
                             Text(tab.title)
                                 .font(.system(size: 10, weight: selectedTab == index ? .semibold : .regular))
                                 .tracking(0.5)
-                                .foregroundColor(selectedTab == index ? Color.dsGold : Color.dsTextDim)
+                                .foregroundColor(selectedTab == index ? theme.primary : theme.textDim)
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.7)  // ← Текст сам сожмётся до 70%
                                 .padding(.horizontal, 2)
                             
                             // Индикатор активного таба
                             Rectangle()
-                                .fill(selectedTab == index ? Color.dsGold : Color.clear)
+                                .fill(selectedTab == index ? theme.primary : Color.clear)
                                 .frame(height: 2)
                                 .animation(.easeInOut(duration: 0.2), value: selectedTab)
                         }
@@ -70,17 +71,17 @@ struct TabSection: View, Equatable {
                         .padding(.vertical, 10)
                         .background(
                             selectedTab == index
-                            ? Color.dsGold.opacity(0.05)
+                            ? theme.primary.opacity(0.05)
                             : Color.clear
                         )
                     }
                     .buttonStyle(.plain)
                 }
             }
-            .background(Color.dsSurface)
+            .background(theme.surface)
             .overlay(
                 Rectangle()
-                    .fill(Color.dsBorder)
+                    .fill(theme.border)
                     .frame(height: 0.5),
                 alignment: .bottom
             )

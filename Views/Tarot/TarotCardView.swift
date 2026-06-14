@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct TarotCardView: View {
+    @Environment(\.theme) private var theme
     @Binding var card: TarotCard
     let canEdit: Bool
     let onUse: () -> Void
@@ -34,7 +35,7 @@ struct TarotCardView: View {
             } label: {
                 ZStack {
                     Rectangle()
-                        .fill(card.isRevealed ? Color.dsSurface : Color.dsRed.opacity(0.15))
+                        .fill(card.isRevealed ? theme.surface : theme.danger.opacity(0.15))
                     
                     VStack(spacing: 6) {
                         if card.isRevealed {
@@ -49,22 +50,22 @@ struct TarotCardView: View {
                         Text(card.name)
                             .font(.system(size: 13, weight: .medium))
                             .tracking(0.5)
-                            .foregroundColor(card.isRevealed ? Color.dsGold : Color.dsRed)
+                            .foregroundColor(card.isRevealed ? theme.primary : theme.danger)
                             .multilineTextAlignment(.center)
                         
                         Text(card.arcana)
                             .font(.system(size: 9))
                             .tracking(1)
-                            .foregroundColor(Color.dsTextDim)
+                            .foregroundColor(theme.textDim)
                         
                         if !card.isRevealed {
                             Text("ПЕРЕВЁРНУТА")
                                 .font(.system(size: 8, weight: .medium))
                                 .tracking(1)
-                                .foregroundColor(Color.dsRed.opacity(0.8))
+                                .foregroundColor(theme.danger.opacity(0.8))
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
-                                .background(Color.dsRed.opacity(0.15))
+                                .background(theme.danger.opacity(0.15))
                                 .cornerRadius(2)
                         }
                         
@@ -77,10 +78,10 @@ struct TarotCardView: View {
                                     .font(.system(size: 8, weight: .medium))
                                     .tracking(0.5)
                             }
-                            .foregroundColor(Color.dsTextDim)
+                            .foregroundColor(theme.textDim)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 3)
-                            .background(Color.dsSurfaceAlt)
+                            .background(theme.surfaceAlt)
                             .cornerRadius(10)
                             .padding(.top, 2)
                         }
@@ -103,12 +104,12 @@ struct TarotCardView: View {
                 VStack(spacing: 6) {
                     HStack(alignment: .top, spacing: 6) {
                         Rectangle()
-                            .fill(Color.dsGold.opacity(0.5))
+                            .fill(theme.primary.opacity(0.5))
                             .frame(width: 2)
                         
                         Text(card.effect)
                             .font(.system(size: 11))
-                            .foregroundColor(Color.dsText)
+                            .foregroundColor(theme.text)
                             .lineSpacing(2)
                             .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -116,7 +117,7 @@ struct TarotCardView: View {
                 }
                 .padding(10)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.dsSurfaceAlt.opacity(0.6))
+                .background(theme.surfaceAlt.opacity(0.6))
                 .transition(.asymmetric(
                     insertion: .move(edge: .top).combined(with: .opacity),
                     removal: .opacity
@@ -136,17 +137,17 @@ struct TarotCardView: View {
                             Text("\(card.usesLeft)")
                                 .font(.system(size: 11, weight: .semibold))
                         }
-                        .foregroundColor(card.canUse && canEdit ? Color.dsGold : Color.dsTextDim)
+                        .foregroundColor(card.canUse && canEdit ? theme.primary : theme.textDim)
                         Text("Исп.")
                             .font(.system(size: 8))
-                            .foregroundColor(Color.dsTextDim)
+                            .foregroundColor(theme.textDim)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
                     .background(
                         card.canUse && canEdit
-                        ? Color.dsGold.opacity(0.1)
-                        : Color.dsSurfaceAlt
+                        ? theme.primary.opacity(0.1)
+                        : theme.surfaceAlt
                     )
                 }
                 .buttonStyle(.plain)
@@ -154,7 +155,7 @@ struct TarotCardView: View {
                 
                 // Разделитель
                 Rectangle()
-                    .fill(Color.dsBorder)
+                    .fill(theme.border)
                     .frame(width: 0.5)
                 
                 // Перевернуть (разрешено всегда — это просмотр)
@@ -170,11 +171,11 @@ struct TarotCardView: View {
                     VStack(spacing: 2) {
                         Image(systemName: "arrow.2.squarepath")
                             .font(.system(size: 13))
-                            .foregroundColor(Color.dsText)
+                            .foregroundColor(theme.text)
                             .rotationEffect(.degrees(isFlipping ? 180 : 0))
                         Text(card.isRevealed ? "Закрыть" : "Открыть")
                             .font(.system(size: 8))
-                            .foregroundColor(Color.dsTextDim)
+                            .foregroundColor(theme.textDim)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
@@ -183,7 +184,7 @@ struct TarotCardView: View {
                 
                 // Разделитель
                 Rectangle()
-                    .fill(Color.dsBorder)
+                    .fill(theme.border)
                     .frame(width: 0.5)
                 
                 // Редактировать
@@ -191,10 +192,10 @@ struct TarotCardView: View {
                     VStack(spacing: 2) {
                         Image(systemName: canEdit ? "pencil" : "lock.fill")
                             .font(.system(size: 13))
-                            .foregroundColor(canEdit ? Color.dsGold : Color.dsTextDim)
+                            .foregroundColor(canEdit ? theme.primary : theme.textDim)
                         Text("Изменить")
                             .font(.system(size: 8))
-                            .foregroundColor(Color.dsTextDim)
+                            .foregroundColor(theme.textDim)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
@@ -202,21 +203,21 @@ struct TarotCardView: View {
                 .buttonStyle(.plain)
                 .disabled(!canEdit)
             }
-            .background(Color.dsSurfaceAlt)
+            .background(theme.surfaceAlt)
         }
         .cornerRadius(4)
         .overlay(
             ZStack {
                 RoundedRectangle(cornerRadius: 4)
                     .stroke(
-                        card.isRevealed ? Color.dsBorder : Color.dsRed.opacity(0.3),
+                        card.isRevealed ? theme.border : theme.danger.opacity(0.3),
                         lineWidth: isExpanded ? 1.5 : 1
                     )
                 CornerOrnaments(size: 10)
             }
         )
         .shadow(
-            color: isExpanded ? Color.dsGold.opacity(0.3) : Color.clear,
+            color: isExpanded ? theme.primary.opacity(0.3) : Color.clear,
             radius: isExpanded ? 8 : 0
         )
         .opacity(card.canUse ? 1 : 0.6)

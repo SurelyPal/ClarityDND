@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct TarotTabView: View {
-    
+    @Environment(\.theme) private var theme
     @Binding var character: DNDCharacter
     let canEdit: Bool
     @EnvironmentObject var store: CharacterStore
@@ -19,15 +19,15 @@ struct TarotTabView: View {
         
         VStack(spacing: 16) {
             HStack {
-                Image(systemName: "moon.stars.fill").foregroundColor(Color.dsGold)
+                Image(systemName: "moon.stars.fill").foregroundColor(theme.primary)
                 Text("Карты таро")
                     .font(.system(size: 13))
                     .tracking(1)
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                 Spacer()
                 Text("\(character.tarotCards.count) карт")
                     .font(.system(size: 11))
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
             }
             .padding(.horizontal, 16)
             
@@ -58,7 +58,7 @@ struct TarotTabView: View {
             Text("🃏").font(.system(size: 40))
             Text("Колода пуста")
                 .font(.system(size: 14))
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim)
             
             Button {
                 character.tarotCards = TarotCard.starterDeck
@@ -67,10 +67,10 @@ struct TarotTabView: View {
                 Text(canEdit ? "✦  Получить стартовую колоду  ✦" : "🔒 Заблокировано")  // 🆕
                     .font(.system(size: 13, weight: .medium))
                     .tracking(1)
-                    .foregroundColor(Color.dsBackground)
+                    .foregroundColor(theme.background)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 10)
-                    .background(Color.dsGold)
+                    .background(theme.primary)
                     .cornerRadius(3)
             }
             .buttonStyle(.plain)
@@ -103,14 +103,14 @@ struct TarotTabView: View {
                         Text("Добавить карту")
                     }
                     .font(.system(size: 13))
-                    .foregroundColor(canEdit ? Color.dsGoldDim : Color.dsTextDim)
+                    .foregroundColor(canEdit ? theme.primaryDim : theme.textDim)
                     .padding(.vertical, 10)
                     .frame(maxWidth: .infinity)
-                    .background(Color.dsSurface)
+                    .background(theme.surface)
                     .cornerRadius(3)
                     .overlay(
                         RoundedRectangle(cornerRadius: 3)
-                            .stroke(Color.dsBorder, lineWidth: 0.5)
+                            .stroke(theme.border, lineWidth: 0.5)
                     )
                 }
                 .buttonStyle(.plain)

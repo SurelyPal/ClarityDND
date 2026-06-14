@@ -138,8 +138,9 @@ struct SparkleEffect: View {
 // MARK: - Preview
 
 #Preview {
+    @Environment(\.theme) var theme
     ZStack {
-        Color.dsBackground.ignoresSafeArea()
+        theme.background.ignoresSafeArea()
         SparkleEffect(sparkleCount: 20, lifetime: 2.5, color: .dsGold)
     }
     .frame(width: 400, height: 600)

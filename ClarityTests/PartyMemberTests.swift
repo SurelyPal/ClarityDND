@@ -65,15 +65,16 @@ final class PartyMemberTests: XCTestCase {
     }
     
     // MARK: - hpColor
+    @Environment(\.theme) private var theme
     
     func testHpColor_FullHP_ReturnsGold() {
         let member = makeMember(currentHP: 10, maxHP: 10)
-        XCTAssertEqual(member.hpColor, Color.dsGold)
+        XCTAssertEqual(member.hpColor, theme.primary)
     }
     
     func testHpColor_AboveHalf_ReturnsGold() {
         let member = makeMember(currentHP: 6, maxHP: 10)
-        XCTAssertEqual(member.hpColor, Color.dsGold)
+        XCTAssertEqual(member.hpColor, theme.primary)
     }
     
     func testHpColor_ExactlyHalf_ReturnsOrange() {
@@ -88,17 +89,17 @@ final class PartyMemberTests: XCTestCase {
     
     func testHpColor_Exactly25Percent_ReturnsRed() {
         let member = makeMember(currentHP: 2, maxHP: 8)  // 25%
-        XCTAssertEqual(member.hpColor, Color.dsRed)
+        XCTAssertEqual(member.hpColor, theme.danger)
     }
     
     func testHpColor_Below25_ReturnsRed() {
         let member = makeMember(currentHP: 1, maxHP: 10)
-        XCTAssertEqual(member.hpColor, Color.dsRed)
+        XCTAssertEqual(member.hpColor, theme.danger)
     }
     
     func testHpColor_ZeroHP_ReturnsRed() {
         let member = makeMember(currentHP: 0, maxHP: 10)
-        XCTAssertEqual(member.hpColor, Color.dsRed)
+        XCTAssertEqual(member.hpColor, theme.danger)
     }
     
     // MARK: - hasFullProfile

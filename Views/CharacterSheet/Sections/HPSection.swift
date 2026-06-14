@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct HPSection: View, Equatable {
+    @Environment(\.theme) private var theme
     @Binding var character: DNDCharacter
     @Binding var currentHP: Int
     let canEdit: Bool
@@ -27,10 +28,10 @@ struct HPSection: View, Equatable {
             
             VStack(spacing: 12) {
                 HStack {
-                    Text("♥").foregroundColor(Color.dsRed)
+                    Text("♥").foregroundColor(theme.danger)
                     Text("Очки здоровья")
                         .font(.system(size: 14))
-                        .foregroundColor(Color.dsText)
+                        .foregroundColor(theme.text)
                     Spacer()
                     Text("\(currentHP) / \(character.hitPoints)")
                         .font(.system(size: 14, weight: .medium))
@@ -40,7 +41,7 @@ struct HPSection: View, Equatable {
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
                         RoundedRectangle(cornerRadius: 2)
-                            .fill(Color.dsSurfaceAlt)
+                            .fill(theme.surfaceAlt)
                             .frame(height: 8)
                         RoundedRectangle(cornerRadius: 2)
                             .fill(hpColor)
@@ -105,9 +106,9 @@ struct HPSection: View, Equatable {
     }
     
     private var hpColor: Color {
-        if hpFraction > 0.5 { return Color.dsGold }
+        if hpFraction > 0.5 { return theme.primary }
         if hpFraction > 0.25 { return .orange }
-        return Color.dsRed
+        return theme.danger
     }
 }
 

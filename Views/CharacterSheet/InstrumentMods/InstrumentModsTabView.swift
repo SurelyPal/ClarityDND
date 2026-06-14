@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct InstrumentModsTabView: View {
+    @Environment(\.theme) private var theme
     @Binding var character: DNDCharacter
     let canEdit: Bool
     @EnvironmentObject var store: CharacterStore
@@ -52,7 +53,7 @@ struct InstrumentModsTabView: View {
                 // Подсказка
                 Text("Нажмите на слот, чтобы установить модификацию")
                     .font(.system(size: 11))
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                     .padding(.top, 8)
                 
                 // Кнопка добавления новой модификации
@@ -64,10 +65,10 @@ struct InstrumentModsTabView: View {
                         Text("Добавить модификацию")
                     }
                     .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(canEdit ? Color.dsBackground : Color.dsTextDim)
+                    .foregroundColor(canEdit ? theme.background : theme.textDim)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 12)
-                    .background(canEdit ? Color.dsGold : Color.dsSurfaceAlt)
+                    .background(canEdit ? theme.primary : theme.surfaceAlt)
                     .cornerRadius(6)
                 }
                 .buttonStyle(.plain)
@@ -104,12 +105,12 @@ struct InstrumentModsTabView: View {
                 Text(instrument.rawValue.uppercased())
                     .font(.system(size: 14, weight: .medium))
                     .tracking(2)
-                    .foregroundColor(Color.dsGold)
+                    .foregroundColor(theme.primary)
                     .multilineTextAlignment(.center)
                 
                 Text("Модификации")
                     .font(.system(size: 10))
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
             }
             .frame(maxWidth: .infinity)
             
@@ -125,15 +126,15 @@ struct InstrumentModsTabView: View {
             
             Image(systemName: "music.note")
                 .font(.system(size: 48))
-                .foregroundColor(Color.dsTextDim.opacity(0.3))
+                .foregroundColor(theme.textDim.opacity(0.3))
             
             Text("Инструмент не экипирован")
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(Color.dsText)
+                .foregroundColor(theme.text)
             
             Text("Возьмите инструмент в руки, чтобы использовать модификации")
                 .font(.system(size: 12))
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim)
                 .multilineTextAlignment(.center)
             
             Spacer()

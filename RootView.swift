@@ -28,19 +28,24 @@ struct RootView: View {
     @State private var recoveryState: RecoveryState = .healthy
     @State private var showRecoverySheet = false
  
+    // 🆕 Theme Manager
+    @StateObject private var themeManager = ThemeManager.shared
+    
     // MARK: - Body
     var body: some View {
         ZStack {
             // Фон в стиле Dark Souls
-            Color.dsBackground
+            themeManager.currentTheme.background // 🔧 Динамический цвет
                 .ignoresSafeArea()
             
             if let store = store {
-                // ✅ Как только store создан — показываем ContentView
-                // и передаём store + PartyManager в Environment для ВСЕХ дочерних экранов
+                //Как только store создан — показываем ContentView
+                // и передаём store + PartyManager + ThemeManager в Environment
                 ContentView()
                     .environmentObject(store)
                     .environmentObject(PartyManager.shared)
+                    .environmentObject(themeManager) //Инъекция темы
+                    .injectTheme() //Инъекция через EnvironmentValues
             } else {
                 // Экран загрузки (показывается долю секунды при старте)
                 VStack(spacing: 20) {
@@ -57,7 +62,7 @@ struct RootView: View {
             }
         }
         .overlay(alignment: .topTrailing) {
-            // ✅ Глобальный индикатор статуса партии поверх ВСЕХ экранов
+            //Глобальный индикатор статуса партии поверх ВСЕХ экранов
             if store != nil {
                 PartyStatusIndicator()
                     .padding(.trailing, 16)

@@ -1,6 +1,8 @@
 //
-// ThemeManager.swift
-// Clarity
+//  ThemeManager.swift
+//  Clarity
+//
+//  Created by KEBAB on 14.06.2026.
 //
 
 import SwiftUI
@@ -25,7 +27,8 @@ final class ThemeManager: ObservableObject {
     // MARK: - Available Themes
     let availableThemes: [any Theme] = [
         DarkSoulsTheme(),
-        HighContrastTheme()
+        HighContrastTheme(),
+        ArcaneLibraryTheme()
         // 🆕 Добавляй новые темы сюда
     ]
     
@@ -41,8 +44,12 @@ final class ThemeManager: ObservableObject {
     }
     
     // MARK: - Public Methods
-    func selectTheme(_ theme: any Theme) {
-        currentTheme = theme
+    /// Переключить тему по ID
+    // Упрощаем название метода для соответствия стандартам Swift
+    func selectTheme(id: String) {
+        if let theme = availableThemes.first(where: { $0.id == id }) {
+            currentTheme = theme
+        }
     }
     
     // MARK: - Private Methods

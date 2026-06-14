@@ -9,6 +9,7 @@ import SwiftUI
 
 /// Универсальный skeleton loader с пульсирующей анимацией в стиле Dark Souls
 struct SkeletonLoader: View {
+    @Environment(\.theme) private var theme
     var width: CGFloat? = nil
     var height: CGFloat = 20
     var cornerRadius: CGFloat = 4
@@ -17,11 +18,11 @@ struct SkeletonLoader: View {
     
     var body: some View {
         RoundedRectangle(cornerRadius: cornerRadius)
-            .fill(Color.dsSurface)
+            .fill(theme.surface)
             .frame(width: width, height: height)
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(Color.dsGold.opacity(0.1), lineWidth: 1)
+                    .stroke(theme.primary.opacity(0.1), lineWidth: 1)
             )
             .opacity(animate ? 0.4 : 0.7)
             .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: animate)
@@ -33,17 +34,18 @@ struct SkeletonLoader: View {
 
 /// Skeleton для круга (аватар)
 struct SkeletonCircle: View {
+    @Environment(\.theme) private var theme
     var size: CGFloat = 48
     
     @State private var animate = false
     
     var body: some View {
         Circle()
-            .fill(Color.dsSurface)
+            .fill(theme.surface)
             .frame(width: size, height: size)
             .overlay(
                 Circle()
-                    .stroke(Color.dsGold.opacity(0.1), lineWidth: 1)
+                    .stroke(theme.primary.opacity(0.1), lineWidth: 1)
             )
             .opacity(animate ? 0.4 : 0.7)
             .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: animate)
@@ -54,6 +56,7 @@ struct SkeletonCircle: View {
 }
 
 #Preview {
+    @Environment(\.theme) var theme
     VStack(spacing: 20) {
         SkeletonLoader(width: 200, height: 16)
         SkeletonLoader(width: 150, height: 16)
@@ -61,6 +64,6 @@ struct SkeletonCircle: View {
         SkeletonCircle(size: 60)
     }
     .padding()
-    .background(Color.dsBackground)
+    .background(theme.background)
     .preferredColorScheme(.dark)
 }

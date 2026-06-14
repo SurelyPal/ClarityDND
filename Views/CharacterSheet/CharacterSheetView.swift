@@ -12,6 +12,7 @@ import AppKit
 #endif
 
 struct CharacterSheetView: View {
+    @Environment(\.theme) private var theme
     @State private var showEditBlockedAlert = false
     @ObservedObject private var partyManager = PartyManager.shared
     
@@ -59,7 +60,7 @@ struct CharacterSheetView: View {
     
     var body: some View {
         ZStack {
-            Color.dsBackground.ignoresSafeArea()
+            theme.background.ignoresSafeArea()
             
             mainScrollContent
                 .scrollDisabled(isDraggingHorizontally || isDrawerOpen)
@@ -176,7 +177,7 @@ struct CharacterSheetView: View {
                 
                 Text("Доступно: \(partyManager.gameRules.shortRestsAvailable) коротких / \(partyManager.gameRules.longRestsAvailable) долгих")
                     .font(.system(size: 10))
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                     .padding(.top, 4)
             }
             .padding(.bottom, 20)
@@ -202,10 +203,10 @@ struct CharacterSheetView: View {
                             .font(.system(size: 8))
                     }
                 }
-                .foregroundColor(partyManager.gameRules.canShortRest ? Color.dsBackground : Color.dsTextDim)
+                .foregroundColor(partyManager.gameRules.canShortRest ? theme.background : theme.textDim)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
-                .background(partyManager.gameRules.canShortRest ? Color.dsBlue : Color.dsSurfaceAlt.opacity(0.5))
+                .background(partyManager.gameRules.canShortRest ? theme.tertiary : theme.surfaceAlt.opacity(0.5))
                 .cornerRadius(4)
                 .opacity(partyManager.gameRules.canShortRest ? 1.0 : 0.6)
             }
@@ -228,10 +229,10 @@ struct CharacterSheetView: View {
                             .font(.system(size: 8))
                     }
                 }
-                .foregroundColor(partyManager.gameRules.canLongRest ? Color.dsBackground : Color.dsTextDim)
+                .foregroundColor(partyManager.gameRules.canLongRest ? theme.background : theme.textDim)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
-                .background(partyManager.gameRules.canLongRest ? Color.dsGold : Color.dsSurfaceAlt)
+                .background(partyManager.gameRules.canLongRest ? theme.primary : theme.surfaceAlt)
                 .cornerRadius(4)
             }
             .buttonStyle(.plain)
@@ -320,15 +321,15 @@ struct CharacterSheetView: View {
             } label: {
                 ZStack(alignment: .topTrailing) {
                     Image(systemName: "person.3.fill")
-                        .foregroundColor(Color.dsGold)
+                        .foregroundColor(theme.primary)
                         .font(.system(size: 16))
                     
                     if !partyManager.partyMembers.isEmpty {
                         Text("\(partyManager.partyMembers.count)")
                             .font(.system(size: 8, weight: .bold))
-                            .foregroundColor(Color.dsBackground)
+                            .foregroundColor(theme.background)
                             .padding(3)
-                            .background(Color.dsGold)
+                            .background(theme.primary)
                             .clipShape(Circle())
                             .offset(x: 6, y: -6)
                     }
@@ -339,7 +340,7 @@ struct CharacterSheetView: View {
         private var mapButton: some View {
             Button(action: { showingMap = true }) {
                 Image(systemName: "map")
-                    .foregroundColor(Color.dsGold)
+                    .foregroundColor(theme.primary)
             }
         }
         
@@ -356,14 +357,14 @@ struct CharacterSheetView: View {
                         Button("Закрыть") {
                             selectedMember = nil
                         }
-                        .foregroundColor(Color.dsGold)
+                        .foregroundColor(theme.primary)
                     }
                     #elseif os(macOS)
                     ToolbarItem(placement: .navigation) {
                         Button("Закрыть") {
                             selectedMember = nil
                         }
-                        .foregroundColor(Color.dsGold)
+                        .foregroundColor(theme.primary)
                     }
                     #endif
                 }

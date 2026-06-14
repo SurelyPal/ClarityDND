@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct HPHistorySheet: View {
+    @Environment(\.theme) private var theme
     let hpHistory: [HPChange]
     let onClearHistory: () -> Void
     
@@ -15,7 +16,7 @@ struct HPHistorySheet: View {
     
     var body: some View {
         ZStack {
-            Color.dsBackground.ignoresSafeArea()
+            theme.background.ignoresSafeArea()
             
             VStack(alignment: .leading, spacing: 16) {
                 // Заголовок
@@ -23,7 +24,7 @@ struct HPHistorySheet: View {
                     Text("✦ ИСТОРИЯ ЗДОРОВЬЯ ✦")
                         .font(.system(size: 14, weight: .medium))
                         .tracking(2)
-                        .foregroundColor(Color.dsGold)
+                        .foregroundColor(theme.primary)
                     
                     Spacer()
                     
@@ -32,14 +33,14 @@ struct HPHistorySheet: View {
                             onClearHistory()
                         }
                         .font(.system(size: 13))
-                        .foregroundColor(Color.dsRed)
+                        .foregroundColor(theme.danger)
                     }
                     
                     Button("Закрыть") {
                         dismiss()
                     }
                     .font(.system(size: 13))
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                 }
                 
                 DSdivider()
@@ -49,15 +50,15 @@ struct HPHistorySheet: View {
                     VStack(spacing: 16) {
                         Image(systemName: "scroll")
                             .font(.system(size: 48))
-                            .foregroundColor(Color.dsTextDim.opacity(0.5))
+                            .foregroundColor(theme.textDim.opacity(0.5))
                         
                         Text("История пуста")
                             .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(Color.dsTextDim)
+                            .foregroundColor(theme.textDim)
                         
                         Text("Изменения HP будут записываться здесь")
                             .font(.system(size: 13))
-                            .foregroundColor(Color.dsTextDim.opacity(0.7))
+                            .foregroundColor(theme.textDim.opacity(0.7))
                             .multilineTextAlignment(.center)
                     }
                     .frame(maxWidth: .infinity)
@@ -83,6 +84,7 @@ struct HPHistorySheet: View {
 // MARK: - Строка истории изменений
 
 struct HPChangeRow: View {
+    @Environment(\.theme) private var theme 
     let change: HPChange
     
     var body: some View {
@@ -91,11 +93,11 @@ struct HPChangeRow: View {
             VStack(spacing: 2) {
                 Image(systemName: change.isHealing ? "heart.fill" : "heart.slash.fill")
                     .font(.system(size: 16))
-                    .foregroundColor(change.isHealing ? .green : Color.dsRed)
+                    .foregroundColor(change.isHealing ? .green : theme.danger)
                 
                 Text(change.isHealing ? "+\(change.amount)" : "\(change.amount)")
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(change.isHealing ? .green : Color.dsRed)
+                    .foregroundColor(change.isHealing ? .green : theme.danger)
             }
             .frame(width: 50)
             
@@ -104,25 +106,25 @@ struct HPChangeRow: View {
                 HStack {
                     Text(change.reason.isEmpty ? "Изменение HP" : change.reason)
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(Color.dsText)
+                        .foregroundColor(theme.text)
                     
                     Spacer()
                     
                     Text(change.formattedTime)
                         .font(.system(size: 11))
-                        .foregroundColor(Color.dsTextDim)
+                        .foregroundColor(theme.textDim)
                 }
                 
                 HStack(spacing: 4) {
                     Text("\(change.oldHP)")
-                        .foregroundColor(Color.dsTextDim)
+                        .foregroundColor(theme.textDim)
                     
                     Image(systemName: "arrow.right")
                         .font(.system(size: 10))
-                        .foregroundColor(Color.dsTextDim)
+                        .foregroundColor(theme.textDim)
                     
                     Text("\(change.newHP)")
-                        .foregroundColor(change.isHealing ? .green : Color.dsRed)
+                        .foregroundColor(change.isHealing ? .green : theme.danger)
                 }
                 .font(.system(size: 12))
             }
@@ -132,11 +134,11 @@ struct HPChangeRow: View {
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color.dsSurface)
+                .fill(theme.surface)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(change.isHealing ? Color.green.opacity(0.3) : Color.dsRed.opacity(0.3), lineWidth: 1)
+                .stroke(change.isHealing ? Color.green.opacity(0.3) : theme.danger.opacity(0.3), lineWidth: 1)
         )
     }
 }

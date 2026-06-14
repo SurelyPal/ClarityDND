@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct PartyMembersDrawer: View {
+    @Environment(\.theme) private var theme
     @ObservedObject var partyManager: PartyManager
     @Binding var isOpen: Bool
     let members: [PartyMember]
@@ -29,12 +30,12 @@ struct PartyMembersDrawer: View {
                     HStack(spacing: 8) {
                         Image(systemName: "person.3.fill")
                             .font(.system(size: 14))
-                            .foregroundColor(Color.dsGold)
+                            .foregroundColor(theme.primary)
                         
                         Text("ПАРТИЯ")
                             .font(.system(size: 10, weight: .medium))
                             .tracking(2)
-                            .foregroundColor(Color.dsGold)
+                            .foregroundColor(theme.primary)
                         
                         Spacer()
                         
@@ -45,9 +46,9 @@ struct PartyMembersDrawer: View {
                         } label: {
                             Image(systemName: "xmark")
                                 .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(Color.dsTextDim)
+                                .foregroundColor(theme.textDim)
                                 .padding(6)
-                                .background(Color.dsSurfaceAlt)
+                                .background(theme.surfaceAlt)
                                 .clipShape(Circle())
                         }
                         .buttonStyle(.plain)
@@ -93,15 +94,15 @@ struct PartyMembersDrawer: View {
                                 .font(.system(size: 9))
                                 .tracking(0.5)
                         }
-                        .foregroundColor(Color.dsTextDim)
+                        .foregroundColor(theme.textDim)
                         .padding(.vertical, 12)
                     }
                 }
                 .frame(width: 280)
-                .background(Color.dsSurface)
+                .background(theme.surface)
                 .overlay(
                     Rectangle()
-                        .fill(Color.dsBorder)
+                        .fill(theme.border)
                         .frame(width: 0.5),
                     alignment: .leading  // 🆕 Тень СЛЕВА от drawer'а
                 )
@@ -124,15 +125,15 @@ struct PartyMembersDrawer: View {
                 
                 Image(systemName: "person.3.fill")
                     .font(.system(size: 36))
-                    .foregroundColor(Color.dsTextDim.opacity(0.3))
+                    .foregroundColor(theme.textDim.opacity(0.3))
                 
                 Text("Партия пуста")
                     .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(Color.dsText)
+                    .foregroundColor(theme.text)
                 
                 Text("Здесь появятся профили ваших сопартийцев, когда они подключатся")
                     .font(.system(size: 10))
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 20)
                 
@@ -146,6 +147,7 @@ struct PartyMembersDrawer: View {
     // ═══════════════════════════════════════
     
     struct PartyMemberCard: View {
+        @Environment(\.theme) private var theme
         let member: PartyMember
         
         var body: some View {
@@ -155,10 +157,10 @@ struct PartyMembersDrawer: View {
                     AvatarView(avatarData: member.avatarData, race: member.race, size: 50)
                     
                     Circle()
-                        .fill(member.isConnected ? Color.green : Color.dsRed)
+                        .fill(member.isConnected ? Color.green : theme.danger)
                         .frame(width: 12, height: 12)
                         .overlay(
-                            Circle().stroke(Color.dsSurface, lineWidth: 2)
+                            Circle().stroke(theme.surface, lineWidth: 2)
                         )
                         .offset(x: 2, y: 2)
                 }
@@ -168,31 +170,31 @@ struct PartyMembersDrawer: View {
                     HStack(spacing: 4) {
                         Text(member.name)
                             .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(member.isConnected ? Color.dsText : Color.dsTextDim)
+                            .foregroundColor(member.isConnected ? theme.text : theme.textDim)
                             .lineLimit(1)
                         
                         if !member.isConnected {
                             Text("ОФЛАЙН")
                                 .font(.system(size: 7, weight: .bold))
                                 .tracking(0.5)
-                                .foregroundColor(Color.dsRed)
+                                .foregroundColor(theme.danger)
                                 .padding(.horizontal, 4)
                                 .padding(.vertical, 2)
-                                .background(Color.dsRed.opacity(0.15))
+                                .background(theme.danger.opacity(0.15))
                                 .cornerRadius(2)
                         }
                     }
                     
                     Text("\(member.race.rawValue) · \(member.characterClass)")
                         .font(.system(size: 10))
-                        .foregroundColor(Color.dsTextDim)
+                        .foregroundColor(theme.textDim)
                         .lineLimit(1)
                     
                     // HP индикатор
                     HStack(spacing: 4) {
                         Image(systemName: "heart.fill")
                             .font(.system(size: 8))
-                            .foregroundColor(Color.dsRed)
+                            .foregroundColor(theme.danger)
                         
                         Text("\(member.currentHP)/\(member.maxHP)")
                             .font(.system(size: 10, weight: .medium))
@@ -208,14 +210,14 @@ struct PartyMembersDrawer: View {
                 
                 Image(systemName: "chevron.right")
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
             }
             .padding(12)
-            .background(Color.dsSurfaceAlt)
+            .background(theme.surfaceAlt)
             .overlay(
                 RoundedRectangle(cornerRadius: 6)
                     .stroke(
-                        member.isConnected ? Color.dsGold.opacity(0.3) : Color.dsBorder.opacity(0.5),
+                        member.isConnected ? theme.primary.opacity(0.3) : theme.border.opacity(0.5),
                         lineWidth: 0.5
                     )
             )
@@ -224,9 +226,9 @@ struct PartyMembersDrawer: View {
         
         private var hpColor: Color {
             let fraction = member.hpFraction
-            if fraction > 0.5 { return Color.dsGold }
+            if fraction > 0.5 { return theme.primary }
             if fraction > 0.25 { return .orange }
-            return Color.dsRed
+            return theme.danger
         }
     }
     

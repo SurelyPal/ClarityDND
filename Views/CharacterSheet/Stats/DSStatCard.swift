@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct DSStatCard: View {
+    @Environment(\.theme) private var theme
     let short: String
     let value: Int
     
@@ -19,15 +20,15 @@ struct DSStatCard: View {
         VStack(spacing: 6) {
             Text(modText)
                 .font(.system(size: 24, weight: .light))
-                .foregroundColor(Color.dsGold)
+                .foregroundColor(theme.primary)
             Text("\(value)")
                 .font(.system(size: 12))
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim)
             DSdivider()
             Text(short)
                 .font(.system(size: 9, weight: .medium))
                 .tracking(2)
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim)
         }
         .padding(.vertical, 14)
         .frame(maxWidth: .infinity)

@@ -9,6 +9,7 @@ import SwiftUI
 /// Тематический заголовок вкладки модификаций
 /// Меняет цветовую схему и лор в зависимости от типа инструмента
 struct InstrumentModHeader: View {
+    @Environment(\.theme) private var theme
     let instrument: InstrumentType
     
     @State private var glowPulse: Double = 0.5
@@ -46,7 +47,7 @@ struct InstrumentModHeader: View {
                 Text("МОДИФИКАЦИИ")
                     .font(.system(size: 10))
                     .tracking(3)
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                 
                 Text(instrument.rawValue.uppercased())
                     .font(.system(size: 26, weight: .light))
@@ -56,7 +57,7 @@ struct InstrumentModHeader: View {
                 Text(instrument.loreDescription)
                     .font(.system(size: 11, weight: .light))
                     .italic()
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 20)
             }

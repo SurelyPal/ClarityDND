@@ -6,6 +6,7 @@ import SwiftData
 import SwiftUI
 
 struct PlayerFlowView: View {
+    @Environment(\.theme) private var theme
 
     // MARK: - Свойства
 
@@ -25,10 +26,10 @@ struct PlayerFlowView: View {
                 Text("ВЫБЕРИТЕ ГЕРОЯ")
                     .font(.system(size: 10))
                     .tracking(2)
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
                 Text("Кто отправится в путь?")
                     .font(.system(size: 18, weight: .light))
-                    .foregroundColor(Color.dsGold)
+                    .foregroundColor(theme.primary)
             }
             .padding(.top, 10)
 
@@ -68,10 +69,10 @@ struct PlayerFlowView: View {
                             .font(.system(size: 14, weight: .bold))
                             .tracking(1)
                     }
-                    .foregroundColor(Color.dsBackground)
+                    .foregroundColor(theme.background)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(Color.dsGold)
+                    .background(theme.primary)
                     .cornerRadius(6)
                 }
                 .buttonStyle(.plain)
@@ -79,7 +80,7 @@ struct PlayerFlowView: View {
             } else if !isLoadingCharacters {
                 Text("Выберите героя, чтобы подключиться")
                     .font(.system(size: 11))
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(theme.textDim)
             }
 
             // ✅ КРИТИЧНО: Кнопка "Отмена" ВСЕГДА видна (вне условных блоков!)
@@ -98,12 +99,12 @@ struct PlayerFlowView: View {
                     Text("Отмена")
                         .font(.system(size: 13, weight: .medium))
                 }
-                .foregroundColor(Color.dsRed)
+                .foregroundColor(theme.danger)
                 .padding(.horizontal, 20)
                 .padding(.vertical, 10)
                 .background(
                     RoundedRectangle(cornerRadius: 6)
-                        .stroke(Color.dsRed.opacity(0.3), lineWidth: 1)
+                        .stroke(theme.danger.opacity(0.3), lineWidth: 1)
                 )
             }
             .buttonStyle(.plain)
@@ -134,13 +135,13 @@ struct PlayerFlowView: View {
         VStack(spacing: 16) {
             Image(systemName: "person.crop.circle.badge.exclamationmark")
                 .font(.system(size: 48))
-                .foregroundColor(Color.dsTextDim.opacity(0.5))
+                .foregroundColor(theme.textDim.opacity(0.5))
             Text("У вас нет персонажей")
                 .font(.system(size: 14))
-                .foregroundColor(Color.dsText)
+                .foregroundColor(theme.text)
             Text("Создайте героя в Книге Судеб,\nчтобы присоединиться к партии")
                 .font(.system(size: 11))
-                .foregroundColor(Color.dsTextDim)
+                .foregroundColor(theme.textDim)
                 .multilineTextAlignment(.center)
         }
         .padding(30)
@@ -169,10 +170,10 @@ struct PlayerFlowView: View {
                             VStack(alignment: .leading, spacing: 3) {
                                 Text(char.displayName)
                                     .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(Color.dsText)
+                                    .foregroundColor(theme.text)
                                 Text("\(char.race.rawValue) · \(char.characterClass.rawValue) · Веха \(char.level)")
                                     .font(.system(size: 10))
-                                    .foregroundColor(Color.dsTextDim)
+                                    .foregroundColor(theme.textDim)
                             }
 
                             Spacer()
@@ -181,7 +182,7 @@ struct PlayerFlowView: View {
                                 HStack(spacing: 4) {
                                     Image(systemName: "heart.fill")
                                         .font(.system(size: 9))
-                                        .foregroundColor(Color.dsRed)
+                                        .foregroundColor(theme.danger)
                                     Text("\(char.currentHP)/\(char.hitPoints)")
                                         .font(.system(size: 11, weight: .medium))
                                         .foregroundColor(char.hpColor)
@@ -190,25 +191,25 @@ struct PlayerFlowView: View {
                                 // Галочка выбранного персонажа
                                 if partyManager.selectedCharacter?.id == char.id {
                                     Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(Color.dsGold)
+                                        .foregroundColor(theme.primary)
                                 } else {
                                     Image(systemName: "circle")
-                                        .foregroundColor(Color.dsTextDim.opacity(0.5))
+                                        .foregroundColor(theme.textDim.opacity(0.5))
                                 }
                             }
                         }
                         .padding(12)
                         .background(
                             partyManager.selectedCharacter?.id == char.id
-                            ? Color.dsGold.opacity(0.1)
-                            : Color.dsSurfaceAlt
+                            ? theme.primary.opacity(0.1)
+                            : theme.surfaceAlt
                         )
                         .overlay(
                             RoundedRectangle(cornerRadius: 6)
                                 .stroke(
                                     partyManager.selectedCharacter?.id == char.id
-                                    ? Color.dsGold
-                                    : Color.dsBorder,
+                                    ? theme.primary
+                                    : theme.border,
                                     lineWidth: partyManager.selectedCharacter?.id == char.id ? 1.5 : 0.5
                                 )
                         )

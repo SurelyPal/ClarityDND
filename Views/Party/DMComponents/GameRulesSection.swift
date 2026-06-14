@@ -1,4 +1,12 @@
 //
+//  GameRulesSection.swift
+//  Clarity
+//
+//  Created by KEBAB on 14.06.2026.
+//
+
+
+//
 // GameRulesSection.swift
 // Clarity
 //
