@@ -701,11 +701,20 @@ final class PartyManager: NSObject, ObservableObject {
     }
 
     /// Добавить предмет в хранилище ДМа
-    func addItemToStorage(_ item: InventoryItem) {
+    func addItemToStorage(_ item: InventoryItem) -> Bool {
+        // 🔧 Проверяем лимит хранилища
+        guard canAddToStorage else {
+            log("⚠️ Хранилище полное (\(dmItemStorage.count)/\(Self.maxDMStorageItems))")
+            PlatformCompatibility.hapticNotification(.error)
+            return false
+        }
+        
         var storage = dmItemStorage
         storage.append(item)
         dmItemStorage = storage
-        log("📦 Добавлен предмет в хранилище: \(item.name)")
+        log("📦 Добавлен предмет в хранилище: \(item.name) (\(storage.count)/\(Self.maxDMStorageItems))")
+        PlatformCompatibility.hapticNotification(.success)
+        return true
     }
 
     /// Удалить предмет из хранилища ДМа
@@ -714,6 +723,14 @@ final class PartyManager: NSObject, ObservableObject {
         storage.removeAll { $0.id == itemID }
         dmItemStorage = storage
         log("🗑️ Удалён предмет из хранилища: \(itemID)")
+    }
+
+    //Максимальное количество предметов в хранилище ДМа
+    static let maxDMStorageItems = 50 // 🔧 Лимит хранилища
+
+    /// Проверить, можно ли добавить предмет в хранилище
+    var canAddToStorage: Bool {
+        return dmItemStorage.count < Self.maxDMStorageItems
     }
 
     /// Выдать предмет из хранилища игроку
@@ -732,6 +749,9 @@ final class PartyManager: NSObject, ObservableObject {
         send(message)
         
         log("🎁 ДМ выдал предмет '\(item.name)' игроку \(member.name)")
+        
+        // 🆕 Удаляем предмет из хранилища после выдачи
+        removeItemFromStorage(itemID: item.id)
         
         // Обновляем локальный partyMembers для отображения
         if let idx = partyMembers.firstIndex(where: { $0.id == member.id }) {

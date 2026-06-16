@@ -11,7 +11,7 @@ struct TabSection: View, Equatable {
     @Binding var selectedTab: Int
     let canEdit: Bool
     
-    // 🆕 Сравнение для оптимизации redraw
+    //   Сравнение для оптимизации redraw
     static func == (lhs: TabSection, rhs: TabSection) -> Bool {
         lhs.selectedTab == rhs.selectedTab &&
         lhs.canEdit == rhs.canEdit &&
@@ -93,9 +93,9 @@ struct TabSection: View, Equatable {
                     switch tab {
                     case .stats:           StatsTabView(character: character)
                     case .skills:         SkillsTabView(character: character)
-                    case .inventory:      InventoryTabView(character: $character, canEdit: canEdit)        // 🆕
-                    case .tarot:          TarotTabView(character: $character, canEdit: canEdit)            // 🆕
-                    case .instrumentMods: InstrumentModsTabView(character: $character, canEdit: canEdit)   // 🆕
+                    case .inventory:      InventoryTabView(character: $character, canEdit: canEdit)        //  
+                    case .tarot:          TarotTabView(character: $character, canEdit: canEdit)            //  
+                    case .instrumentMods: InstrumentModsTabView(character: $character, canEdit: canEdit)   //  
                      }
                 }
             }

@@ -69,7 +69,7 @@ struct HostingView: View {
                 }
             }
 
-            // 🆕 Кнопка перехода на экран мастера
+            //   Кнопка перехода на экран мастера
             NavigationLink {
                 DungeonMasterView()
                     .environmentObject(partyManager)

@@ -13,13 +13,13 @@ struct DungeonMasterDetailView: View {
     let memberID: UUID
     @EnvironmentObject var partyManager: PartyManager
 
-    // 🆕 Вычисляемое свойство — всегда актуальные данные
+    //   Вычисляемое свойство — всегда актуальные данные
     private var member: PartyMember? {
         partyManager.partyMembers.first { $0.id == memberID }
     }
 
     var body: some View {
-        // 🆕 Проверяем что игрок ещё существует
+        //   Проверяем что игрок ещё существует
         if let member = member {
             ScrollView {
                 VStack(spacing: 20) {

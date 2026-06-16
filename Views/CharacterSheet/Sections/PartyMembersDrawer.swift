@@ -104,7 +104,7 @@ struct PartyMembersDrawer: View {
                     Rectangle()
                         .fill(theme.border)
                         .frame(width: 0.5),
-                    alignment: .leading  // 🆕 Тень СЛЕВА от drawer'а
+                    alignment: .leading  //   Тень СЛЕВА от drawer'а
                 )
                 .shadow(color: .black.opacity(0.5), radius: 10, x: -5, y: 0)
                 
@@ -112,7 +112,7 @@ struct PartyMembersDrawer: View {
                 Spacer()
             }
             .compositingGroup()
-            .offset(x: isOpen ? 0 : 400)  // 🆕 +280 вместо -280 (уезжает вправо)
+            .offset(x: isOpen ? 0 : 400)  //   +280 вместо -280 (уезжает вправо)
             .animation(.spring(response: 0.4, dampingFraction: 0.85), value: isOpen)
             .zIndex(1000)
         

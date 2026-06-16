@@ -80,7 +80,7 @@ final class CharacterStore: ObservableObject {
                         
                         // Полностью разрываем соединение
                         PartyManager.shared.cleanupConnection(reason: "Удаление персонажа текущей кампании")
-                        
+                        PartyManager.shared.leaveRoom()
                         // Сбрасываем состояние партии
                         PartyManager.shared.partyMembers = []
                         PartyManager.shared.connectionState = .disconnected

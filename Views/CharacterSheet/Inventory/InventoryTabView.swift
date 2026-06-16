@@ -12,12 +12,12 @@ struct InventoryTabView: View {
     @Binding var character: DNDCharacter
     let canEdit: Bool
     @EnvironmentObject var store: CharacterStore
-    @EnvironmentObject var partyManager: PartyManager // 🆕
+    @EnvironmentObject var partyManager: PartyManager //  
     @State private var editingItem: InventoryItem? = nil
     @State private var showingAddItem = false
     @State private var selectedSlot: EquipmentSlot? = nil
     @State private var itemToTransfer: InventoryItem?
-    @State private var isShowingGoldTransfer = false // 🆕 Для листа передачи золота
+    @State private var isShowingGoldTransfer = false //   Для листа передачи золота
     
     // Все видимые слоты экипировки
     private let equipSlots: [EquipmentSlot] = [
@@ -61,7 +61,7 @@ struct InventoryTabView: View {
                         
                         Spacer()
                         
-                        // 🆕 Проверяем разрешение на создание предметов
+                        //   Проверяем разрешение на создание предметов
                         let canCreateItems = canEdit && (PartyManager.shared.gameRules.canPlayersCreateItems || PartyManager.shared.role == .dungeonMaster)
 
                         Button { showingAddItem = true } label: {
@@ -97,7 +97,7 @@ struct InventoryTabView: View {
                             label: "Золотые",
                             value: "\(character.money)",
                             showTransferButton: canEdit,
-                            onTransferTap: { isShowingGoldTransfer = true } // 🆕
+                            onTransferTap: { isShowingGoldTransfer = true } //  
                         )
                     }
                     .padding(.horizontal, 8)
@@ -151,7 +151,7 @@ struct InventoryTabView: View {
                                     },
                                     onToggleEquip: { toggleEquip(item) },
                                     onUpdate: { store.update(character) },
-                                    onTransfer: { itemToTransfer in // 🆕
+                                    onTransfer: { itemToTransfer in //  
                                         self.itemToTransfer = item
                                     }
                                 )
@@ -181,13 +181,13 @@ struct InventoryTabView: View {
                 }
             }
         }
-        // 🆕 Лист передачи предмета (открывается, когда itemToTransfer не nil)
+        //   Лист передачи предмета (открывается, когда itemToTransfer не nil)
         .sheet(item: $itemToTransfer) { item in
             TransferItemSheet(item: item) { selectedMember in
                 executeItemTransfer(item: item, to: selectedMember)
             }
         }
-        // 🆕 Лист передачи золота
+        //   Лист передачи золота
             .sheet(isPresented: $isShowingGoldTransfer) {
                 TransferGoldSheet(currentGold: character.money) { selectedMember, amount in
                     executeGoldTransfer(amount: amount, to: selectedMember)
@@ -201,20 +201,23 @@ struct InventoryTabView: View {
         icon: String,
         label: String,
         value: String,
-        showTransferButton: Bool = false, // 🆕 Параметр для кнопки передачи
-        onTransferTap: (() -> Void)? = nil // 🆕 Замыкание для кнопки передачи
+        showTransferButton: Bool = false, //Параметр для кнопки передачи
+        onTransferTap: (() -> Void)? = nil //Замыкание для кнопки передачи
     ) -> some View {
         HStack(spacing: 4) {
             Image(systemName: icon)
-                .font(.system(size: 14))
-                .foregroundColor(theme.primary)
+                .font(.system(size: 24)) //Увеличена иконка для лучшей читаемости
+                .foregroundColor(Color.dsGold)
+                .frame(width: 40, height: 40) //Фиксированный квадратный фрейм для выравнивания
+                .background(Color.dsSurfaceAlt) //Подложка для визуального веса
+                .cornerRadius(6)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(label)
                                 .font(.system(size: 10))
                                 .foregroundColor(theme.textDim)
-                                .fixedSize(horizontal: false, vertical: true) // ✅ Разрешаем перенос текста
-                                .lineLimit(2) // ✅ Максимум 2 строки
+                                .fixedSize(horizontal: false, vertical: true) //Разрешаем перенос текста
+                                .lineLimit(2) //Максимум 2 строки
                             
                             Text(value)
                                 .font(.system(size: 16, weight: .medium))
@@ -225,7 +228,7 @@ struct InventoryTabView: View {
 
             Spacer()
             
-            // 🆕 Кнопка передачи золота (появляется слева от +/-)
+            //   Кнопка передачи золота (появляется слева от +/-)
             if showTransferButton, let onTransfer = onTransferTap {
                 Button(action: onTransfer) {
                     Image(systemName: "arrow.right.circle.fill")
@@ -264,7 +267,7 @@ struct InventoryTabView: View {
                 .foregroundColor(theme.textDim)
             
             if selectedSlot == nil {
-                // 🆕 Проверяем разрешение на создание предметов
+                //   Проверяем разрешение на создание предметов
                 let canCreateItems = canEdit && (PartyManager.shared.gameRules.canPlayersCreateItems || PartyManager.shared.role == .dungeonMaster)
                 
                 Button {
@@ -294,7 +297,7 @@ struct InventoryTabView: View {
     }
 // MARK: - Передача/Удаление
 
-    // 🆕 Выполняет передачу предмета после выбора игрока в TransferItemSheet
+    //   Выполняет передачу предмета после выбора игрока в TransferItemSheet
     private func executeItemTransfer(item: InventoryItem, to member: PartyMember) {
         guard PartyManager.shared.role == .player,
               let myCharacter = PartyManager.shared.selectedCharacter else {
@@ -321,7 +324,7 @@ struct InventoryTabView: View {
         print("📤 Предмет '\(itemToSend.name)' передан игроку \(member.name)")
     }
 
-    // 🆕 Выполняет передачу золота после выбора игрока и суммы
+    //   Выполняет передачу золота после выбора игрока и суммы
     private func executeGoldTransfer(amount: Int, to member: PartyMember) {
         guard amount > 0, character.money >= amount else { return }
         
@@ -367,7 +370,7 @@ struct InventoryTabView: View {
 
 
 
-//MARK: 🆕 Лист для передачи золота
+//MARK:   Лист для передачи золота
 struct TransferGoldSheet: View {
     @Environment(\.theme) private var theme
     let currentGold: Int

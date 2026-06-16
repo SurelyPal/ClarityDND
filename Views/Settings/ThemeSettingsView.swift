@@ -10,8 +10,8 @@ import SwiftUI
 struct ThemeSettingsView: View {
     
     // MARK: - Environment
-    @Environment(\.theme) private var theme // 🆕 Получаем текущую тему
-    @EnvironmentObject private var themeManager: ThemeManager // 🆕 Менеджер тем
+    @Environment(\.theme) private var theme //   Получаем текущую тему
+    @EnvironmentObject private var themeManager: ThemeManager //   Менеджер тем
     
     // MARK: - Body
     var body: some View {
@@ -64,7 +64,7 @@ struct ThemeSettingsView: View {
         }
     }
     
-    // 🆕 Выносим логику строки в отдельную функцию
+    //   Выносим логику строки в отдельную функцию
     @ViewBuilder
     private func themeRow(for theme: Theme) -> some View {
         let isSelected = theme.id == themeManager.currentTheme.id
@@ -83,7 +83,7 @@ struct ThemeCardView: View {
     let theme: Theme
     let isSelected: Bool
     
-    @Environment(\.theme) private var currentTheme // 🆕 Для сравнения
+    @Environment(\.theme) private var currentTheme //   Для сравнения
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {

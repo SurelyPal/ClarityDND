@@ -52,7 +52,7 @@ struct InstrumentModSlotView: View {
                     }
                     
                     // Кнопка удаления (если есть модификация)
-                    if modification != nil, let removeAction = onRemove, canEdit {  // 🆕 + canEdit
+                    if modification != nil, let removeAction = onRemove, canEdit {  //   + canEdit
                         VStack {
                             HStack {
                                 Spacer()
@@ -96,8 +96,8 @@ struct InstrumentModSlotView: View {
             )
         }
         .buttonStyle(.plain)
-        .disabled(!canEdit)                    // 🆕
-        .opacity(canEdit ? 1.0 : 0.7)          // 🆕 чуть приглушаем
+        .disabled(!canEdit)                    //  
+        .opacity(canEdit ? 1.0 : 0.7)          //   чуть приглушаем
     
     }
     

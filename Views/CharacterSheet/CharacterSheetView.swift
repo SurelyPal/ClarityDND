@@ -29,7 +29,7 @@ struct CharacterSheetView: View {
     @State private var selectedMember: PartyMember? = nil
     @State private var isDraggingHorizontally = false
     
-    // 🆕 Состояния для отката уровня (перенесено из CharacterHeaderSection)
+    //   Состояния для отката уровня (перенесено из CharacterHeaderSection)
     @State private var showingDemotePopup = false
     @State private var demotionRewards: [MilestoneReward] = []
     
@@ -146,7 +146,7 @@ struct CharacterSheetView: View {
             .padding(.bottom, 40)
         }
         
-        // 🆕 PULL-TO-REFRESH: потяни вниз для переподключения к партии
+        //   PULL-TO-REFRESH: потяни вниз для переподключения к партии
         .refreshable {
             SoundManager.shared.play(.equip, haptic: .light)
             let success = await partyManager.reconnect()

@@ -31,16 +31,17 @@ struct DMItemStorageView: View {
                     .foregroundColor(Color.dsGold)
                 }
                 .buttonStyle(.plain)
+                .disabled(!partyManager.canAddToStorage) //   Блокируем если лимит достигнут
             }
             .padding(.horizontal, 16)
 
-            // Статистика
+            // Статистика с лимитом
             HStack {
                 Image(systemName: "bag.fill")
-                    .foregroundColor(Color.dsGold)
-                Text("\(partyManager.dmItemStorage.count) предметов в хранилище")
+                    .foregroundColor(partyManager.canAddToStorage ? Color.dsGold : Color.dsRed) // 🔧 Красный если полное
+                Text("\(partyManager.dmItemStorage.count) / \(PartyManager.maxDMStorageItems) предметов") //   Показываем лимит
                     .font(.system(size: 12))
-                    .foregroundColor(Color.dsTextDim)
+                    .foregroundColor(partyManager.canAddToStorage ? Color.dsTextDim : Color.dsRed)
                 Spacer()
             }
             .padding(.horizontal, 16)
@@ -60,9 +61,15 @@ struct DMItemStorageView: View {
         }
         .padding(.vertical, 16)
         // Лист добавления нового предмета
+        // Лист добавления нового предмета
         .sheet(isPresented: $showingAddItem) {
             ItemEditorView(item: InventoryItem()) { newItem in
-                partyManager.addItemToStorage(newItem)
+                // 🔧 Проверяем результат добавления
+                let success = partyManager.addItemToStorage(newItem)
+                if !success {
+                    // Если хранилище полное, не закрываем лист или показываем алерт
+                    // (здесь просто не добавляем, пользователь увидит по счётчику)
+                }
             }
         }
         // Лист редактирования

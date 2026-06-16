@@ -16,7 +16,7 @@ import SwiftUI
 struct SettingsView: View {
     
     // MARK: - Environment
-    @Environment(\.theme) private var theme // 🆕 Получаем тему
+    @Environment(\.theme) private var theme //Получаем тему
     
     // MARK: - Body
     var body: some View {
@@ -31,7 +31,7 @@ struct SettingsView: View {
                     NavigationLink(destination: ThemeSettingsView()) {
                         SettingsRow(
                             icon: "paintbrush.fill",
-                            iconColor: theme.primary, // 🔧 Используем тему
+                            iconColor: theme.primary, // Используем тему
                             title: "Темы",
                             subtitle: "Оформление и цвета"
                         )
@@ -65,7 +65,7 @@ struct SettingsView: View {
                 }
                 
             }
-            #if os(macOS) // 🆕 Кроссплатформенность
+            #if os(macOS) //   Кроссплатформенность
             .listStyle(.bordered)
             #else
             .listStyle(.insetGrouped)
@@ -87,7 +87,7 @@ struct SettingsRow: View {
     let title: String
     let subtitle: String
     
-    @Environment(\.theme) private var theme // 🆕 Получаем тему
+    @Environment(\.theme) private var theme //   Получаем тему
     
     var body: some View {
         HStack(spacing: 12) {

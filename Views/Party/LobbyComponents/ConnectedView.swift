@@ -30,7 +30,7 @@ struct ConnectedView: View {
             .background(theme.surfaceAlt)
             .cornerRadius(6)
 
-            // 🆕 Кнопка перехода на экран мастера (только для ДМ)
+            //   Кнопка перехода на экран мастера (только для ДМ)
             if partyManager.role == .dungeonMaster {
                 NavigationLink {
                     DungeonMasterView()

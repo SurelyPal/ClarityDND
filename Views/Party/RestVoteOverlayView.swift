@@ -11,9 +11,9 @@ struct RestVoteOverlayView: View {
     @Environment(\.theme) private var theme
     let session: PartyManager.RestVoteSession
     let myVoteSent: Bool?
-    let isDungeonMaster: Bool // 🆕
+    let isDungeonMaster: Bool //  
     let onVote: (Bool) -> Void
-    let onCancel: (() -> Void)? // 🆕 Для отмены ДМ
+    let onCancel: (() -> Void)? //   Для отмены ДМ
     
     @State private var pulseOpacity: Double = 0.6
     
@@ -64,7 +64,7 @@ struct RestVoteOverlayView: View {
                     // ─── Прогресс голосования ───
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 12) {
-                            // 🆕 Заголовок для ДМа
+                            //   Заголовок для ДМа
                             if isDungeonMaster {
                                 HStack {
                                     Image(systemName: "crown.fill")
@@ -308,12 +308,12 @@ struct RestVoteOverlayView: View {
                 initiatorName: "Арагорн",
                 restType: .short,
                 votes: [UUID(): true],
-                eligibleVoterIDs: [UUID(), UUID(), UUID(), UUID()] // 🆕 4 eligible voters
+                eligibleVoterIDs: [UUID(), UUID(), UUID(), UUID()] //   4 eligible voters
             ),
             myVoteSent: nil,
-            isDungeonMaster: false, // 🆕 Добавили
+            isDungeonMaster: false, //   Добавили
             onVote: { _ in },
-            onCancel: {} // 🆕 Добавили
+            onCancel: {} //   Добавили
         )
     }
     .preferredColorScheme(.dark)

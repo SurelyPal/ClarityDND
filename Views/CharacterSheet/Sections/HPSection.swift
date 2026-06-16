@@ -15,7 +15,7 @@ struct HPSection: View, Equatable {
     @Binding var showEditBlockedAlert: Bool
     @EnvironmentObject var store: CharacterStore
     
-    // 🆕 Сравнение для оптимизации redraw
+    //   Сравнение для оптимизации redraw
     static func == (lhs: HPSection, rhs: HPSection) -> Bool {
         lhs.character.hitPoints == rhs.character.hitPoints &&
         lhs.currentHP == rhs.currentHP &&
@@ -83,7 +83,7 @@ struct HPSection: View, Equatable {
             .padding(.horizontal, 16)
         }
         .onChange(of: currentHP) { oldValue, newValue in
-            // 🆕 Защита от рекурсии: если model уже имеет это значение
+            //   Защита от рекурсии: если model уже имеет это значение
             // (например, при синхронизации извне) — не отправляем лишний sync
             guard character.currentHP != newValue else { return }
             
@@ -117,7 +117,7 @@ struct StressSection: View, Equatable {
     @Binding var character: DNDCharacter
     let canEdit: Bool
     
-    // 🆕 Сравнение для оптимизации redraw
+    //   Сравнение для оптимизации redraw
     static func == (lhs: StressSection, rhs: StressSection) -> Bool {
         lhs.character.stress == rhs.character.stress &&
         lhs.character.rerollPoints == rhs.character.rerollPoints &&

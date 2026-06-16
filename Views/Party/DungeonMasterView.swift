@@ -10,7 +10,7 @@ struct DungeonMasterView: View {
     @Environment(\.theme) private var theme
     @ObservedObject private var partyManager = PartyManager.shared
     @State private var showDeletedCharacters = false
-    @State private var showItemStorage = false // 🆕 Вкладка хранилища предметов
+    @State private var showItemStorage = false //   Вкладка хранилища предметов
     var body: some View {
         ZStack {
             theme.background.ignoresSafeArea()
@@ -21,7 +21,8 @@ struct DungeonMasterView: View {
                     //Секция правил игры
                     GameRulesSection(partyManager: partyManager)
                     
-                    // 🆕 Переключатель между Партией и Хранилищем
+                    //   Переключатель между Партией и Хранилищем
+                    //   Переключатель между Партией и Хранилищем
                     HStack(spacing: 0) {
                         Button {
                             withAnimation(.easeInOut(duration: 0.2)) {
@@ -63,16 +64,18 @@ struct DungeonMasterView: View {
                         RoundedRectangle(cornerRadius: 4)
                             .stroke(Color.dsGold.opacity(0.5), lineWidth: 1)
                     )
+                    .fixedSize(horizontal: false, vertical: true) // 🔧 Предотвращает сжатие переключателя
 
                     if showItemStorage {
-                        // 🆕 Вкладка хранилища предметов ДМа
                         DMItemStorageView()
                     } else if partyManager.partyMembers.isEmpty {
                         emptyState
                     } else {
                         partyGrid
+                            .frame(maxWidth: .infinity, alignment: .leading) // 🔧 Растягивает сетку на всю ширину
+                            .fixedSize(horizontal: false, vertical: true) //   Запрещает сжатие контента по вертикали
 
-                        // 🆕 Кнопка "Новая сессия" (сброс отдыхов)
+                        //   Кнопка "Новая сессия" (сброс отдыхов)
                         Button {
                             PlatformCompatibility.hapticImpact(.medium)
                             partyManager.resetSession()
@@ -99,7 +102,7 @@ struct DungeonMasterView: View {
                 }
                 .padding(.horizontal, 16).padding(.vertical, 20)
             }
-            // 🆕 Pull-to-refresh для обновления данных партии
+            //   Pull-to-refresh для обновления данных партии
             .refreshable {
                 PlatformCompatibility.hapticImpact(.light)
                 await partyManager.requestFullSync()
@@ -109,7 +112,7 @@ struct DungeonMasterView: View {
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
-        // 🆕 Overlay голосования за отдых (ДМ тоже голосует)
+        //   Overlay голосования за отдых (ДМ тоже голосует)
         .overlay {
             if let voteSession = partyManager.restVotingManager.activeRestVote {
                 RestVoteOverlayView(
@@ -131,7 +134,7 @@ struct DungeonMasterView: View {
                 .zIndex(9999)
             }
         }
-        // 🆕 Overlay эффекта отдыха
+        //   Overlay эффекта отдыха
         .overlay {
             if let effect = partyManager.restVotingManager.activeRestEffect {
                 RestEffectOverlayView(effect: effect) {
@@ -140,7 +143,7 @@ struct DungeonMasterView: View {
                 .zIndex(10000)
             }
         }
-        // 🆕 Overlay эффекта отдыха
+        //   Overlay эффекта отдыха
         .overlay {
             if let effect = partyManager.restVotingManager.activeRestEffect {
                 RestEffectOverlayView(effect: effect) {
@@ -403,7 +406,7 @@ struct DungeonMasterMemberCard: View {
                 )
         )
         .cornerRadius(6)
-        .opacity(member.isConnected ? 1.0 : 0.65)  // 🆕 Полупрозрачность
+        .opacity(member.isConnected ? 1.0 : 0.65)  //   Полупрозрачность
     }
     
     private var hpColor: Color {

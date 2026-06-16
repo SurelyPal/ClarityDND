@@ -77,7 +77,7 @@ struct DatabaseRecoveryView: View {
                 EmptyView()
             }
         }
-        // 🆕 Подтверждение восстановления
+        //   Подтверждение восстановления
         .alert("Подтвердите восстановление", isPresented: $showRestoreConfirmation) {
             Button("Отмена", role: .cancel) { }
             Button("Восстановить", role: .destructive) {
@@ -87,7 +87,7 @@ struct DatabaseRecoveryView: View {
             Text("Текущая база данных будет заменена данными из backup. Это действие нельзя отменить.")
         }
 
-        // 🆕 Успешный экспорт
+        //   Успешный экспорт
         .alert("Backup экспортирован", isPresented: $showExportSuccess) {
             Button("OK") { }
         } message: {
@@ -156,14 +156,14 @@ struct DatabaseRecoveryView: View {
     
     // MARK: - Action Buttons
     
-    // 🆕 Состояния для алертов
+    //   Состояния для алертов
     @State private var showRestoreConfirmation = false
     @State private var showExportSuccess = false
     @State private var selectedBackupForExport: DatabaseRecovery.BackupInfo? = nil
 
     private var actionButtons: some View {
         VStack(spacing: 12) {
-            // 🆕 Кнопка восстановления с подтверждением
+            //   Кнопка восстановления с подтверждением
             if case .recoveredFromBackup(let backupURL) = state {
                 Button {
                     showRestoreConfirmation = true
@@ -181,7 +181,7 @@ struct DatabaseRecoveryView: View {
                 }
                 .buttonStyle(.plain)
                 
-                // 🆕 Кнопка экспорта backup
+                //   Кнопка экспорта backup
                 Button {
                     let success = DatabaseRecovery.exportBackupToFiles(backupURL)
                     if success {
@@ -408,7 +408,7 @@ struct BackupRow: View {
     @Environment(\.theme) private var theme
     let backup: DatabaseRecovery.BackupInfo
     let onRestore: () -> Void
-    let onExport: () -> Void  // 🆕 Добавили callback для экспорта
+    let onExport: () -> Void  //   Добавили callback для экспорта
     
     var body: some View {
         HStack(spacing: 12) {
@@ -428,7 +428,7 @@ struct BackupRow: View {
             
             Spacer()
             
-            // 🆕 Кнопка экспорта
+            //   Кнопка экспорта
             Button {
                 onExport()
             } label: {

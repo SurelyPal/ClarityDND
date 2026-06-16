@@ -36,7 +36,7 @@ struct PlayerFlowView: View {
             DSdivider().padding(.horizontal, 40)
 
             // Список персонажей или пустое состояние
-            // 🆕 ФИЛЬТРУЕМ: показываем только НЕ удалённых персонажей
+            //   ФИЛЬТРУЕМ: показываем только НЕ удалённых персонажей
             let activeCharacters = store.characters.filter { !$0.isDeleted }
 
             // Список персонажей или пустое состояние

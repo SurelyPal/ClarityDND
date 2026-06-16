@@ -15,9 +15,9 @@ struct InventoryItemRow: View {
     let onDelete: () -> Void
     let onToggleEquip: () -> Void
     let onUpdate: () -> Void
-    let onTransfer: ((InventoryItem) -> Void)? // 🆕 Передача предмета
+    let onTransfer: ((InventoryItem) -> Void)? //   Передача предмета
 
-    // 🆕 Для меню действий
+    //   Для меню действий
     @State private var showingActionMenu = false
     @State private var showingTransferSheet = false
     
@@ -69,7 +69,7 @@ struct InventoryItemRow: View {
                 slotEquipButton
             }
             
-            // 🆕 Кнопка меню действий
+            //   Кнопка меню действий
             if canEdit {
                 Menu {
                     Button(action: onEdit) {
@@ -148,8 +148,8 @@ struct InventoryItemRow: View {
             .cornerRadius(3)
         }
         .buttonStyle(.plain)
-        .disabled(!canEdit) // 🆕
-        .opacity(canEdit ? 1.0 : 0.5) // 🆕
+        .disabled(!canEdit) //  
+        .opacity(canEdit ? 1.0 : 0.5) //  
     }
 }
 
@@ -161,7 +161,7 @@ struct TransferItemSheet: View {
     @EnvironmentObject var partyManager: PartyManager
     @Environment(\.dismiss) var dismiss
     
-    let onTransfer: (PartyMember) -> Void // 🆕 Замыкание для передачи логики наверх
+    let onTransfer: (PartyMember) -> Void //   Замыкание для передачи логики наверх
     
     @State private var selectedPlayerID: UUID?
     
@@ -184,7 +184,7 @@ struct TransferItemSheet: View {
             
             ScrollView {
                 VStack(spacing: 8) {
-                    // 🆕 Исключаем текущего персонажа из списка получателей
+                    //   Исключаем текущего персонажа из списка получателей
                     let currentCharacterID = partyManager.selectedCharacter?.id
                     
                     ForEach(partyManager.partyMembers.filter { member in
@@ -192,7 +192,7 @@ struct TransferItemSheet: View {
                     }) { member in
                         Button {
                             selectedPlayerID = member.id
-                            onTransfer(member) // 🆕 Вызываем замыкание вместо сломанного PartyManager.transferItem
+                            onTransfer(member) //   Вызываем замыкание вместо сломанного PartyManager.transferItem
                             dismiss()
                         } label: {
                             HStack {

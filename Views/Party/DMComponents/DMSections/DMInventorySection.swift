@@ -15,7 +15,7 @@ struct DMInventorySection: View {
     @State private var showingMoneyDialog = false
     @State private var moneyAmount = ""
     @State private var moneyReason = ""
-    @State private var showingItemPicker = false // 🆕 Выбор предмета из хранилища
+    @State private var showingItemPicker = false //   Выбор предмета из хранилища
     
     var body: some View {
         VStack(spacing: 12) {
@@ -63,7 +63,7 @@ struct DMInventorySection: View {
             .cornerRadius(6)
             .padding(.horizontal, 16)
             
-            // 🆕 Кнопка "Выдать предмет" (только для ДМа)
+            //   Кнопка "Выдать предмет" (только для ДМа)
             if partyManager.role == .dungeonMaster {
                 Button {
                     showingItemPicker = true
@@ -226,7 +226,7 @@ struct DMInventorySection: View {
             .background(Color.dsBackground)
             .presentationDetents([.height(320)])
             }
-            // 🆕 Лист выбора предмета из хранилища ДМа
+            //   Лист выбора предмета из хранилища ДМа
             .sheet(isPresented: $showingItemPicker) {
                 DMItemPickerSheet(member: member) { selectedItem in
                     partyManager.giveItemToPlayer(item: selectedItem, to: member)

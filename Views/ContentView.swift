@@ -149,7 +149,7 @@ struct ContentView: View {
         .background(theme.background)  // ✅ НОВОЕ: фон для всего mainContent
         .environmentObject(store)
         .onAppear {
-            // 🆕 Автопереподключение при запуске приложения
+            //   Автопереподключение при запуске приложения
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 
                 PartyManager.shared.tryAutoReconnect(characters: store.characters)
@@ -237,7 +237,7 @@ struct ContentView: View {
             .scrollContentBackground(.hidden) //Скрываем стандартный фон ячеек
             .background(theme.background) // Используем тему
             .animation(nil, value: characters)
-        // 🆕 PULL-TO-REFRESH: потяни вниз для переподключения к партии
+        //   PULL-TO-REFRESH: потяни вниз для переподключения к партии
         .refreshable {
             SoundManager.shared.play(.equip, haptic: .light)
             let success = await PartyManager.shared.reconnect()
@@ -255,7 +255,7 @@ struct ContentView: View {
     struct CharacterRowView: View {
         
         let character: DNDCharacter
-        @Environment(\.theme) private var theme // 🆕 Получаем тему
+        @Environment(\.theme) private var theme //   Получаем тему
         
         var body: some View {
             HStack(spacing: 12) {

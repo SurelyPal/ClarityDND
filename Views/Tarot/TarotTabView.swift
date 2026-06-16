@@ -64,7 +64,7 @@ struct TarotTabView: View {
                 character.tarotCards = TarotCard.starterDeck
                 store.update(character)
             } label: {
-                Text(canEdit ? "✦  Получить стартовую колоду  ✦" : "🔒 Заблокировано")  // 🆕
+                Text(canEdit ? "✦  Получить стартовую колоду  ✦" : "🔒 Заблокировано")  //  
                     .font(.system(size: 13, weight: .medium))
                     .tracking(1)
                     .foregroundColor(theme.background)
@@ -74,7 +74,7 @@ struct TarotTabView: View {
                     .cornerRadius(3)
             }
             .buttonStyle(.plain)
-            .disabled(!canEdit)                // 🆕
+            .disabled(!canEdit)                //  
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 30)
@@ -86,7 +86,7 @@ struct TarotTabView: View {
                 ForEach($character.tarotCards) { $card in
                     TarotCardView(
                         card: $card,
-                        canEdit: canEdit,                    // 🆕
+                        canEdit: canEdit,                    //  
                         onUse: {
                             guard card.canUse else { return }
                             card.use()
@@ -114,7 +114,7 @@ struct TarotTabView: View {
                     )
                 }
                 .buttonStyle(.plain)
-                .disabled(!canEdit)                    // 🆕
+                .disabled(!canEdit)                    //  
                 .padding(.horizontal, 16)
             }
         }

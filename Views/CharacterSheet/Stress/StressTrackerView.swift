@@ -13,7 +13,7 @@ struct StressTrackerView: View, Equatable {
     let canEdit: Bool
     @EnvironmentObject var store: CharacterStore
     
-    // 🆕 Сравнение для оптимизации redraw
+    //   Сравнение для оптимизации redraw
     static func == (lhs: StressTrackerView, rhs: StressTrackerView) -> Bool {
         lhs.character.stress == rhs.character.stress &&
         lhs.character.rerollPoints == rhs.character.rerollPoints &&
@@ -65,12 +65,12 @@ struct StressTrackerView: View, Equatable {
             
             DSdivider()
             
-             RerollPointsSection(character: $character, canEdit: canEdit)  // 🆕
+             RerollPointsSection(character: $character, canEdit: canEdit)  //  
         }
         .padding(16)
         .dsCard()
-        .disabled(!canEdit)                    // 🆕 Блокируем всё
-        .opacity(canEdit ? 1.0 : 0.6)          // 🆕 Приглушаем
+        .disabled(!canEdit)                    //   Блокируем всё
+        .opacity(canEdit ? 1.0 : 0.6)          //   Приглушаем
     }
     
     // MARK: - Обработка стресса
@@ -209,7 +209,7 @@ struct RerollPointsSection: View {
                 )
             }
             .buttonStyle(.plain)
-            .disabled(character.rerollPoints == 0 || !canEdit)  // 🆕
+            .disabled(character.rerollPoints == 0 || !canEdit)  //  
         }
     }
         }

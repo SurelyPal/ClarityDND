@@ -67,7 +67,7 @@ struct PartyLobbyView: View {
                 .environmentObject(store)
 
         case .configuringRules:
-            RulesConfigurationView(partyManager: partyManager)
+            GameRulesSection(partyManager: partyManager,)
 
         case .hosting(let code):
             HostingView(partyManager: partyManager, roomCode: code)

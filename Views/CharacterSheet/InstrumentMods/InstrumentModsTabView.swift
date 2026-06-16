@@ -38,7 +38,7 @@ struct InstrumentModsTabView: View {
                             instrument: instrumentType,
                             slot: slot,
                             modification: modification,
-                            canEdit: canEdit,                    // 🆕
+                            canEdit: canEdit,                    //  
                             onTap: {
                                 selectedSlot = slot
                                 showingModPicker = true
