@@ -65,7 +65,10 @@ struct MechanicDetailView: View {
             }
         }
         .navigationTitle(mechanic.name)
+        // ✅ СТАЛО (работает на iOS и macOS)
+        #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
         .sheet(isPresented: $showingAddAction) {
             AddActionSheet(mechanic: mechanic)
         }

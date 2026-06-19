@@ -46,7 +46,7 @@ struct TemplateManagementView: View {
             }
             .navigationTitle("Шаблоны игр")
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .automatic) {
                     Button(action: { showingAddTemplate = true }) {
                         Image(systemName: "plus")
                     }
@@ -111,7 +111,7 @@ struct TemplateDetailView: View {
         }
         .navigationTitle(template.name)
         .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
+            ToolbarItem(placement: .automatic) {
                 Button(action: { showingAddField = true }) {
                     Image(systemName: "plus")
                 }
@@ -154,7 +154,9 @@ struct AddTemplateView: View {
                 }
             }
             .navigationTitle("Новый шаблон")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Отмена") { dismiss() }
@@ -197,8 +199,10 @@ struct AddTemplateView: View {
                     Section("Идентификация") {
                         TextField("Название (например: Стресс)", text: $name)
                         TextField("Ключ (латиница, например: stress)", text: $key)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
+#if os(iOS)
+    .textInputAutocapitalization(.never)
+    #endif
+    .autocorrectionDisabled(true)
                     }
                     
                     Section("Тип поля") {
@@ -220,7 +224,10 @@ struct AddTemplateView: View {
                     }
                 }
                 .navigationTitle("Новое поле")
+                // ✅ СТАЛО
+                #if os(iOS)
                 .navigationBarTitleDisplayMode(.inline)
+                #endif
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
                         Button("Отмена") { dismiss() }
@@ -268,8 +275,10 @@ struct AddFieldView: View {
                 Section("Идентификация") {
                     TextField("Название (например: Стресс)", text: $name)
                     TextField("Ключ (латиница, например: stress)", text: $key)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
+                            #if os(iOS)
+                            .textInputAutocapitalization(.never)
+                            #endif
+                            .autocorrectionDisabled(true)
                 }
                 
                 Section("Тип поля") {
@@ -291,7 +300,10 @@ struct AddFieldView: View {
                 }
             }
             .navigationTitle("Новое поле")
+            // ✅ СТАЛО
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Отмена") { dismiss() }

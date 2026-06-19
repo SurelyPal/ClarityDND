@@ -9,7 +9,8 @@ import SwiftUI
 
 struct HostingView: View {
     @Environment(\.theme) private var theme
-    @ObservedObject var partyManager: PartyManager
+    // ✅ НОВОЕ (для @Observable)
+    @State var partyManager = PartyManager.shared
     let roomCode: String
 
     var body: some View {

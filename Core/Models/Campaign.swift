@@ -3,86 +3,82 @@
 //  Clarity
 //
 //  Created by KEBAB on 10.06.2026.
+//  
 //
 
 import Foundation
+import SwiftData
 
-// MARK: - Модель Кампании (Партии/Сессии)
+// MARK: - Тип кампании
+enum CampaignType: String, Codable {
+    case local = "local" // Локальная (без мультиплеера)
+    case multiplayer = "multiplayer" // Мультиплеер
+}
 
-/// Структура, представляющая одну игровую кампанию ДМа.
-/// Сохраняется как JSON файл в Documents/Campaigns/
-struct Campaign: Identifiable, Codable, Equatable, Sendable {
+// MARK: - Модель Кампании (SwiftData)
+
+/// Модель игровой кампании (партии/сессии)
+/// Хранится в SwiftData. НЕ хранит участников напрямую — они в PartyManager.
+@Model
+final class Campaign {
     
-    // MARK: - Свойства
+    // MARK: - Уникальный идентификатор
+    @Attribute(.unique) var id: UUID
     
-    /// Уникальный идентификатор кампании
-    let id: UUID
+    // MARK: - Идентификация
+    var name: String // Название кампании
+    var createdAt: Date // Дата создания
+    var lastPlayedAt: Date // Дата последней игры
     
-    /// Название кампании (например, "Проклятие Страда")
-    var name: String
+    // MARK: - Мультиплеер
+    var campaignType: CampaignType // Тип: локальная или мультиплеер
+    var joinCode: String? // 6-значный код для подключения
+    var isActive: Bool // Активна ли сейчас
     
-    /// Дата создания кампании
-    let createdAt: Date
+    // MARK: - Правила игры
+    var gameRules: GameRules // Правила (счётчики отдыхов и т.д.)
     
-    /// Дата последней игры/сохранения
-    var lastPlayedAt: Date
+    // MARK: - Заметки ДМа
+    var dmNotes: String // Заметки ДМа
     
-    /// Код комнаты Multipeer (6 цифр)
-    var roomCode: String
+    // MARK: - Связи
+    var gameTemplate: GameTemplate? // Шаблон игровой системы
     
-    /// Правила игры (счётчики отдыхов и т.д.)
-    var gameRules: GameRules
+    // Приватное хранилище для участников (чтобы работало вычисляемое свойство members)
+    @Attribute(.externalStorage) private var _members: [PartyMember] = []
     
-    /// Список участников партии (PartyMember)
-    var members: [PartyMember]
+    // ⚠️ ВАЖНО: Мы НЕ храним members здесь!
+    // Участники кампании (PartyMember) хранятся в PartyManager в памяти.
+    // Это нужно для правильной работы мультиплеера.
     
-    /// Активна ли сейчас эта кампания (хостится ли)
-    var isActive: Bool
-    
-    /// Заметки ДМа о кампании (для будущих версий)
-    var dmNotes: String
-    
-    /// Хранилище предметов ДМа (предзагруженные предметы для выдачи игрокам)
-    var dmItemStorage: [InventoryItem] = [] // Шаблоны предметов для выдачи
-    // MARK: - Инициализация
-    
+    // MARK: - Initializer
     init(
         id: UUID = UUID(),
         name: String,
         createdAt: Date = Date(),
         lastPlayedAt: Date = Date(),
-        roomCode: String = "",
-        gameRules: GameRules = GameRules(),
-        members: [PartyMember] = [],
+        campaignType: CampaignType = .local,
+        joinCode: String? = nil,
         isActive: Bool = false,
+        gameRules: GameRules = GameRules(),
         dmNotes: String = "",
-        dmItemStorage: [InventoryItem] = [] // 🆕
+        gameTemplate: GameTemplate? = nil
     ) {
         self.id = id
         self.name = name
         self.createdAt = createdAt
         self.lastPlayedAt = lastPlayedAt
-        self.roomCode = roomCode
-        self.gameRules = gameRules
-        self.members = members
+        self.campaignType = campaignType
+        self.joinCode = joinCode
         self.isActive = isActive
+        self.gameRules = gameRules
         self.dmNotes = dmNotes
-        self.dmItemStorage = dmItemStorage // 🆕
+        self.gameTemplate = gameTemplate
     }
     
     // MARK: - Вычисляемые свойства
-    
-    /// Общее количество игроков в партии
-    var playerCount: Int {
-        return members.count
-    }
-    
-    /// Количество онлайн-игроков (подключённых сейчас)
-    var onlinePlayerCount: Int {
-        return members.filter { $0.isConnected }.count
-    }
-    
-    /// Отформатированная дата последней игры (для отображения в UI)
+
+    /// Отформатированная дата последней игры (для UI)
     var formattedLastPlayed: String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ru_RU")
@@ -90,12 +86,25 @@ struct Campaign: Identifiable, Codable, Equatable, Sendable {
         formatter.timeStyle = .short
         return formatter.string(from: lastPlayedAt)
     }
-    
-    /// Краткое описание для UI ("3 игр. (2 онлайн)")
+
+    /// 🆕 ВОЗВРАЩАЕМ: Общее количество участников в кампании
+    var participantCount: Int {
+        return members.count
+    }
+
+    /// 🆕 ВОЗВРАЩАЕМ: Количество онлайн-участников (подключённых сейчас)
+    var onlineParticipantCount: Int {
+        return members.filter { $0.isConnected }.count
+    }
+
+    /// 🆕 ВОЗВРАЩАЕМ: Краткое описание для UI ("3 уч. (2 онлайн)")
     var summary: String {
-        let online = onlinePlayerCount
-        let total = playerCount
-        return "\(total) игр. (\(online) онлайн)"
+        let online = onlineParticipantCount
+        let total = participantCount
+        if total == 0 {
+            return "Нет участников"
+        }
+        return "\(total) уч. (\(online) онлайн)"
     }
 }
 
@@ -103,16 +112,56 @@ struct Campaign: Identifiable, Codable, Equatable, Sendable {
 
 extension Campaign {
     
-    /// Создаёт новую пустую кампанию с заданным именем и случайным кодом
-    static func new(name: String) -> Campaign {
+    /// Создаёт новую пустую кампанию с заданным именем
+    static func new(name: String, type: CampaignType = .local) -> Campaign {
+        let code = (type == .multiplayer) ? generateJoinCode() : nil
         return Campaign(
             name: name,
-            roomCode: Self.generateRoomCode()
+            campaignType: type,
+            joinCode: code
         )
     }
     
-    /// Генерирует случайный 6-значный код комнаты
-    static func generateRoomCode() -> String {
+    /// Генерирует случайный 6-значный код для подключения
+    static func generateJoinCode() -> String {
         return String((100000..<999999).randomElement()!)
+    }
+}
+
+// MARK: - 🌉 Обратная совместимость (Мосты для старого кода)
+
+extension Campaign {
+    /// Старое название поля 'roomCode' теперь называется 'joinCode'
+    var roomCode: String? {
+        get { return joinCode }
+        set { joinCode = newValue }
+    }
+    
+    /// Заглушка для инвентаря ДМа (dmItemStorage)
+    var dmItemStorage: [InventoryItem] {
+        get { return [] }
+        set { /* Игнорируем */ }
+    }
+    
+    /// Старый статический метод генерации кода комнаты
+    static func generateRoomCode() -> String {
+        return generateJoinCode()
+    }
+}
+
+// MARK: - 👥 Участники кампании (Обратная совместимость)
+
+extension Campaign {
+    /// Список участников кампании (PartyMember).
+    /// SwiftData умеет хранить Codable структуры внутри @Model!
+    /// Старый код писал `campaign.members`, теперь это обычное поле.
+    var members: [PartyMember] {
+        get {
+            // Читаем из приватного хранилища SwiftData
+            return _members
+        }
+        set {
+            _members = newValue
+        }
     }
 }

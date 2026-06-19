@@ -49,7 +49,10 @@ struct AddActionSheet: View {
                 }
             }
             .navigationTitle("Добавить действие")
+            // ✅ СТАЛО
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Отмена") {

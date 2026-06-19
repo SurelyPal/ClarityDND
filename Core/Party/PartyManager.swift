@@ -131,7 +131,7 @@ final class PartyManager: NSObject, ObservableObject {
                     if let campaign = campaignManager.campaigns.first(where: { $0.id == campaignID }) {
                         self.partyMembers = campaign.members
                         self.gameRules = campaign.gameRules
-                        self.roomCode = campaign.roomCode
+                        self.roomCode = campaign.roomCode ?? ""
                         log("📂 Данные кампании загружены: \(campaign.name)")
                     }
                 }
@@ -165,9 +165,9 @@ final class PartyManager: NSObject, ObservableObject {
         campaignManager.setActiveCampaign(campaign)
         currentCampaignID = campaign.id
 
-        self.roomCode = campaign.roomCode.isEmpty
-            ? Campaign.generateRoomCode()
-            : campaign.roomCode
+        self.roomCode = (campaign.roomCode?.isEmpty ?? true)
+                    ? Campaign.generateRoomCode()
+                    : campaign.roomCode!
         self.gameRules = campaign.gameRules
         self.partyMembers = campaign.members
 
@@ -778,6 +778,21 @@ final class PartyManager: NSObject, ObservableObject {
     func clearError() { self.lastError = nil }
     func clearDisconnectReason() { self.disconnectReason = nil }
     
+    // MARK: - 🌉 Мосты для обратной совместимости с Campaign.members
+
+    /// Словарь для хранения PartyMember по ID кампании
+    /// Ключ: campaignID, Значение: массив PartyMember
+    private var campaignMembersStorage: [UUID: [PartyMember]] = [:]
+
+    /// Получить список PartyMember для конкретной кампании
+    func getMembers(forCampaignID campaignID: UUID) -> [PartyMember] {
+        return campaignMembersStorage[campaignID] ?? []
+    }
+
+    /// Установить список PartyMember для конкретной кампании
+    func setMembers(_ members: [PartyMember], forCampaignID campaignID: UUID) {
+        campaignMembersStorage[campaignID] = members
+    }
 }
 // MARK: - 🆕 Автопереподключение к партии (Pull-to-Refresh)
 extension PartyManager {

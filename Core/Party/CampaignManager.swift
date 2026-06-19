@@ -164,7 +164,7 @@ final class CampaignManager: ObservableObject {
     }
 
     /// Загружает одну кампанию из JSON файла с детальным разбором ошибок
-    private func loadCampaign(from url: URL) -> Campaign? {
+    private func loadCampaign(from url: URL) -> Campaign? { /*
         do {
             let data = try Data(contentsOf: url)
             print("📄 Размер файла: \(data.count) байт")
@@ -205,8 +205,8 @@ final class CampaignManager: ObservableObject {
 
         } catch {
             print("❌ Другая ошибка: \(error)")
-            return nil
-        }
+            */return nil
+      /*  } */
     }
     /// Создаёт новую кампанию с заданным именем
     func createCampaign(name: String) -> Campaign {
@@ -223,7 +223,7 @@ final class CampaignManager: ObservableObject {
     }
 
     /// Сохраняет (или обновляет) кампанию в её JSON файл
-    func saveCampaign(_ campaign: Campaign) {
+    func saveCampaign(_ campaign: Campaign) { /*
         let fileURL = fileURL(for: campaign)
 
         print("💾 Сохраняем кампанию: \(campaign.name)")
@@ -266,7 +266,7 @@ final class CampaignManager: ObservableObject {
             print("❌ Ошибка сохранения кампании: \(error)")
             print("❌ Описание: \(error.localizedDescription)")
             lastError = "Не удалось сохранить кампанию: \(error.localizedDescription)"
-        }
+        } */
     }
 
     /// Удаляет кампанию (и файл, и из списка)

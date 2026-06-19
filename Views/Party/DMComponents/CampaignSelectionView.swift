@@ -323,14 +323,13 @@ struct CampaignRowView: View {
                 }
                 
                 // Код комнаты (если есть)
-                if !campaign.roomCode.isEmpty {
+                if let code = campaign.roomCode, !code.isEmpty {
                     HStack(spacing: 6) {
                         Image(systemName: "number")
                             .font(.system(size: 10))
-                        Text("Код: \(campaign.roomCode)")
+                        Text("Код: \(code)")
                             .font(.system(size: 11, weight: .medium, design: .monospaced))
                     }
-                    .foregroundColor(.dsGold.opacity(0.7))
                 }
             }
             .padding(14)
