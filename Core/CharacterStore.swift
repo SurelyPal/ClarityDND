@@ -152,6 +152,7 @@ final class CharacterStore: ObservableObject {
     
     // MARK: - Одноразовая миграция с UserDefaults
     
+    // MARK: - Одноразовая миграция с UserDefaults
     private func migrateIfNeeded() {
         let key = Constants.Storage.charactersKey
         guard let data = UserDefaults.standard.data(forKey: key),
@@ -174,15 +175,27 @@ final class CharacterStore: ObservableObject {
             new.stress = old.stress
             new.rerollPoints = old.rerollPoints
             new.instrument = old.instrument
+            new.money = old.money
             new.inventory = old.inventory
             new.tarotCards = old.tarotCards
             new.avatarData = old.avatarData
+            new.fieldValues = [] // Фаза 1: динамические поля
             context.insert(new)
         }
         
         save()
         UserDefaults.standard.removeObject(forKey: key)
         print("✅ Миграция UserDefaults → SwiftData завершена: перенесено \(oldChars.count) персонажей")
+        
+        // Фаза 1: Миграция старых данных в динамические поля
+        let migrator = DataMigrator(context: context)
+        if migrator.needsMigration() {
+            do {
+                try migrator.migrateAllCharacters()
+            } catch {
+                print("❌ Ошибка миграции в динамические поля: \(error)")
+            }
+        }
     }
     // MARK: - 🆕 Работа с кампаниями
     

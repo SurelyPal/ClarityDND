@@ -41,6 +41,8 @@ final class DNDCharacter {
     var hpHistory: [HPChange] = []
     // MARK: - Бинарные данные (хранятся отдельно от SQLite)
     @Attribute(.externalStorage) var avatarData: Data?
+    // MARK: - Динамические поля
+    @Relationship(deleteRule: .cascade) var fieldValues: [FieldValue] = []
 
     // MARK: - Initializer
     init() {
@@ -53,17 +55,18 @@ final class DNDCharacter {
         self.background = ""
         self.hitPoints = Constants.Character.defaultHP
         self.isDeleted = false
-        self.currentHP = Constants.Character.defaultHP // 🔑 НОВОЕ: текущее = максимуму при создании
+        self.currentHP = Constants.Character.defaultHP //текущее = максимуму при создании
         self.alignment = .trueNeutral
         self.stress = 0
         self.rerollPoints = 0
         self.instrument = nil
-        self.money = 0 // 🆕 Начальное количество денег
+        self.money = 0 //Начальное количество денег
+        self.fieldValues = [] //динамические поля
         self.inventory = []
         self.tarotCards = []
         self.instrumentModStorage = []
         self.avatarData = nil
-        self.hpHistory = [] // 🆕 Инициализация истории
+        self.hpHistory = [] //Инициализация истории
     }
 }
 
@@ -192,7 +195,7 @@ extension DNDCharacter: Codable {
     convenience init(from decoder: Decoder) throws {
         self.init()
         let container = try decoder.container(keyedBy: CodingKeys.self)
-
+        
         self.id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
         self.name = try container.decodeIfPresent(String.self, forKey: .name) ?? ""
         self.race = try container.decodeIfPresent(Race.self, forKey: .race) ?? .human
@@ -207,7 +210,6 @@ extension DNDCharacter: Codable {
         self.stress = try container.decodeIfPresent(Int.self, forKey: .stress) ?? 0
         self.rerollPoints = try container.decodeIfPresent(Int.self, forKey: .rerollPoints) ?? 0
         self.instrument = try container.decodeIfPresent(String.self, forKey: .instrument)
-        
         // 🆕 ДЕНЬГИ с fallback на 0
         self.money = try container.decodeIfPresent(Int.self, forKey: .money) ?? 0
         self.inventory = try container.decodeIfPresent([InventoryItem].self, forKey: .inventory) ?? []
@@ -227,20 +229,21 @@ extension DNDCharacter: Codable {
         try container.encode(stats, forKey: .stats)
         try container.encode(background, forKey: .background)
         try container.encode(hitPoints, forKey: .hitPoints)
-        try container.encode(currentHP, forKey: .currentHP) // 🔑 НОВОЕ
+        try container.encode(currentHP, forKey: .currentHP)
         try container.encode(alignment, forKey: .alignment)
         try container.encode(stress, forKey: .stress)
         try container.encode(rerollPoints, forKey: .rerollPoints)
         try container.encodeIfPresent(instrument, forKey: .instrument)
-        try container.encode(money, forKey: .money) // 🆕 ДЕНЬГИ
+        try container.encode(money, forKey: .money)
         try container.encode(inventory, forKey: .inventory)
         try container.encode(tarotCards, forKey: .tarotCards)
         try container.encode(instrumentModStorage, forKey: .instrumentModStorage)
         try container.encodeIfPresent(avatarData, forKey: .avatarData)
-        try container.encode(hpHistory, forKey: .hpHistory) // 🆕
+        try container.encode(hpHistory, forKey: .hpHistory)
     }
 
 }
+
 // MARK: - UI helpers
 extension DNDCharacter {
     /// Цвет индикатора HP в зависимости от его процента
@@ -253,6 +256,7 @@ extension DNDCharacter {
         return Color.dsRed
     }
 }
+
  // MARK: - HP History Management
 
  extension DNDCharacter {
@@ -287,6 +291,7 @@ extension DNDCharacter {
         hpHistory.removeAll()
     }
  }
+
 // MARK: - Value-Type Snapshot для безопасной передачи
 
 extension DNDCharacter {

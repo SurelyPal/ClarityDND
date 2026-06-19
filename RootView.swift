@@ -40,10 +40,9 @@ struct RootView: View {
                 .ignoresSafeArea()
             
             if let store = store {
-                //Как только store создан — показываем ContentView
+                //Как только store создан — показываем MainTabView
                 // и передаём store + PartyManager + ThemeManager в Environment
-                ContentView()
-                    
+                MainTabView()
                     .environmentObject(store)
                     .environmentObject(PartyManager.shared)
                     .environmentObject(themeManager) //Инъекция темы

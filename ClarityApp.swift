@@ -15,6 +15,21 @@ struct ClarityApp: App {
             RootView()
                 .injectTheme()
         }
-        .modelContainer(for: DNDCharacter.self)
+        let container: ModelContainer = {
+            let schema = Schema([
+                DNDCharacter.self,
+                FieldDefinition.self,  // Фаза 1
+                FieldValue.self,       // Фаза 1
+                GameTemplate.self      // Фаза 1
+            ])
+            let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+            
+            do {
+                return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            } catch {
+                fatalError("Could not create ModelContainer: \(error)")
+            }
+        }()
     }
 }
+
