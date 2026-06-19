@@ -8,6 +8,7 @@ import Foundation
 import MultipeerConnectivity
 import SwiftUI
 import Combine
+import SwiftData
 
 #if os(iOS)
 import UIKit
@@ -162,7 +163,15 @@ final class PartyManager: NSObject, ObservableObject {
         log("🎲 Начинаем хостинг кампании: \(campaign.name)")
         UserDefaults.standard.set(campaign.id.uuidString, forKey: "lastActiveCampaignID")
 
-        campaignManager.setActiveCampaign(campaign)
+        // 🆕 Передаём context из самой кампании
+        if let context = campaign.modelContext {
+            campaignManager.setActiveCampaign(campaign, context: context)
+        } else {
+            // Fallback для кампаний, которые ещё не вставлены в SwiftData
+            campaignManager.activeCampaign = campaign
+            campaign.isActive = true
+            campaign.lastPlayedAt = Date()
+        }
         currentCampaignID = campaign.id
 
         self.roomCode = (campaign.roomCode?.isEmpty ?? true)
@@ -689,10 +698,13 @@ final class PartyManager: NSObject, ObservableObject {
             return campaignManager.activeCampaign?.dmItemStorage ?? []
         }
         set {
-            guard var campaign = campaignManager.activeCampaign else { return }
+            guard let campaign = campaignManager.activeCampaign else { return }
+            
+            // 🆕 Изменяем напрямую (SwiftData отслеживает изменения)
             campaign.dmItemStorage = newValue
+            
+            // 🆕 Сохраняем через мост (или напрямую через context)
             campaignManager.saveCampaign(campaign)
-            campaignManager.activeCampaign = campaign
             
             // Синхронизируем с подключёнными клиентами
             send(.dmItemStorageUpdate(items: newValue))

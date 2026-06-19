@@ -40,3 +40,21 @@ final class Player {
         self.archivedCharacters = archivedCharacters
     }
 }
+
+// MARK: - Helper методы
+extension Player {
+    /// Проверяет, является ли этот игрок владельцем (ГМ-ом) данной кампании
+    func isOwner(of campaign: Campaign) -> Bool {
+        return campaign.owner?.id == self.id
+    }
+    
+    /// Проверяет, участвует ли этот игрок в данной кампании (как игрок, не ГМ)
+    func isParticipant(in campaign: Campaign) -> Bool {
+        return joinedCampaigns.contains { $0.id == campaign.id }
+    }
+    
+    /// Возвращает все кампании, где этот игрок участвует (ГМ + игрок)
+    var allCampaigns: [Campaign] {
+        return createdCampaigns + joinedCampaigns
+    }
+}

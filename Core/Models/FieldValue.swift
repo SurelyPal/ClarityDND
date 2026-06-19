@@ -5,14 +5,6 @@
 //  Created by KEBAB on 19.06.2026.
 //
 
-
-//
-//  FieldValue.swift
-//  Clarity
-//
-//  Created for Phase 1: Dynamic Fields
-//
-
 import Foundation
 import SwiftData
 

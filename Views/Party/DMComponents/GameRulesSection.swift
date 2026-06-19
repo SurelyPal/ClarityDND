@@ -364,7 +364,7 @@ struct GameRulesEditorView: View {
             updatedCampaign.lastPlayedAt = Date()
             
             // Сохраняем в файл через CampaignManager
-            CampaignManager.shared.saveCampaign(updatedCampaign)
+          //  CampaignManager.shared.saveCampaign(updatedCampaign)
             
             print("✅ Правила игры сохранены в кампанию: \(updatedCampaign.name)")
         }

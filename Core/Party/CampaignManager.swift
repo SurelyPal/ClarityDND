@@ -1,357 +1,266 @@
-// CampaignManager.swift
-// Clarity
 //
-// Created by KEBAB on 10.06.2026.
+//  CampaignManager.swift
+//  Clarity
+//
+//  Created by KEBAB on 10.06.2026.
 //
 
 import Foundation
 import Combine
+import SwiftData
 
-// MARK: - Менеджер Кампаний
-
-/// Синглтон для управления файлами кампаний
+// MARK: - Менеджер Кампаний (SwiftData версия)
+/// Синглтон для управления кампаниями через SwiftData
 @MainActor
 final class CampaignManager: ObservableObject {
-
     // MARK: - Синглтон
-
+    
     static let shared = CampaignManager()
-
+    
     // MARK: - Published свойства
-
-    /// Список всех кампаний ДМа
+    
+    /// Список всех кампаний (из SwiftData)
     @Published var campaigns: [Campaign] = []
-
+    
     /// Текущая активная кампания (которую сейчас хостим)
     @Published var activeCampaign: Campaign?
-
-    /// Ошибки при работе с файлами
+    
+    /// Локальный игрок (владелец устройства)
+    @Published var currentPlayer: Player?
+    
+    /// Архивированные персонажи
+    @Published var archivedCharacters: [ArchivedCharacter] = []
+    
+    /// Ошибки при работе с данными
     @Published var lastError: String?
-
-    // MARK: - Константы
-
-    private let campaignsFolderName = "Campaigns"
-    private let fileExtension = "json"
-
+    
+    // MARK: - Вычисляемые свойства
+    
+    /// Кампании, где текущий игрок является ГМ-ом
+    var myCampaigns: [Campaign] {
+        guard let playerID = currentPlayer?.id else { return [] }
+        return campaigns.filter { $0.owner?.id == playerID }
+    }
+    
+    /// Кампании, где текущий игрок является участником (не ГМ)
+    var joinedCampaigns: [Campaign] {
+        guard let playerID = currentPlayer?.id else { return [] }
+        return campaigns.filter { campaign in
+            campaign.owner?.id != playerID &&
+            campaign.joinedPlayers.contains { $0.id == playerID }
+        }
+    }
+    
     // MARK: - Инициализация
-
+    
     private init() {
-        print("🚀 CampaignManager: Инициализация началась")
-        print("📂 Путь к Documents: \(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path ?? "НЕ НАЙДЕН")")
-
-        createCampaignsFolderIfNeeded()
-        loadAllCampaigns()
-
-        print("✅ CampaignManager: Инициализация завершена. Загружено \(campaigns.count) кампаний")
+        print("🚀 CampaignManager: Инициализация (SwiftData версия)")
+        setupLocalPlayer()
+        print("✅ CampaignManager: Инициализация завершена")
     }
-
-    // MARK: - Работа с файловой системой
-
-    /// Возвращает путь к папке с кампаниями
-    private var campaignsDirectory: URL {
-        let documentsDirectory = FileManager.default.urls(
-            for: .documentDirectory,
-            in: .userDomainMask
-        ).first!
-
-        return documentsDirectory.appendingPathComponent(campaignsFolderName)
+    
+    // MARK: - Настройка локального игрока
+    
+    /// Создаёт или загружает локального игрока
+    private func setupLocalPlayer() {
+        // TODO: Загрузить из SwiftData или создать нового
+        let player = Player(playerName: "Локальный игрок")
+        currentPlayer = player
+        print("✅ Локальный игрок создан: \(player.playerName)")
     }
-
-    /// Создаёт папку Campaigns, если её ещё нет
-    private func createCampaignsFolderIfNeeded() {
-        let fileManager = FileManager.default
-        let directory = campaignsDirectory
-
-        print("📁 Проверяем папку: \(directory.path)")
-
-        if !fileManager.fileExists(atPath: directory.path) {
-            print("📁 Папка не существует — создаём...")
-            do {
-                try fileManager.createDirectory(
-                    at: directory,
-                    withIntermediateDirectories: true
-                )
-                print("✅ 📁 Создана папка: \(directory.path)")
-            } catch {
-                print("❌ Ошибка создания папки: \(error)")
-                print("❌ Описание: \(error.localizedDescription)")
-                lastError = "Не удалось создать папку кампаний: \(error.localizedDescription)"
-            }
-        } else {
-            print("✅ 📁 Папка уже существует")
-        }
-
-        // Проверяем права на запись
-        if fileManager.isWritableFile(atPath: directory.path) {
-            print("✅ Папка доступна для записи")
-        } else {
-            print("❌ Папка НЕ доступна для записи!")
-        }
-    }
-
-    /// Возвращает путь к файлу конкретной кампании
-    private func fileURL(for campaign: Campaign) -> URL {
-        return campaignsDirectory
-            .appendingPathComponent(campaign.id.uuidString)
-            .appendingPathExtension(fileExtension)
-    }
-
+    
     // MARK: - CRUD операции
-
-    /// Загружает все кампании из папки Campaigns
-    func loadAllCampaigns() {
-        print("📚 ═══════════════════════════════════════")
-        print("📚 НАЧАЛО ЗАГРУЗКИ КАМПАНИЙ")
-        print("📚 Путь: \(campaignsDirectory.path)")
-        print("📚 ═══════════════════════════════════════")
-
-        let fileManager = FileManager.default
-
-        // Проверяем существование папки
-        guard fileManager.fileExists(atPath: campaignsDirectory.path) else {
-            print("❌ Папка Campaigns НЕ СУЩЕСТВУЕТ!")
-            self.campaigns = []
-            return
+    
+    /// Создаёт новую кампанию и сохраняет её в SwiftData
+    func createCampaign(
+        name: String,
+        template: GameTemplate? = nil,
+        context: ModelContext  // 🆕 ДОБАВЛЕН параметр context
+    ) -> Campaign {
+        // 1. Создаём объект в памяти
+        let newCampaign = Campaign.new(
+            name: name,
+            type: .local,
+            owner: currentPlayer
+        )
+        
+        // 2. Привязываем шаблон (если есть)
+        if let template = template {
+            newCampaign.gameTemplate = template
         }
-
+        
+        // 🆕 3. КРИТИЧЕСКИ ВАЖНО: вставляем в SwiftData
+        context.insert(newCampaign)
+        
+        // 🆕 4. Принудительно сохраняем
         do {
-            let files = try fileManager.contentsOfDirectory(
-                at: campaignsDirectory,
-                includingPropertiesForKeys: nil
-            )
-
-            let jsonFiles = files.filter { $0.pathExtension == fileExtension }
-            print("📚 Найдено JSON файлов: \(jsonFiles.count)")
-
-            if jsonFiles.isEmpty {
-                print("⚠️ Папка пустая — нет кампаний для загрузки")
-                self.campaigns = []
-                return
-            }
-
-            var loadedCampaigns: [Campaign] = []
-            var failedFiles: [String] = []
-
-            for fileURL in jsonFiles {
-                print("📄 ─────────────────────────────────")
-                print("📄 Читаем: \(fileURL.lastPathComponent)")
-
-                if let campaign = loadCampaign(from: fileURL) {
-                    loadedCampaigns.append(campaign)
-                    print("✅ УСПЕХ: \(campaign.name) (\(campaign.members.count) игроков)")
-                } else {
-                    failedFiles.append(fileURL.lastPathComponent)
-                    print("❌ ПРОВАЛ: не удалось загрузить")
-                }
-            }
-
-            // Сортируем: свежие сверху
-            self.campaigns = loadedCampaigns.sorted {
-                $0.lastPlayedAt > $1.lastPlayedAt
-            }
-
-            print("📚 ═══════════════════════════════════════")
-            print("📚 ИТОГО: загружено \(loadedCampaigns.count) из \(jsonFiles.count)")
-            if !failedFiles.isEmpty {
-                print("⚠️ Ошибки в файлах: \(failedFiles.joined(separator: ", "))")
-            }
-            print("📚 ═══════════════════════════════════════")
-
+            try context.save()
+            print("💾 Кампания '\(name)' сохранена в SwiftData")
         } catch {
-            print("❌ Критическая ошибка загрузки: \(error)")
-            lastError = "Не удалось загрузить список кампаний: \(error.localizedDescription)"
+            print("❌ Ошибка сохранения кампании: \(error)")
+            lastError = "Не удалось сохранить кампанию: \(error.localizedDescription)"
         }
-    }
-
-    /// Загружает одну кампанию из JSON файла с детальным разбором ошибок
-    private func loadCampaign(from url: URL) -> Campaign? { /*
-        do {
-            let data = try Data(contentsOf: url)
-            print("📄 Размер файла: \(data.count) байт")
-
-            // Показываем первые 200 байт для отладки
-            if let preview = String(data: data.prefix(200), encoding: .utf8) {
-                print("📄 Превью: \(preview)...")
-            }
-
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
-
-            let campaign = try decoder.decode(Campaign.self, from: data)
-            return campaign
-
-        } catch let decodingError as DecodingError {
-            print("❌ ОШИБКА ДЕКОДИРОВАНИЯ:")
-            switch decodingError {
-            case .typeMismatch(let type, let context):
-                print("    Type mismatch: \(type)")
-                print("    Path: \(context.codingPath.map { $0.stringValue }.joined(separator: "."))")
-                print("    Description: \(context.debugDescription)")
-            case .valueNotFound(let type, let context):
-                print("    Value not found: \(type)")
-                print("    Path: \(context.codingPath.map { $0.stringValue }.joined(separator: "."))")
-                print("    Description: \(context.debugDescription)")
-            case .keyNotFound(let key, let context):
-                print("    Key not found: \(key.stringValue)")
-                print("    Path: \(context.codingPath.map { $0.stringValue }.joined(separator: "."))")
-                print("    Description: \(context.debugDescription)")
-            case .dataCorrupted(let context):
-                print("    Data corrupted: \(context.debugDescription)")
-                print("    Path: \(context.codingPath.map { $0.stringValue }.joined(separator: "."))")
-            @unknown default:
-                print("    Unknown decoding error")
-            }
-            return nil
-
-        } catch {
-            print("❌ Другая ошибка: \(error)")
-            */return nil
-      /*  } */
-    }
-    /// Создаёт новую кампанию с заданным именем
-    func createCampaign(name: String) -> Campaign {
-        let newCampaign = Campaign.new(name: name)
-
-        // Сохраняем в файл
-        saveCampaign(newCampaign)
-
-        // Добавляем в список
-        campaigns.insert(newCampaign, at: 0)
-
+        
         print("✨ Создана новая кампания: \(name)")
         return newCampaign
     }
-
-    /// Сохраняет (или обновляет) кампанию в её JSON файл
-    func saveCampaign(_ campaign: Campaign) { /*
-        let fileURL = fileURL(for: campaign)
-
-        print("💾 Сохраняем кампанию: \(campaign.name)")
-        print("💾 Путь к файлу: \(fileURL.path)")
-
-        do {
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = .prettyPrinted
-            encoder.dateEncodingStrategy = .iso8601
-
-            let data = try encoder.encode(campaign)
-            print("💾 Размер данных: \(data.count) байт")
-
-            try data.write(to: fileURL, options: .atomic)
-
-            // Проверяем, что файл действительно создан
-            let fileManager = FileManager.default
-            if fileManager.fileExists(atPath: fileURL.path) {
-                let attributes = try fileManager.attributesOfItem(atPath: fileURL.path)
-                let fileSize = attributes[.size] as? Int ?? 0
-                print("✅ 💾 Файл создан: \(fileURL.lastPathComponent) (\(fileSize) байт)")
-            } else {
-                print("❌ Файл НЕ создан после записи!")
-            }
-
-            // Обновляем в списке, если она там уже есть
-            if let index = campaigns.firstIndex(where: { $0.id == campaign.id }) {
-                campaigns[index] = campaign
-                print("🔄 Обновлена в списке (позиция \(index))")
-            } else {
-                print("ℹ️ Кампания ещё не в списке")
-            }
-
-            // Если это активная кампания — обновляем ссылку
-            if activeCampaign?.id == campaign.id {
-                activeCampaign = campaign
-            }
-
-        } catch {
-            print("❌ Ошибка сохранения кампании: \(error)")
-            print("❌ Описание: \(error.localizedDescription)")
-            lastError = "Не удалось сохранить кампанию: \(error.localizedDescription)"
-        } */
-    }
-
-    /// Удаляет кампанию (и файл, и из списка)
-    func deleteCampaign(_ campaign: Campaign) {
-        let fileURL = fileURL(for: campaign)
-        let fileManager = FileManager.default
-
-        // Удаляем файл
-        if fileManager.fileExists(atPath: fileURL.path) {
-            do {
-                try fileManager.removeItem(at: fileURL)
-                print("🗑️ Файл кампании удалён: \(campaign.name)")
-            } catch {
-                print("❌ Ошибка удаления файла: \(error)")
-            }
-        }
-
-        // Удаляем из списка
-        campaigns.removeAll { $0.id == campaign.id }
-
-        // Если это была активная — сбрасываем
+    
+    /// Удаляет кампанию и архивирует персонажей
+    func deleteCampaign(_ campaign: Campaign, context: ModelContext) {
+        print("🗑️ Удаляем кампанию: \(campaign.name)")
+        
+        // 1. Архивируем всех персонажей из этой кампании
+        archiveCharactersFromCampaign(campaign, context: context)
+        
+        // 2. Удаляем кампанию из SwiftData
+        context.delete(campaign)
+        
+        // 3. Если это была активная кампания — сбрасываем
         if activeCampaign?.id == campaign.id {
             activeCampaign = nil
         }
+        
+        print("✅ Кампания удалена и персонажи архивированы")
     }
-
+    
+    /// Архивирует всех персонажей из кампании
+    private func archiveCharactersFromCampaign(_ campaign: Campaign, context: ModelContext) {
+        print("📦 Архивируем персонажей из кампании: \(campaign.name)")
+        
+        // Получаем всех персонажей с campaignID этой кампании
+        let characterID = campaign.id
+        let fetchDescriptor = FetchDescriptor<DNDCharacter>(
+            predicate: #Predicate { $0.campaignID == characterID }
+        )
+        
+        do {
+            let characters = try context.fetch(fetchDescriptor)
+            
+            for character in characters {
+                let archived = ArchivedCharacter.archive(from: character, campaign: campaign)
+                context.insert(archived)
+                
+                // Добавляем в архив текущего игрока
+                currentPlayer?.archivedCharacters.append(archived)
+                
+                print("✅ Архивирован персонаж: \(character.name)")
+            }
+            
+            print("✅ Архивировано персонажей: \(characters.count)")
+        } catch {
+            print("❌ Ошибка архивации персонажей: \(error)")
+            lastError = "Не удалось архивировать персонажей: \(error.localizedDescription)"
+        }
+    }
+    
+    /// Восстанавливает персонажа из архива
+    func restoreCharacter(_ archived: ArchivedCharacter, to campaign: Campaign, context: ModelContext) -> DNDCharacter? {
+        print("🔄 Восстанавливаем персонажа: \(archived.characterName)")
+        
+        // Проверяем, можно ли восстановить
+        guard archived.canRestore else {
+            print("❌ Невозможно восстановить: шаблон недоступен")
+            lastError = "Шаблон кампании недоступен для восстановления"
+            return nil
+        }
+        
+        // Восстанавливаем из снапшота
+        guard let restoredCharacter = archived.restoreCharacter() else {
+            print("❌ Не удалось восстановить персонажа из снапшота")
+            lastError = "Не удалось восстановить данные персонажа"
+            return nil
+        }
+        
+        // Привязываем к новой кампании
+        restoredCharacter.campaignID = campaign.id
+        restoredCharacter.campaignName = campaign.name
+        
+        // Вставляем в SwiftData
+        context.insert(restoredCharacter)
+        
+        // Удаляем из архива
+        context.delete(archived)
+        currentPlayer?.archivedCharacters.removeAll { $0.id == archived.id }
+        
+        print("✅ Персонаж восстановлен: \(restoredCharacter.name)")
+        return restoredCharacter
+    }
+    
     /// Переименовывает кампанию
-    func renameCampaign(_ campaign: Campaign, to newName: String) {
-        var updatedCampaign = campaign
-        updatedCampaign.name = newName
-        saveCampaign(updatedCampaign)
+    func renameCampaign(_ campaign: Campaign, to newName: String, context: ModelContext) {
+        campaign.name = newName
+        
+        do {
+            try context.save()
+            print("💾 Кампания переименована и сохранена: \(newName)")
+        } catch {
+            print("❌ Ошибка сохранения: \(error)")
+        }
     }
-
+    
+    // MARK: - Управление активной кампанией
+    
     /// Устанавливает кампанию как активную (начинаем хостинг)
-    func setActiveCampaign(_ campaign: Campaign) {
-        var updatedCampaign = campaign
-        updatedCampaign.isActive = true
-        updatedCampaign.lastPlayedAt = Date()
-
-        activeCampaign = updatedCampaign
-        saveCampaign(updatedCampaign)
-
+    func setActiveCampaign(_ campaign: Campaign, context: ModelContext) {
+        campaign.isActive = true
+        campaign.lastPlayedAt = Date()
+        
+        activeCampaign = campaign
+        
+        // 🆕 Сохраняем изменения
+        do {
+            try context.save()
+            print("💾 Статус активной кампании сохранён")
+        } catch {
+            print("❌ Ошибка сохранения: \(error)")
+        }
+        
         print("🎯 Активная кампания: \(campaign.name)")
     }
-
+    
     /// Сбрасывает статус активной кампании
     func clearActiveCampaign() {
-        if var campaign = activeCampaign {
+        if let campaign = activeCampaign {
             campaign.isActive = false
-            saveCampaign(campaign)
         }
         activeCampaign = nil
+        print("🧹 Активная кампания сброшена")
     }
-
-    /// Обновляет данные активной кампании (вызывается при изменениях)
+    
+    /// Обновляет данные активной кампании
     func updateActiveCampaign(
         members: [PartyMember]? = nil,
         gameRules: GameRules? = nil,
-        roomCode: String? = nil
+        joinCode: String? = nil
     ) {
-        guard var campaign = activeCampaign else { return }
-
+        guard let campaign = activeCampaign else { return }
+        
         if let members = members {
             campaign.members = members
         }
-
+        
         if let gameRules = gameRules {
             campaign.gameRules = gameRules
         }
-
-        if let roomCode = roomCode {
-            campaign.roomCode = roomCode
+        
+        if let joinCode = joinCode {
+            campaign.joinCode = joinCode
         }
-
+        
         campaign.lastPlayedAt = Date()
-        saveCampaign(campaign)
+        
+        print("🔄 Активная кампания обновлена")
     }
-
+    
+    // MARK: - Поиск и проверка
+    
     /// Находит кампанию по ID персонажа
     func findCampaign(forCharacterID characterID: UUID) -> Campaign? {
         return campaigns.first { campaign in
             campaign.members.contains { $0.id == characterID }
         }
     }
-
+    
     /// Проверяет, закреплён ли персонаж за другой кампанией
     func isCharacterAssignedToOtherCampaign(
         characterID: UUID,
@@ -361,5 +270,49 @@ final class CampaignManager: ObservableObject {
             campaign.id != excludingCampaignID &&
             campaign.members.contains { $0.id == characterID }
         }
+    }
+    
+    /// Находит кампанию по joinCode
+    func findCampaign(byJoinCode code: String) -> Campaign? {
+        return campaigns.first { $0.joinCode == code }
+    }
+    
+    // MARK: - Мультиплеер
+    
+    /// Переключает кампанию в режим мультиплеера
+    func enableMultiplayer(for campaign: Campaign) {
+        campaign.campaignType = .multiplayer
+        campaign.joinCode = Campaign.generateJoinCode()
+        
+        print("🌐 Мультиплеер включён для кампании: \(campaign.name)")
+        print("🔗 Код подключения: \(campaign.joinCode ?? "нет")")
+    }
+    
+    /// Отключает мультиплеер для кампании
+    func disableMultiplayer(for campaign: Campaign) {
+        campaign.campaignType = .local
+        campaign.joinCode = nil
+        
+        print("🔒 Мультиплеер отключён для кампании: \(campaign.name)")
+    }
+}
+
+// MARK: - 🌉 Обратная совместимость (мосты для старого кода)
+extension CampaignManager {
+    
+    /// Старый метод сохранения кампании (теперь не нужен — SwiftData сохраняет автоматически)
+    func saveCampaign(_ campaign: Campaign) {
+        print("💾 saveCampaign() вызван (заглушка) — SwiftData сохранит автоматически")
+    }
+    
+    /// Старый метод загрузки всех кампаний (теперь не нужен)
+    func loadAllCampaigns() {
+        print("📚 loadAllCampaigns() вызван (заглушка) — SwiftData уже загрузил данные")
+    }
+    
+    /// Заглушка для загрузки одной кампании
+    func loadCampaign(from url: URL) -> Campaign? {
+        print("⚠️ loadCampaign(from:) больше не используется")
+        return nil
     }
 }

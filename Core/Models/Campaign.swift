@@ -43,15 +43,19 @@ final class Campaign {
     
     // MARK: - Связи
     var gameTemplate: GameTemplate? // Шаблон игровой системы
-    
+
+    // 🆕 ДОБАВЛЕНО: Владелец кампании (ГМ, который её создал)
+    @Relationship(inverse: \Player.createdCampaigns)
+    var owner: Player?
+
+    // 🆕 ДОБАВЛЕНО: Игроки, присоединившиеся к кампании
+    var joinedPlayers: [Player] = []
+
     // Приватное хранилище для участников (чтобы работало вычисляемое свойство members)
     @Attribute(.externalStorage) private var _members: [PartyMember] = []
     
-    // ⚠️ ВАЖНО: Мы НЕ храним members здесь!
-    // Участники кампании (PartyMember) хранятся в PartyManager в памяти.
-    // Это нужно для правильной работы мультиплеера.
-    
     // MARK: - Initializer
+   
     init(
         id: UUID = UUID(),
         name: String,
@@ -61,8 +65,9 @@ final class Campaign {
         joinCode: String? = nil,
         isActive: Bool = false,
         gameRules: GameRules = GameRules(),
-        dmNotes: String = "",
-        gameTemplate: GameTemplate? = nil
+        dmNotes: String = " ",
+        gameTemplate: GameTemplate? = nil,
+        owner: Player? = nil  // 🆕 ДОБАВЛЕНО
     ) {
         self.id = id
         self.name = name
@@ -74,6 +79,7 @@ final class Campaign {
         self.gameRules = gameRules
         self.dmNotes = dmNotes
         self.gameTemplate = gameTemplate
+        self.owner = owner  // 🆕 ДОБАВЛЕНО
     }
     
     // MARK: - Вычисляемые свойства
@@ -111,14 +117,15 @@ final class Campaign {
 // MARK: - Вспомогательные статические методы
 
 extension Campaign {
-    
+
     /// Создаёт новую пустую кампанию с заданным именем
-    static func new(name: String, type: CampaignType = .local) -> Campaign {
+    static func new(name: String, type: CampaignType = .local, owner: Player? = nil) -> Campaign {  // 🆕 ДОБАВЛЕН owner
         let code = (type == .multiplayer) ? generateJoinCode() : nil
         return Campaign(
             name: name,
             campaignType: type,
-            joinCode: code
+            joinCode: code,
+            owner: owner  // 🆕 ДОБАВЛЕНО
         )
     }
     

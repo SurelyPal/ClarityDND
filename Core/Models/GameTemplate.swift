@@ -25,6 +25,11 @@ final class GameTemplate {
     @Relationship(deleteRule: .cascade) var fieldDefinitions: [FieldDefinition] = []
     @Relationship(deleteRule: .cascade, inverse: \Mechanic.gameTemplate)
     var mechanics: [Mechanic] = []
+
+    // 🆕 ДОБАВЛЕНО: Обратная связь с кампаниями (один шаблон может использоваться в нескольких кампаниях)
+    @Relationship(inverse: \Campaign.gameTemplate)
+    var campaigns: [Campaign] = []
+    
     // MARK: - Initializer
     init(
         id: UUID = UUID(),
@@ -83,5 +88,36 @@ final class GameTemplate {
             let fieldValue = createFieldValue(for: characterID, fieldDefinition: fieldDef)
             context.insert(fieldValue)
         }
+    }
+}
+// MARK: - Заглушки для экспорта/импорта (TODO на будущее)
+extension GameTemplate {
+    /// Экспортирует механику в Data для передачи в другие кампании
+    /// TODO: Реализовать позже через Codable
+    func exportMechanic(_ mechanic: Mechanic) -> Data? {
+        // Пока возвращаем nil — это заглушка
+        print("⚠️ exportMechanic() ещё не реализован для \(mechanic.name)")
+        return nil
+    }
+    
+    /// Экспортирует определение поля в Data
+    /// TODO: Реализовать позже
+    func exportFieldDefinition(_ field: FieldDefinition) -> Data? {
+        print("⚠️ exportFieldDefinition() ещё не реализован для \(field.key)")
+        return nil
+    }
+    
+    /// Импортирует механику из Data
+    /// TODO: Реализовать позже
+    func importMechanic(from data: Data) -> Mechanic? {
+        print("⚠️ importMechanic() ещё не реализован")
+        return nil
+    }
+    
+    /// Импортирует определение поля из Data
+    /// TODO: Реализовать позже
+    func importFieldDefinition(from data: Data) -> FieldDefinition? {
+        print("⚠️ importFieldDefinition() ещё не реализован")
+        return nil
     }
 }

@@ -5,18 +5,22 @@
 //  Created by KEBAB on 10.06.2026.
 //
 
-
+import SwiftData
 import SwiftUI
 
 // MARK: - Экран выбора кампании для ДМа
 
 struct CampaignSelectionView: View {
     @Environment(\.theme) private var theme
+    @Environment(\.modelContext) private var modelContext
     
-    // MARK: - Свойства
+    // ✅ НОВОЕ: получаем кампании напрямую из SwiftData через @Query
+    @Query(sort: \Campaign.lastPlayedAt, order: .reverse)
+    private var campaigns: [Campaign]
     
-    @Environment(\.dismiss) private var dismiss
+    // CampaignManager нужен только для действий (создание, удаление)
     @ObservedObject private var campaignManager = CampaignManager.shared
+    @Environment(\.dismiss) private var dismiss
     @State private var showingNewCampaignAlert = false
     @State private var newCampaignName = ""
     @State private var campaignToDelete: Campaign?
@@ -42,7 +46,7 @@ struct CampaignSelectionView: View {
                     headerSection
                     
                     // Список кампаний или пустое состояние
-                    if campaignManager.campaigns.isEmpty {
+                    if campaigns.isEmpty {
                         emptyStateView
                     } else {
                         campaignsList
@@ -87,7 +91,7 @@ struct CampaignSelectionView: View {
                 
                 Button("Удалить", role: .destructive) {
                     if let campaign = campaignToDelete {
-                        campaignManager.deleteCampaign(campaign)
+                        campaignManager.deleteCampaign(campaign, context: modelContext)
                         PlatformCompatibility.hapticNotification(.success)
                     }
                 }
@@ -104,7 +108,7 @@ struct CampaignSelectionView: View {
                 
                 Button("Сохранить") {
                     if let campaign = campaignToRename {
-                        campaignManager.renameCampaign(campaign, to: renameText)
+                        campaignManager.renameCampaign(campaign, to: renameText, context: modelContext)
                     }
                 }
             }
@@ -165,7 +169,7 @@ struct CampaignSelectionView: View {
     private var campaignsList: some View {
         ScrollView {
             LazyVStack(spacing: 12) {
-                ForEach(campaignManager.campaigns) { campaign in
+                ForEach(campaigns) { campaign in
                     CampaignRowView(
                         campaign: campaign,
                         onStart: { startCampaign(campaign) },
@@ -225,11 +229,16 @@ struct CampaignSelectionView: View {
         let trimmedName = newCampaignName.trimmingCharacters(in: .whitespaces)
         guard !trimmedName.isEmpty else { return }
         
-        let campaign = campaignManager.createCampaign(name: trimmedName)
+        // ✅ ИСПРАВЛЕНО: используем trimmedName и newCampaign
+        let newCampaign = campaignManager.createCampaign(
+            name: trimmedName,  // ← было campaignName
+            context: modelContext
+        )
+        
         PlatformCompatibility.hapticNotification(.success)
         
-        // Сразу начинаем хостинг новой кампании
-        startCampaign(campaign)
+        // ✅ ИСПРАВЛЕНО: передаём newCampaign
+        startCampaign(newCampaign)  // ← было campaign
         
         newCampaignName = ""
     }

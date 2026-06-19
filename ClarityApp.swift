@@ -17,8 +17,10 @@ struct ClarityApp: App {
             FieldDefinition.self,
             FieldValue.self,           // Было FieldFieldValue.self — исправь если нужно
             GameTemplate.self,
-            Mechanic.self,             // 🔽 НОВОЕ: добавляем механики
-            Action.self                // 🔽 НОВОЕ: добавляем действия
+            Mechanic.self,             //добавляем механики
+            Action.self,           //добавляем действия
+            Player.self,              //Должно быть
+            ArchivedCharacter.self
         ])
         
         let modelConfiguration = ModelConfiguration(

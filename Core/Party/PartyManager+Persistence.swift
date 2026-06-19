@@ -34,7 +34,7 @@ extension PartyManager {
             campaignManager.updateActiveCampaign(
                 members: partyMembers,
                 gameRules: gameRules,
-                roomCode: roomCode
+                joinCode: roomCode
             )
             log("💾 Кампания обновлена в файле: \(campaignID.uuidString.prefix(8))")
         } else {

@@ -57,4 +57,3 @@ enum EquipmentSlot: String, CaseIterable, Codable {
         }
     }
 }
-
