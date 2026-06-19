@@ -45,6 +45,11 @@
 		15ABA6832FE5976E004B9901 /* TemplateManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15ABA6822FE5976E004B9901 /* TemplateManagementView.swift */; };
 		15ABA6852FE59CA9004B9901 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15ABA6842FE59CA9004B9901 /* MainTabView.swift */; };
 		15ABA6882FE59EA7004B9901 /* KnowledgeBaseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15ABA6872FE59EA7004B9901 /* KnowledgeBaseView.swift */; };
+		15ABA6932FE5A21F004B9901 /* RuleEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15ABA6922FE5A21F004B9901 /* RuleEngine.swift */; };
+		15ABA6962FE5A274004B9901 /* MechanicsListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15ABA6952FE5A274004B9901 /* MechanicsListViewModel.swift */; };
+		15ABA6982FE5A286004B9901 /* MechanicsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15ABA6972FE5A286004B9901 /* MechanicsListView.swift */; };
+		15ABA69A2FE5A290004B9901 /* MechanicDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15ABA6992FE5A290004B9901 /* MechanicDetailView.swift */; };
+		15ABA69C2FE5A298004B9901 /* AddActionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15ABA69B2FE5A298004B9901 /* AddActionSheet.swift */; };
 		15C4D5852FDEF0FC001BE297 /* DMItemStorageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15C4D5842FDEF0FC001BE297 /* DMItemStorageView.swift */; };
 		15C4D5872FDEF10B001BE297 /* DMItemPickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15C4D5862FDEF10B001BE297 /* DMItemPickerSheet.swift */; };
 		15DF91E32FD21640007A87F8 /* ClarityApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF91E22FD21640007A87F8 /* ClarityApp.swift */; };
@@ -146,6 +151,11 @@
 		15ABA6822FE5976E004B9901 /* TemplateManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateManagementView.swift; sourceTree = "<group>"; };
 		15ABA6842FE59CA9004B9901 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		15ABA6872FE59EA7004B9901 /* KnowledgeBaseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KnowledgeBaseView.swift; sourceTree = "<group>"; };
+		15ABA6922FE5A21F004B9901 /* RuleEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuleEngine.swift; sourceTree = "<group>"; };
+		15ABA6952FE5A274004B9901 /* MechanicsListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MechanicsListViewModel.swift; sourceTree = "<group>"; };
+		15ABA6972FE5A286004B9901 /* MechanicsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MechanicsListView.swift; sourceTree = "<group>"; };
+		15ABA6992FE5A290004B9901 /* MechanicDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MechanicDetailView.swift; sourceTree = "<group>"; };
+		15ABA69B2FE5A298004B9901 /* AddActionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddActionSheet.swift; sourceTree = "<group>"; };
 		15C4D5842FDEF0FC001BE297 /* DMItemStorageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DMItemStorageView.swift; sourceTree = "<group>"; };
 		15C4D5862FDEF10B001BE297 /* DMItemPickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DMItemPickerSheet.swift; sourceTree = "<group>"; };
 		15DF91E22FD21640007A87F8 /* ClarityApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClarityApp.swift; sourceTree = "<group>"; };
@@ -289,6 +299,17 @@
 			path = KnowledgeBase;
 			sourceTree = "<group>";
 		};
+		15ABA6942FE5A268004B9901 /* MechanicsView */ = {
+			isa = PBXGroup;
+			children = (
+				15ABA69B2FE5A298004B9901 /* AddActionSheet.swift */,
+				15ABA6992FE5A290004B9901 /* MechanicDetailView.swift */,
+				15ABA6972FE5A286004B9901 /* MechanicsListView.swift */,
+				15ABA6952FE5A274004B9901 /* MechanicsListViewModel.swift */,
+			);
+			path = MechanicsView;
+			sourceTree = "<group>";
+		};
 		15DF91D62FD21640007A87F8 = {
 			isa = PBXGroup;
 			children = (
@@ -311,10 +332,11 @@
 		15DF91EE2FD216F7007A87F8 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				15DF91E42FD21640007A87F8 /* ContentView.swift */,
+				153EAAD22FDADED700F7E972 /* CharacterInfoView.swift */,
+				15ABA6942FE5A268004B9901 /* MechanicsView */,
 				15ABA6862FE59E9A004B9901 /* KnowledgeBase */,
 				153EAADD2FDE1FF000F7E972 /* Settings */,
-				153EAAD22FDADED700F7E972 /* CharacterInfoView.swift */,
-				15DF91E42FD21640007A87F8 /* ContentView.swift */,
 				15DF92BD2FD2DCAD007A87F8 /* Party */,
 				15DF91F82FD217E9007A87F8 /* Map */,
 				15DF91F72FD217E2007A87F8 /* Tarot */,
@@ -341,6 +363,7 @@
 		15DF91F22FD2175E007A87F8 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				15ABA6922FE5A21F004B9901 /* RuleEngine.swift */,
 				1503D3A22FD77F660026C5DE /* PlatformCompatibility.swift */,
 				15DF922B2FD21AC9007A87F8 /* ImageCompressor.swift */,
 			);
@@ -696,6 +719,7 @@
 				1521C0972FD3EC7700FD2981 /* PartyMembersDrawer.swift in Sources */,
 				15DF92972FD250E4007A87F8 /* DemotionPopupView.swift in Sources */,
 				15DF92C52FD2E7DF007A87F8 /* PartyStatusIndicator.swift in Sources */,
+				15ABA69A2FE5A290004B9901 /* MechanicDetailView.swift in Sources */,
 				15DF92C12FD2DCD4007A87F8 /* DungeonMasterView.swift in Sources */,
 				15DF92412FD21CBF007A87F8 /* SkillsTabView.swift in Sources */,
 				15DF92712FD2471B007A87F8 /* InstrumentModsTabView.swift in Sources */,
@@ -704,6 +728,7 @@
 				15DF92BF2FD2DCB3007A87F8 /* PartyLobbyView.swift in Sources */,
 				15DF92562FD222D9007A87F8 /* CornerOrnaments.swift in Sources */,
 				15DF92522FD21FD8007A87F8 /* TarotCardEditorView.swift in Sources */,
+				15ABA6982FE5A286004B9901 /* MechanicsListView.swift in Sources */,
 				15DF92622FD22BEC007A87F8 /* SparkleEffect.swift in Sources */,
 				15DF926E2FD246DF007A87F8 /* InstrumentModSlotView.swift in Sources */,
 				15ABA6882FE59EA7004B9901 /* KnowledgeBaseView.swift in Sources */,
@@ -732,6 +757,9 @@
 				15DF92552FD220C5007A87F8 /* TarotCardView.swift in Sources */,
 				15DF92332FD21C6F007A87F8 /* CharacterSheetView.swift in Sources */,
 				153EAADC2FDE1ABF00F7E972 /* ThemeManager.swift in Sources */,
+				15ABA6962FE5A274004B9901 /* MechanicsListViewModel.swift in Sources */,
+				15ABA69C2FE5A298004B9901 /* AddActionSheet.swift in Sources */,
+				15ABA6932FE5A21F004B9901 /* RuleEngine.swift in Sources */,
 				15ABA6852FE59CA9004B9901 /* MainTabView.swift in Sources */,
 				15DF923F2FD21CB2007A87F8 /* DSCombatStatsView.swift in Sources */,
 				1503D3B92FD791C10026C5DE /* PlayerFlowView.swift in Sources */,

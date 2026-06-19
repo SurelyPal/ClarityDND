@@ -36,6 +36,11 @@ struct TemplateManagementView: View {
                                 .foregroundColor(.secondary)
                         }
                     }
+                    NavigationLink {
+                                    MechanicsListView(gameTemplate: template)
+                                } label: {
+                                    Label("Механики: \(template.name)", systemImage: "gearshape.2")
+                                }
                 }
                 .onDelete(perform: deleteTemplates)
             }

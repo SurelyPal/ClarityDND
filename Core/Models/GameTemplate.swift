@@ -19,23 +19,27 @@ final class GameTemplate {
     var name: String              // "D&D 5e", "Pathfinder", "Моя система"
     var templateDescription: String       // Описание шаблона
     var isBuiltIn: Bool           // Встроенный (нельзя удалить) или пользовательский
-    
+    var createdAt: Date
+        
     // MARK: - Коллекции
     @Relationship(deleteRule: .cascade) var fieldDefinitions: [FieldDefinition] = []
-    
+    @Relationship(deleteRule: .cascade, inverse: \Mechanic.gameTemplate)
+    var mechanics: [Mechanic] = []
     // MARK: - Initializer
     init(
         id: UUID = UUID(),
         name: String,
         templateDescription: String = "",
         isBuiltIn: Bool = false,
-        fieldDefinitions: [FieldDefinition] = []
+        fieldDefinitions: [FieldDefinition] = [],
+        createdAt: Date = Date()
     ) {
         self.id = id
         self.name = name
         self.templateDescription = templateDescription
         self.isBuiltIn = isBuiltIn
         self.fieldDefinitions = fieldDefinitions
+        self.createdAt = createdAt
     }
     
     // MARK: - Вспомогательные методы

@@ -59,6 +59,71 @@ final class DataMigrator {
         print("✅ Миграция завершена: перенесено \(characters.count) персонажей")
     }
     
+    /// Создаёт стандартный шаблон D&D 5e если его нет
+    /// Вызывается при каждом запуске приложения
+    func ensureDefaultTemplateExists() throws {
+        // Проверяем, существует ли уже шаблон
+        let descriptor = FetchDescriptor<GameTemplate>(
+            predicate: #Predicate { $0.name == "D&D 5e" }
+        )
+        
+        if let _ = try context.fetch(descriptor).first {
+            print("✅ Шаблон D&D 5e уже существует")
+            return
+        }
+        
+        print("🆕 Создаём стандартный шаблон D&D 5e...")
+        
+        // Создаём стандартные поля D&D 5e
+        let stressField = FieldDefinition(
+            name: "Стресс",
+            key: "stress",
+            fieldType: .integer,
+            defaultValue: "0",
+            minValue: 0,
+            displayColor: "#FF5733",
+            showOnSheet: true,
+            isEditableByPlayer: true
+        )
+        
+        let moneyField = FieldDefinition(
+            name: "Деньги (золото)",
+            key: "money",
+            fieldType: .integer,
+            defaultValue: "0",
+            minValue: 0,
+            displayColor: "#FFD700",
+            showOnSheet: true,
+            isEditableByPlayer: true
+        )
+        
+        let rerollField = FieldDefinition(
+            name: "Очки переброса",
+            key: "rerollPoints",
+            fieldType: .integer,
+            defaultValue: "0",
+            minValue: 0,
+            displayColor: "#4A90E2",
+            showOnSheet: true,
+            isEditableByPlayer: true
+        )
+        
+        let template = GameTemplate(
+            name: "D&D 5e",
+            templateDescription: "Стандартная система Dungeons & Dragons 5th Edition",
+            isBuiltIn: true
+        )
+        
+        // Добавляем поля к шаблону
+        template.fieldDefinitions = [stressField, moneyField, rerollField]
+        
+        // Сохраняем в базу данных
+        context.insert(template)
+        try context.save()
+        
+        print("✅ Шаблон D&D 5e создан с 3 полями")
+    }
+    
     /// Получает или создаёт стандартный шаблон D&D 5e
     private func getOrCreateDefaultTemplate() throws -> GameTemplate {
         let descriptor = FetchDescriptor<GameTemplate>(
