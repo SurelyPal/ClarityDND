@@ -357,7 +357,7 @@ private extension PartyManager {
         if let memberIndex = campaignManager.activeCampaign?.members.firstIndex(where: { $0.peerID.displayName == peerID.displayName }) {
 
             // 2. Получаем mutable копию кампании
-            guard var campaign = campaignManager.activeCampaign else { return }
+            guard let campaign = campaignManager.activeCampaign else { return }
 
             // 3. Проверяем, помечен ли его персонаж как удалённый
             if campaign.members[memberIndex].isCharacterDeleted {

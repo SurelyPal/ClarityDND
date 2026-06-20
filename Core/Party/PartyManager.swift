@@ -285,6 +285,12 @@ final class PartyManager: NSObject, ObservableObject {
             return
         case .disconnected:
             break // Продолжаем проверку
+        case .selectingCharacter:
+            break
+        case .configuringRules:
+            break
+        case .hosting(_):
+            break
         @unknown default:
             // ✅ Обрабатываем любые будущие случаи (защита от изменений в будущем)
             log("⏭️ attemptAutoReconnect: пропущено, неизвестное состояние \(connectionState)")

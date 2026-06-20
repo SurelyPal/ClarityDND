@@ -74,6 +74,7 @@ extension ArchivedCharacter {
     ///   - character: Персонаж для архивации
     ///   - campaign: Кампания, из которой архивируем
     /// - Returns: Новый ArchivedCharacter
+    @MainActor
     static func archive(
         from character: DNDCharacter,
         campaign: Campaign
@@ -102,6 +103,7 @@ extension ArchivedCharacter {
     
     /// Пытается восстановить персонажа из снапшота
     /// - Returns: Восстановленный DNDCharacter или nil, если не удалось
+    @MainActor
     func restoreCharacter() -> DNDCharacter? {
         guard let data = characterSnapshotData else {
             print("⚠️ Нет снапшота для восстановления")

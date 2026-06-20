@@ -56,7 +56,7 @@ struct SkeletonCircle: View {
 }
 
 #Preview {
-    @Environment(\.theme) var theme
+    @Previewable @Environment(\.theme) var theme
     VStack(spacing: 20) {
         SkeletonLoader(width: 200, height: 16)
         SkeletonLoader(width: 150, height: 16)

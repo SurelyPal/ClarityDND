@@ -445,7 +445,7 @@ struct DetailRow: View {
 }
 
 #Preview {
-    @Environment(\.theme) var theme
+    @Previewable @Environment(\.theme) var theme
     ZStack {
         theme.background.ignoresSafeArea()
         

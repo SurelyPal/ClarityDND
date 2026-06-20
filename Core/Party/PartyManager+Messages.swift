@@ -158,7 +158,7 @@ extension PartyManager {
                 partyMembers = newMembers
                 
                 // Также обновляем сохранённую кампанию
-                if var campaign = campaignManager.activeCampaign,
+                if let campaign = campaignManager.activeCampaign,
                    let campaignMemberIndex = campaign.members.firstIndex(where: { $0.id == characterID }) {
                     campaign.members[campaignMemberIndex].isCharacterDeleted = true
                     campaign.members[campaignMemberIndex].isConnected = false
@@ -692,7 +692,7 @@ extension PartyManager {
             partyMembers = newMembers
             
             // Также обновляем сохранённую кампанию (для восстановления после перезапуска)
-            if var campaign = campaignManager.activeCampaign,
+            if let campaign = campaignManager.activeCampaign,
                let campaignMemberIndex = campaign.members.firstIndex(where: { $0.id == characterID }) {
                 campaign.members[campaignMemberIndex].isCharacterDeleted = true
                 campaign.members[campaignMemberIndex].isConnected = false
@@ -1008,7 +1008,7 @@ extension PartyManager {
         partyMembers = newMembers
         
         // Также обновляем сохранённую кампанию (для восстановления после перезапуска)
-        if var campaign = campaignManager.activeCampaign,
+        if let campaign = campaignManager.activeCampaign,
            let campaignMemberIndex = campaign.members.firstIndex(where: { $0.id == characterID }) {
             campaign.members[campaignMemberIndex].isCharacterDeleted = true
             campaign.members[campaignMemberIndex].isConnected = false

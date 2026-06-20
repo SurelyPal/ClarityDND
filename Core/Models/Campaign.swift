@@ -49,6 +49,8 @@ final class Campaign {
     var owner: Player?
 
     // 🆕 ДОБАВЛЕНО: Игроки, присоединившиеся к кампании
+    @Relationship(inverse: \Player.joinedCampaigns)
+    
     var joinedPlayers: [Player] = []
 
     // Приватное хранилище для участников (чтобы работало вычисляемое свойство members)

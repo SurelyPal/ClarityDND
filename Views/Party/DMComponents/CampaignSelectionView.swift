@@ -70,6 +70,9 @@ struct CampaignSelectionView: View {
                     .foregroundColor(.dsGold)
                 }
             }
+            .task {
+                CampaignManager.shared.setup(context: modelContext)
+            }
             // Alert для создания новой кампании
             .alert("Новая кампания", isPresented: $showingNewCampaignAlert) {
                 TextField("Название кампании", text: $newCampaignName)

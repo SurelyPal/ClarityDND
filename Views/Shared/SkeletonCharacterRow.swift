@@ -49,7 +49,7 @@ struct SkeletonCharacterRow: View {
 }
 
 #Preview {
-    @Environment(\.theme) var theme
+    @Previewable @Environment(\.theme) var theme
     VStack(spacing: 12) {
         SkeletonCharacterRow()
         SkeletonCharacterRow()

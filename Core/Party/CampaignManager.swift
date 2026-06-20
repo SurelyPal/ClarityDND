@@ -34,39 +34,92 @@ final class CampaignManager: ObservableObject {
     /// Ошибки при работе с данными
     @Published var lastError: String?
     
+    // SwiftData контекст (устанавливается при первом вызове setup)
+    private var modelContext: ModelContext?
+    
     // MARK: - Вычисляемые свойства
     
-    /// Кампании, где текущий игрок является ГМ-ом
     var myCampaigns: [Campaign] {
-        guard let playerID = currentPlayer?.id else { return [] }
-        return campaigns.filter { $0.owner?.id == playerID }
+        // SwiftData сам поддерживает эту связь актуальной
+        return currentPlayer?.createdCampaigns ?? []
     }
-    
-    /// Кампании, где текущий игрок является участником (не ГМ)
+
     var joinedCampaigns: [Campaign] {
-        guard let playerID = currentPlayer?.id else { return [] }
-        return campaigns.filter { campaign in
-            campaign.owner?.id != playerID &&
-            campaign.joinedPlayers.contains { $0.id == playerID }
-        }
+        return currentPlayer?.joinedCampaigns ?? []
     }
     
     // MARK: - Инициализация
     
     private init() {
         print("🚀 CampaignManager: Инициализация (SwiftData версия)")
-        setupLocalPlayer()
+        // ⚠️ Здесь нет ModelContext — загрузка игрока происходит через setup(context:)
         print("✅ CampaignManager: Инициализация завершена")
     }
     
-    // MARK: - Настройка локального игрока
-    
-    /// Создаёт или загружает локального игрока
-    private func setupLocalPlayer() {
-        // TODO: Загрузить из SwiftData или создать нового
-        let player = Player(playerName: "Локальный игрок")
-        currentPlayer = player
-        print("✅ Локальный игрок создан: \(player.playerName)")
+    // MARK: - Настройка (вызывать из View)
+
+    /// Загружает игрока из SwiftData при первом запуске View.
+    /// Метод идемпотентный — безопасно вызывать несколько раз подряд.
+    func setup(context: ModelContext) {
+        guard currentPlayer == nil else {
+            print("ℹ️ CampaignManager: уже настроен, пропускаем")
+            return
+        }
+        self.modelContext = context
+        loadOrCreatePlayer(context: context)
+    }
+
+    /// Ищет существующего Player в SwiftData.
+    /// Если не находит — создаёт нового (первый запуск приложения).
+    private func loadOrCreatePlayer(context: ModelContext) {
+        do {
+            let players = try context.fetch(FetchDescriptor<Player>())
+
+            if let existing = players.first {
+                currentPlayer = existing
+                print("✅ Игрок загружен: \(existing.playerName) (id: \(existing.id))")
+            } else {
+                // Первый запуск — создаём и сохраняем
+                let newPlayer = Player(playerName: "Локальный игрок")
+                context.insert(newPlayer)
+                currentPlayer = newPlayer
+                print("✨ Создан новый игрок: \(newPlayer.playerName) (id: \(newPlayer.id))")
+            }
+
+            // Миграция: привязываем кампании без owner к этому игроку
+            adoptOrphanedCampaigns(context: context)
+
+            // Обновляем @Published список для обратной совместимости
+            campaigns = currentPlayer?.allCampaigns ?? []
+
+            try context.save()
+
+        } catch {
+            print("❌ Ошибка загрузки игрока: \(error)")
+            lastError = "Не удалось загрузить профиль"
+        }
+    }
+
+    /// Миграция для существующих пользователей:
+    /// кампании, созданные до появления системы Player (owner == nil),
+    /// привязываются к текущему игроку.
+    private func adoptOrphanedCampaigns(context: ModelContext) {
+        guard let player = currentPlayer else { return }
+
+        do {
+            let all = try context.fetch(FetchDescriptor<Campaign>())
+            let orphaned = all.filter { $0.owner == nil }
+
+            for campaign in orphaned {
+                campaign.owner = player
+            }
+
+            if !orphaned.isEmpty {
+                print("🔄 Привязали \(orphaned.count) кампаний к игроку (миграция)")
+            }
+        } catch {
+            print("⚠️ Ошибка поиска кампаний для миграции: \(error)")
+        }
     }
     
     // MARK: - CRUD операции
@@ -256,25 +309,26 @@ final class CampaignManager: ObservableObject {
     
     /// Находит кампанию по ID персонажа
     func findCampaign(forCharacterID characterID: UUID) -> Campaign? {
-        return campaigns.first { campaign in
+        let all = currentPlayer?.allCampaigns ?? []
+        return all.first { campaign in
             campaign.members.contains { $0.id == characterID }
         }
     }
-    
-    /// Проверяет, закреплён ли персонаж за другой кампанией
+
     func isCharacterAssignedToOtherCampaign(
         characterID: UUID,
         excludingCampaignID: UUID?
     ) -> Campaign? {
-        return campaigns.first { campaign in
+        let all = currentPlayer?.allCampaigns ?? []
+        return all.first { campaign in
             campaign.id != excludingCampaignID &&
             campaign.members.contains { $0.id == characterID }
         }
     }
-    
-    /// Находит кампанию по joinCode
+
     func findCampaign(byJoinCode code: String) -> Campaign? {
-        return campaigns.first { $0.joinCode == code }
+        let all = currentPlayer?.allCampaigns ?? []
+        return all.first { $0.joinCode == code }
     }
     
     // MARK: - Мультиплеер
