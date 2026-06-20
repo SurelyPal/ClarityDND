@@ -53,6 +53,11 @@
 		15ABA7862FE614D4004B9901 /* CampaignDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15ABA7852FE614D4004B9901 /* CampaignDetailView.swift */; };
 		15ABA7882FE61787004B9901 /* ArchivedCharactersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15ABA7872FE61787004B9901 /* ArchivedCharactersView.swift */; };
 		15ABA78A2FE618D5004B9901 /* JoinByCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15ABA7892FE618D5004B9901 /* JoinByCodeView.swift */; };
+		15ABA78C2FE61F92004B9901 /* TemplateSelectionStepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15ABA78B2FE61F92004B9901 /* TemplateSelectionStepView.swift */; };
+		15ABA78E2FE62069004B9901 /* StepProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15ABA78D2FE62069004B9901 /* StepProgressBar.swift */; };
+		15ABA7902FE628C6004B9901 /* EditTemplateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15ABA78F2FE628C5004B9901 /* EditTemplateView.swift */; };
+		15ABA7922FE62B45004B9901 /* PartyCharacterSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15ABA7912FE62B45004B9901 /* PartyCharacterSelectionView.swift */; };
+		15ABA7942FE62D2B004B9901 /* CreateCampaignView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15ABA7932FE62D2B004B9901 /* CreateCampaignView.swift */; };
 		15C4D5852FDEF0FC001BE297 /* DMItemStorageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15C4D5842FDEF0FC001BE297 /* DMItemStorageView.swift */; };
 		15C4D5872FDEF10B001BE297 /* DMItemPickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15C4D5862FDEF10B001BE297 /* DMItemPickerSheet.swift */; };
 		15DF91E32FD21640007A87F8 /* ClarityApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15DF91E22FD21640007A87F8 /* ClarityApp.swift */; };
@@ -162,6 +167,11 @@
 		15ABA7852FE614D4004B9901 /* CampaignDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CampaignDetailView.swift; sourceTree = "<group>"; };
 		15ABA7872FE61787004B9901 /* ArchivedCharactersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivedCharactersView.swift; sourceTree = "<group>"; };
 		15ABA7892FE618D5004B9901 /* JoinByCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JoinByCodeView.swift; sourceTree = "<group>"; };
+		15ABA78B2FE61F92004B9901 /* TemplateSelectionStepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateSelectionStepView.swift; sourceTree = "<group>"; };
+		15ABA78D2FE62069004B9901 /* StepProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StepProgressBar.swift; sourceTree = "<group>"; };
+		15ABA78F2FE628C5004B9901 /* EditTemplateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditTemplateView.swift; sourceTree = "<group>"; };
+		15ABA7912FE62B45004B9901 /* PartyCharacterSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartyCharacterSelectionView.swift; sourceTree = "<group>"; };
+		15ABA7932FE62D2B004B9901 /* CreateCampaignView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateCampaignView.swift; sourceTree = "<group>"; };
 		15C4D5842FDEF0FC001BE297 /* DMItemStorageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DMItemStorageView.swift; sourceTree = "<group>"; };
 		15C4D5862FDEF10B001BE297 /* DMItemPickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DMItemPickerSheet.swift; sourceTree = "<group>"; };
 		15DF91E22FD21640007A87F8 /* ClarityApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClarityApp.swift; sourceTree = "<group>"; };
@@ -266,8 +276,10 @@
 		1503D3CA2FD7EE030026C5DE /* DMComponents */ = {
 			isa = PBXGroup;
 			children = (
-				15ABA7852FE614D4004B9901 /* CampaignDetailView.swift */,
+				15ABA7932FE62D2B004B9901 /* CreateCampaignView.swift */,
 				1503D3D52FD7EE3C0026C5DE /* DMSections */,
+				1503D3B52FD791870026C5DE /* LobbyComponents */,
+				15ABA7852FE614D4004B9901 /* CampaignDetailView.swift */,
 				15C4D5862FDEF10B001BE297 /* DMItemPickerSheet.swift */,
 				15C4D5842FDEF0FC001BE297 /* DMItemStorageView.swift */,
 				153EAAE22FDEC96E00F7E972 /* GameRulesSection.swift */,
@@ -291,6 +303,7 @@
 		153EAADD2FDE1FF000F7E972 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				15ABA78F2FE628C5004B9901 /* EditTemplateView.swift */,
 				15ABA6822FE5976E004B9901 /* TemplateManagementView.swift */,
 				153EAAE02FDE201F00F7E972 /* SettingsView.swift */,
 				153EAADE2FDE200D00F7E972 /* ThemeSettingsView.swift */,
@@ -513,6 +526,7 @@
 		15DF91FF2FD2184F007A87F8 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				15ABA78D2FE62069004B9901 /* StepProgressBar.swift */,
 				15DF92272FD21AA4007A87F8 /* PointBuyRow.swift */,
 				15DF921F2FD21A37007A87F8 /* RaceCard.swift */,
 			);
@@ -522,6 +536,7 @@
 		15DF92002FD2185E007A87F8 /* Steps */ = {
 			isa = PBXGroup;
 			children = (
+				15ABA78B2FE61F92004B9901 /* TemplateSelectionStepView.swift */,
 				15DF92292FD21AB4007A87F8 /* NameStepView.swift */,
 				15DF92252FD21A95007A87F8 /* StatsStepView.swift */,
 				15DF92232FD21A88007A87F8 /* ClassStepView.swift */,
@@ -568,10 +583,10 @@
 		15DF92BD2FD2DCAD007A87F8 /* Party */ = {
 			isa = PBXGroup;
 			children = (
-				15ABA7892FE618D5004B9901 /* JoinByCodeView.swift */,
-				15ABA7872FE61787004B9901 /* ArchivedCharactersView.swift */,
 				1503D3CA2FD7EE030026C5DE /* DMComponents */,
-				1503D3B52FD791870026C5DE /* LobbyComponents */,
+				15ABA7892FE618D5004B9901 /* JoinByCodeView.swift */,
+				15ABA7912FE62B45004B9901 /* PartyCharacterSelectionView.swift */,
+				15ABA7872FE61787004B9901 /* ArchivedCharactersView.swift */,
 				1521C0A22FD58D1300FD2981 /* RestEffectOverlayView.swift */,
 				1521C0A02FD58BA900FD2981 /* RestVoteOverlayView.swift */,
 				15DF92C62FD2F27D007A87F8 /* DungeonMasterDetailView.swift */,
@@ -718,6 +733,7 @@
 				15DF92262FD21A95007A87F8 /* StatsStepView.swift in Sources */,
 				15DF924D2FD21D20007A87F8 /* MapView.swift in Sources */,
 				15DF92452FD21CD6007A87F8 /* InventoryTabView.swift in Sources */,
+				15ABA7942FE62D2B004B9901 /* CreateCampaignView.swift in Sources */,
 				15DF929B2FD2582F007A87F8 /* InstrumentModHeader.swift in Sources */,
 				1503D3B22FD790D00026C5DE /* PartyMemberRow.swift in Sources */,
 				1503D3A32FD77F660026C5DE /* PlatformCompatibility.swift in Sources */,
@@ -728,6 +744,8 @@
 				1521C0972FD3EC7700FD2981 /* PartyMembersDrawer.swift in Sources */,
 				15DF92972FD250E4007A87F8 /* DemotionPopupView.swift in Sources */,
 				15DF92C52FD2E7DF007A87F8 /* PartyStatusIndicator.swift in Sources */,
+				15ABA78E2FE62069004B9901 /* StepProgressBar.swift in Sources */,
+				15ABA7922FE62B45004B9901 /* PartyCharacterSelectionView.swift in Sources */,
 				15ABA69A2FE5A290004B9901 /* MechanicDetailView.swift in Sources */,
 				15ABA78A2FE618D5004B9901 /* JoinByCodeView.swift in Sources */,
 				15DF92C12FD2DCD4007A87F8 /* DungeonMasterView.swift in Sources */,
@@ -740,6 +758,7 @@
 				15DF92BF2FD2DCB3007A87F8 /* PartyLobbyView.swift in Sources */,
 				15DF92562FD222D9007A87F8 /* CornerOrnaments.swift in Sources */,
 				15DF92522FD21FD8007A87F8 /* TarotCardEditorView.swift in Sources */,
+				15ABA78C2FE61F92004B9901 /* TemplateSelectionStepView.swift in Sources */,
 				15ABA6982FE5A286004B9901 /* MechanicsListView.swift in Sources */,
 				15DF92622FD22BEC007A87F8 /* SparkleEffect.swift in Sources */,
 				15DF926E2FD246DF007A87F8 /* InstrumentModSlotView.swift in Sources */,
@@ -783,6 +802,7 @@
 				1521C05D2FD3D7FC00FD2981 /* LockedComponents.swift in Sources */,
 				15DF92732FD24728007A87F8 /* InstrumentModPickerView.swift in Sources */,
 				15DF92222FD21A42007A87F8 /* RaceStepView.swift in Sources */,
+				15ABA7902FE628C6004B9901 /* EditTemplateView.swift in Sources */,
 				1521C0A32FD58D1300FD2981 /* RestEffectOverlayView.swift in Sources */,
 				15DF92532FD22075007A87F8 /* DSdivider.swift in Sources */,
 				1503D3BD2FD7920C0026C5DE /* HostingView.swift in Sources */,

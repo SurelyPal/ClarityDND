@@ -20,7 +20,11 @@ final class GameTemplate {
     var templateDescription: String       // Описание шаблона
     var isBuiltIn: Bool           // Встроенный (нельзя удалить) или пользовательский
     var createdAt: Date
-        
+     
+    // 🆕 НОВОЕ: Доступные опции для создания персонажей
+        var availableRaces: [String] = [] // Массив rawValue рас
+        var availableClasses: [String] = [] // Массив rawValue классов
+    
     // MARK: - Коллекции
     @Relationship(deleteRule: .cascade) var fieldDefinitions: [FieldDefinition] = []
     @Relationship(deleteRule: .cascade, inverse: \Mechanic.gameTemplate)
@@ -37,7 +41,9 @@ final class GameTemplate {
         templateDescription: String = "",
         isBuiltIn: Bool = false,
         fieldDefinitions: [FieldDefinition] = [],
-        createdAt: Date = Date()
+        createdAt: Date = Date(),
+        availableRaces: [String] = [],
+        availableClasses: [String] = []
     ) {
         self.id = id
         self.name = name
@@ -45,6 +51,8 @@ final class GameTemplate {
         self.isBuiltIn = isBuiltIn
         self.fieldDefinitions = fieldDefinitions
         self.createdAt = createdAt
+        self.availableRaces = availableRaces
+        self.availableClasses = availableClasses
     }
     
     // MARK: - Вспомогательные методы
@@ -89,6 +97,18 @@ final class GameTemplate {
             context.insert(fieldValue)
         }
     }
+    func isRaceAvailable(_ race: Race) -> Bool {
+            // Если список пустой — все расы доступны
+            if availableRaces.isEmpty { return true }
+            return availableRaces.contains(race.rawValue)
+        }
+        
+        /// Проверяет, доступен ли класс в этом шаблоне
+    func isClassAvailable(_ characterClass: CharacterClass) -> Bool {
+            // Если список пустой — все классы доступны
+            if availableClasses.isEmpty { return true }
+            return availableClasses.contains(characterClass.rawValue)
+        }
 }
 // MARK: - Заглушки для экспорта/импорта (TODO на будущее)
 extension GameTemplate {

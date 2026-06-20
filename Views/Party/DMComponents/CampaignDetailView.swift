@@ -21,13 +21,9 @@ struct CampaignDetailView: View {
         _viewModel = State(initialValue: CampaignDetailViewModel(campaign: campaign))
     }
     
-    // MARK: - Вычисляемые свойства
-    
     private var isOwner: Bool {
         viewModel.isCurrentUserOwner(currentPlayer: campaignManager.currentPlayer)
     }
-    
-    // MARK: - Body
     
     var body: some View {
         ScrollView {
@@ -57,8 +53,6 @@ struct CampaignDetailView: View {
         }
     }
     
-    // MARK: - UI Components
-    
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(campaign.name)
@@ -66,7 +60,6 @@ struct CampaignDetailView: View {
                 .foregroundColor(.dsGold)
             
             HStack(spacing: 12) {
-                // Код комнаты
                 if let joinCode = campaign.joinCode, !joinCode.isEmpty {
                     HStack(spacing: 6) {
                         Image(systemName: "number.circle.fill")
@@ -143,7 +136,7 @@ struct CampaignDetailView: View {
                 emptyCharactersView
             } else {
                 ForEach(campaign.members) { member in
-                    CharacterRowView(member: member)
+                    PartyMemberRowView(member: member) // ✅ ИСПРАВЛЕНО
                 }
             }
         }
@@ -184,7 +177,6 @@ struct CampaignDetailView: View {
                     )
                 }
                 
-                // ИСПРАВЛЕНО: GameRules не Optional, используем конкретные поля
                 SettingRow(
                     icon: "doc.text.fill",
                     title: "Правила (Отдыхи)",
@@ -242,8 +234,6 @@ struct CampaignDetailView: View {
         }
     }
     
-    // MARK: - Методы действий
-    
     private func startSession() {
         PlatformCompatibility.hapticImpact(.heavy)
         partyManager.startHosting(campaign: campaign)
@@ -284,9 +274,9 @@ class CampaignDetailViewModel {
     }
 }
 
-// MARK: - Компонент строки персонажа
+// MARK: - Компонент строки персонажа (ПЕРЕИМЕНОВАНО)
 
-struct CharacterRowView: View {
+struct PartyMemberRowView: View { // ✅ ИСПРАВЛЕНО: было CharacterRowView
     @Environment(\.theme) private var theme
     let member: PartyMember
     
@@ -331,13 +321,10 @@ struct CharacterRowView: View {
             }
             
             VStack(alignment: .leading, spacing: 4) {
-                // ИСПРАВЛЕНО: В PartyMember поле называется 'name', а не 'characterName'
                 Text(member.name)
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.dsText)
                 
-                // ИСПРАВЛЕНО: В PartyMember нет поля 'owner', убираем эту строку
-                // или можно показать расу: Text(member.race.rawValue).font(.caption)
                 if let raceString = String(describing: member.race) as String? {
                      Text(raceString)
                         .font(.system(size: 11))
@@ -348,7 +335,6 @@ struct CharacterRowView: View {
             Spacer()
             
             VStack(alignment: .trailing, spacing: 2) {
-                // ИСПРАВЛЕНО: В PartyMember поле называется 'level', а не 'characterLevel'
                 Text("Ур. \(member.level)")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(.dsGold)

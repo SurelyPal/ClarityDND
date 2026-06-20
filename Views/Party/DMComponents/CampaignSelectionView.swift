@@ -14,7 +14,7 @@ struct CampaignSelectionView: View {
     // Менеджеры
     @State private var campaignManager = CampaignManager.shared
     private let partyManager = PartyManager.shared
-    
+    @State private var showingCreateCampaignView = false
     @State private var selectedCampaign: Campaign?
     @State private var showingCampaignDetail = false
     // UI Состояния
@@ -125,9 +125,13 @@ struct CampaignSelectionView: View {
                 }
             }
         }
+        .sheet(isPresented: $showingCreateCampaignView) {
+            CreateCampaignView()
+        }
         .navigationDestination(isPresented: $showingCampaignDetail) {
             if let campaign = selectedCampaign {
                 CampaignDetailView(campaign: campaign)
+                
             }
         }
     }
@@ -268,18 +272,9 @@ struct CampaignSelectionView: View {
     // MARK: - Методы действий
     
     /// Создаёт новую кампанию и автоматически начинает её хостинг
+    /// Открывает экран создания кампании
     private func createNewCampaign() {
-        let trimmedName = newCampaignName.trimmingCharacters(in: .whitespaces)
-        guard !trimmedName.isEmpty else { return }
-        
-        // Используем SwiftData метод создания
-        let campaign = campaignManager.createCampaign(name: trimmedName, context: modelContext)
-        PlatformCompatibility.hapticNotification(.success)
-        
-        // Сразу начинаем хостинг новой кампании
-        startCampaign(campaign)
-        
-        newCampaignName = ""
+        showingCreateCampaignView = true
     }
     
     /// Начинает хостинг выбранной кампании

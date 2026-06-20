@@ -27,6 +27,7 @@ struct JoinByCodeView: View {
     @State private var isSearching = false
     @State private var showingSuccessAlert = false
     @State private var joinedCampaign: Campaign?
+    @State private var showingCharacterSelection = false
     
     var body: some View {
         NavigationStack {
@@ -71,6 +72,11 @@ struct JoinByCodeView: View {
             } message: {
                 if let campaign = joinedCampaign {
                     Text("Вы присоединились к кампании '\(campaign.name)'")
+                }
+            }
+            .sheet(isPresented: $showingCharacterSelection) {
+                if let campaign = joinedCampaign {
+                    PartyCharacterSelectionView(campaign: campaign)
                 }
             }
         }
@@ -267,7 +273,10 @@ struct JoinByCodeView: View {
         do {
             try modelContext.save()
             joinedCampaign = campaign
-            showingSuccessAlert = true
+            
+            // 🆕 ИЗМЕНЕНО: Вместо алерта успеха — переходим к выбору персонажа
+            showingCharacterSelection = true
+            
             PlatformCompatibility.hapticNotification(.success)
         } catch {
             errorMessage = "Не удалось сохранить подключение: \(error.localizedDescription)"

@@ -25,6 +25,7 @@ final class DNDCharacter {
     var hitPoints: Int
     var currentHP: Int
     var alignment: DNDAlignment
+    var templateID: UUID?
     var stress: Int
     var rerollPoints: Int
     var isDeleted: Bool = false
@@ -55,18 +56,19 @@ final class DNDCharacter {
         self.background = ""
         self.hitPoints = Constants.Character.defaultHP
         self.isDeleted = false
-        self.currentHP = Constants.Character.defaultHP //текущее = максимуму при создании
+        self.currentHP = Constants.Character.defaultHP
         self.alignment = .trueNeutral
         self.stress = 0
         self.rerollPoints = 0
         self.instrument = nil
-        self.money = 0 //Начальное количество денег
-        self.fieldValues = [] //динамические поля
+        self.money = 0
+        self.fieldValues = []
         self.inventory = []
         self.tarotCards = []
         self.instrumentModStorage = []
         self.avatarData = nil
-        self.hpHistory = [] //Инициализация истории
+        self.hpHistory = []
+        self.templateID = nil // 🆕 НОВОЕ
     }
 }
 
@@ -190,12 +192,13 @@ extension DNDCharacter: Codable {
         case money
         case inventory, tarotCards, instrumentModStorage, avatarData
         case hpHistory
+        case templateID // 🆕 НОВОЕ
     }
 
     convenience init(from decoder: Decoder) throws {
         self.init()
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        
+        self.templateID = try container.decodeIfPresent(UUID.self, forKey: .templateID) // 🆕 НОВОЕ
         self.id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
         self.name = try container.decodeIfPresent(String.self, forKey: .name) ?? ""
         self.race = try container.decodeIfPresent(Race.self, forKey: .race) ?? .human
@@ -210,7 +213,7 @@ extension DNDCharacter: Codable {
         self.stress = try container.decodeIfPresent(Int.self, forKey: .stress) ?? 0
         self.rerollPoints = try container.decodeIfPresent(Int.self, forKey: .rerollPoints) ?? 0
         self.instrument = try container.decodeIfPresent(String.self, forKey: .instrument)
-        // 🆕 ДЕНЬГИ с fallback на 0
+        //ДЕНЬГИ с fallback на 0
         self.money = try container.decodeIfPresent(Int.self, forKey: .money) ?? 0
         self.inventory = try container.decodeIfPresent([InventoryItem].self, forKey: .inventory) ?? []
         self.tarotCards = try container.decodeIfPresent([TarotCard].self, forKey: .tarotCards) ?? []
@@ -240,6 +243,7 @@ extension DNDCharacter: Codable {
         try container.encode(instrumentModStorage, forKey: .instrumentModStorage)
         try container.encodeIfPresent(avatarData, forKey: .avatarData)
         try container.encode(hpHistory, forKey: .hpHistory)
+        try container.encodeIfPresent(templateID, forKey: .templateID) // 🆕 НОВОЕ
     }
 
 }

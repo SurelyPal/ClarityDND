@@ -1,48 +1,59 @@
-//
-//  CharacterCreationView.swift
-//  Clarity
-//
-//  Created by KEBAB on 04.06.2026.
-//
-
 import SwiftUI
+import SwiftData
 
 struct CharacterCreationView: View {
     @Environment(\.theme) private var theme
     @EnvironmentObject var store: CharacterStore
     @Environment(\.dismiss) var dismiss
     
+    // 🆕 НОВОЕ: Загружаем все шаблоны из SwiftData
+    @Query(sort: \GameTemplate.name) private var allTemplates: [GameTemplate]
+    
     @State private var currentStep = 0
     @State private var character: DNDCharacter = DNDCharacter()
+    @State private var selectedTemplate: GameTemplate? // 🆕 НОВОЕ
     
-    private let totalSteps = 4
-    
+    private let totalSteps = 5 // 🆕 ИЗМЕНЕНО: было 4, стало 5
+
     var body: some View {
-        
         NavigationStack {
             ZStack {
                 theme.background.ignoresSafeArea()
-                
+
                 VStack(spacing: 0) {
                     StepProgressBar(currentStep: currentStep, totalSteps: totalSteps)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 14)
-                    
+                        .padding(EdgeInsets(top: 14, leading: 20, bottom: 14, trailing: 20))
+
                     Group {
                         switch currentStep {
-                        case 0: RaceStepView(selected: $character.race)
-                        case 1: ClassStepView(selected: $character.characterClass)
-                        case 2: StatsStepView(stats: $character.stats)
-                        case 3: NameStepView(character: $character)
-                        default: EmptyView()
+                        case 0:
+                            TemplateSelectionStepView(
+                                selectedTemplate: $selectedTemplate,
+                                templates: allTemplates
+                            )
+                        case 1:
+                            RaceStepView(
+                                selected: $character.race,
+                                template: selectedTemplate // 🆕 НОВОЕ
+                            )
+                        case 2:
+                            ClassStepView(
+                                selected: $character.characterClass,
+                                template: selectedTemplate // 🆕 НОВОЕ
+                            )
+                        case 3:
+                            StatsStepView(stats: $character.stats)
+                        case 4:
+                            NameStepView(character: $character)
+                        default:
+                            EmptyView()
                         }
                     }
-                    
+
                     Spacer()
-                    
+
                     nextButton
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 30)
+                        .padding(EdgeInsets(top: 0, leading: 20, bottom: 30, trailing: 20))
                 }
                 .navigationTitle("Новый персонаж")
                 #if os(iOS)
@@ -59,15 +70,13 @@ struct CharacterCreationView: View {
                     }
                 }
                 #endif
-                
             }
             .preferredColorScheme(.dark)
-            
         }
     }
-    
+
     // MARK: - Кнопки навигации
-    
+
     private var backButton: some View {
         Button(currentStep == 0 ? "Отмена" : "Назад") {
             if currentStep == 0 {
@@ -78,7 +87,7 @@ struct CharacterCreationView: View {
             }
         }
     }
-    
+
     private var nextButton: some View {
         Button(action: advance) {
             HStack {
@@ -87,59 +96,36 @@ struct CharacterCreationView: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 15)
-            .background(theme.primary)
+            .background(canProceed ? theme.primary : theme.primary.opacity(0.3))
             .foregroundColor(theme.background)
             .font(.system(size: 16, weight: .medium))
             .cornerRadius(3)
         }
         .buttonStyle(.plain)
+        .disabled(!canProceed)
     }
     
+    // 🆕 НОВОЕ: Проверяем, можно ли перейти к следующему шагу
+    private var canProceed: Bool {
+        switch currentStep {
+        case 0:
+            return selectedTemplate != nil
+        default:
+            return true
+        }
+    }
+
     private func advance() {
         if currentStep < totalSteps - 1 {
             withAnimation { currentStep += 1 }
             SoundManager.shared.play(.pageTurn, haptic: .light)
         } else {
+            // 🆕 НОВОЕ: Устанавливаем templateID перед сохранением
+            character.templateID = selectedTemplate?.id
+            
             store.add(character)
             dismiss()
             SoundManager.shared.play(.levelUp, haptic: .success)
         }
     }
 }
-
-// MARK: - Прогресс-бар
-
-struct StepProgressBar: View {
-    @Environment(\.theme) private var theme
-    let currentStep: Int
-    let totalSteps: Int
-    
-    var body: some View {
-        HStack(spacing: 6) {
-            ForEach(0..<totalSteps, id: \.self) { index in
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(index <= currentStep ? theme.primary : theme.surfaceAlt)
-                    .frame(height: 4)
-            }
-        }
-    }
-}
-
-// MARK: - Preview
-/*
-#Preview {
-    // Создаём тестовый SwiftData контейнер в памяти (in-memory)
-    // Данные не сохраняются между запусками Preview
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: DNDCharacter.self, configurations: config)
-    let context = container.mainContext
-    
-    // Создаём CharacterStore, передавая ему контекст
-    let store = CharacterStore(context: context)
-    
-    return CharacterCreationView()
-        .environmentObject(store)
-        .modelContainer(container)
-        .preferredColorScheme(.dark)
-}
-*/
