@@ -10,16 +10,16 @@ import SwiftUI
 struct RoleSelectionView: View {
     @Environment(\.theme) private var theme
     @ObservedObject var partyManager: PartyManager
-    
+
     var body: some View {
         VStack(spacing: 16) {
+            // Кнопка для Гейм Мастера — выбрать кампанию
             NavigationLink {
                 CampaignSelectionView()
             } label: {
                 HStack(spacing: 12) {
                     Image(systemName: "books.vertical.fill")
                         .font(.system(size: 16))
-                    
                     Text("ВЫБРАТЬ КАМПАНИЮ")
                         .font(.system(size: 14, weight: .bold))
                         .tracking(1)
@@ -31,9 +31,10 @@ struct RoleSelectionView: View {
                 .cornerRadius(4)
             }
             .buttonStyle(.plain)
-            
-            Button {
-                partyManager.beginPlayerFlow()
+
+            // Кнопка для Игрока — тоже ведёт к выбору кампании
+            NavigationLink {
+                CampaignSelectionView()
             } label: {
                 VStack(spacing: 12) {
                     Text("🗡️").font(.system(size: 40))
@@ -53,4 +54,10 @@ struct RoleSelectionView: View {
             .buttonStyle(.plain)
         }
     }
+}
+
+// MARK: - Preview
+
+#Preview {
+    RoleSelectionView(partyManager: PartyManager.shared)
 }

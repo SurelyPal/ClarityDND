@@ -1,35 +1,47 @@
-//
-//  CampaignSelectionView.swift
-//  Clarity
-//
-//  Created by KEBAB on 10.06.2026.
-//
-
-import SwiftData
 import SwiftUI
+import SwiftData
 
 // MARK: - Экран выбора кампании для ДМа
 
 struct CampaignSelectionView: View {
-    @Environment(\.theme) private var theme
     @Environment(\.modelContext) private var modelContext
-    
-    // ✅ НОВОЕ: получаем кампании напрямую из SwiftData через @Query
-    @Query(sort: \Campaign.lastPlayedAt, order: .reverse)
-    private var campaigns: [Campaign]
-    
-    // CampaignManager нужен только для действий (создание, удаление)
-    @ObservedObject private var campaignManager = CampaignManager.shared
+    @Environment(\.theme) private var theme
     @Environment(\.dismiss) private var dismiss
+    
+    // Загружаем все кампании из SwiftData, сортируем по последней игре
+    @Query(sort: \Campaign.lastPlayedAt, order: .reverse) private var allCampaigns: [Campaign]
+    
+    // Менеджеры
+    @State private var campaignManager = CampaignManager.shared
+    private let partyManager = PartyManager.shared
+    
+    @State private var selectedCampaign: Campaign?
+    @State private var showingCampaignDetail = false
+    // UI Состояния
     @State private var showingNewCampaignAlert = false
     @State private var newCampaignName = ""
+    
     @State private var campaignToDelete: Campaign?
     @State private var showingDeleteConfirmation = false
+    
     @State private var showingRenameAlert = false
     @State private var campaignToRename: Campaign?
     @State private var renameText = ""
     
-    private let partyManager = PartyManager.shared
+    // MARK: - Вычисляемые свойства для секций
+    
+    private var currentPlayer: Player? {
+        campaignManager.currentPlayer
+    }
+    
+    private var myCampaigns: [Campaign] {
+        guard let currentPlayer = currentPlayer else { return [] }
+        return allCampaigns.filter { $0.owner?.id == currentPlayer.id }
+    }
+    
+    private var joinedCampaigns: [Campaign] {
+        return currentPlayer?.joinedCampaigns ?? []
+    }
     
     // MARK: - Body
     
@@ -41,12 +53,8 @@ struct CampaignSelectionView: View {
                     .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    
-                    // Заголовок
-                    headerSection
-                    
                     // Список кампаний или пустое состояние
-                    if campaigns.isEmpty {
+                    if myCampaigns.isEmpty && joinedCampaigns.isEmpty {
                         emptyStateView
                     } else {
                         campaignsList
@@ -54,11 +62,11 @@ struct CampaignSelectionView: View {
                     
                     Spacer()
                     
-                    // Кнопка создания новой кампании (прижата к низу)
-                    createButton
+                    // Кнопки действий (прижаты к низу)
+                    bottomActionButtons
                 }
             }
-            
+            .navigationTitle("Выбор кампании")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
@@ -70,8 +78,9 @@ struct CampaignSelectionView: View {
                     .foregroundColor(.dsGold)
                 }
             }
+            // Загружаем currentPlayer из SwiftData
             .task {
-                CampaignManager.shared.setup(context: modelContext)
+                campaignManager.setup(context: modelContext)
             }
             // Alert для создания новой кампании
             .alert("Новая кампания", isPresented: $showingNewCampaignAlert) {
@@ -104,7 +113,7 @@ struct CampaignSelectionView: View {
                 }
             }
             // Alert для переименования
-            .alert("Переименовать кампанию", isPresented: $showingRenameAlert) {
+            .alert("Перименовать кампанию", isPresented: $showingRenameAlert) {
                 TextField("Новое название", text: $renameText)
                 
                 Button("Отмена", role: .cancel) {}
@@ -116,113 +125,144 @@ struct CampaignSelectionView: View {
                 }
             }
         }
-    }
-    
-    // MARK: - Секции UI
-    
-    /// Заголовок с орнаментами в стиле Dark Souls
-    private var headerSection: some View {
-        VStack(spacing: 12) {
-            CornerOrnaments()
-                .frame(height: 20)
-            
-            Text("ВЫБЕРИТЕ КАМПАНИЮ")
-                .font(.system(size: 18, weight: .heavy))
-                .foregroundColor(.dsGold)
-                .tracking(2)
-            
-            Text("Начните новую сессию или продолжите существующую")
-                .font(.system(size: 12))
-                .foregroundColor(.dsTextDim)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 30)
-            
-            DSdivider()
-                .padding(.horizontal, 40)
-                .padding(.top, 4)
+        .navigationDestination(isPresented: $showingCampaignDetail) {
+            if let campaign = selectedCampaign {
+                CampaignDetailView(campaign: campaign)
+            }
         }
-        .padding(.top, 20)
-        .padding(.bottom, 16)
     }
     
-    /// Пустое состояние (когда ещё нет ни одной кампании)
+    // MARK: - UI Components
+    
+    private var headerSection: some View {
+        Text("Выберите кампанию")
+            .font(.system(size: 24, weight: .bold))
+            .foregroundColor(.dsGold)
+            .padding(.top, 20)
+            .padding(.bottom, 10)
+    }
+    
     private var emptyStateView: some View {
-        VStack(spacing: 20) {
-            Spacer()
-            
-            Image(systemName: "book.closed.fill")
-                .font(.system(size: 60))
+        VStack(spacing: 16) {
+            Image(systemName: "dice.fill")
+                .font(.system(size: 50))
                 .foregroundColor(.dsGold.opacity(0.5))
             
-            Text("Нет кампаний")
-                .font(.system(size: 20, weight: .semibold))
+            Text("Пока нет кампаний")
+                .font(.title3)
+                .fontWeight(.semibold)
                 .foregroundColor(.dsText)
             
-            Text("Создайте свою первую кампанию,\nчтобы начать приключение")
-                .font(.system(size: 14))
+            Text("Создайте свою первую кампанию или подключитесь по коду.")
+                .font(.subheadline)
                 .foregroundColor(.dsTextDim)
                 .multilineTextAlignment(.center)
-            
-            Spacer()
+                .padding(.horizontal, 40)
         }
-        .padding(.horizontal, 40)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
-    /// Список существующих кампаний
     private var campaignsList: some View {
-        ScrollView {
-            LazyVStack(spacing: 12) {
-                ForEach(campaigns) { campaign in
-                    CampaignRowView(
-                        campaign: campaign,
-                        onStart: { startCampaign(campaign) },
-                        onRename: { prepareRename(campaign) },
-                        onDelete: { prepareDelete(campaign) }
-                    )
+        List {
+            if !myCampaigns.isEmpty {
+                Section {
+                    ForEach(myCampaigns) { campaign in
+                        CampaignRowView(
+                            campaign: campaign,
+                            isOwner: true,
+                            onStart: { startCampaign(campaign) },
+                            onRename: { prepareRename(campaign) },
+                            onDelete: { prepareDelete(campaign) }
+                        )
+                        .listRowBackground(theme.surface)
+                    }
+                } header: {
+                    Text("🎲 Мои кампании (я ГМ)")
+                        .foregroundColor(.dsTextDim)
+                        .font(.caption)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
-            .padding(.bottom, 100) // Отступ для кнопки создания внизу
+            
+            if !joinedCampaigns.isEmpty {
+                Section {
+                    ForEach(joinedCampaigns) { campaign in
+                        CampaignRowView(
+                            campaign: campaign,
+                            isOwner: false,
+                            onStart: { startCampaign(campaign) },
+                            onRename: {},
+                            onDelete: {}
+                        )
+                        .listRowBackground(theme.surface)
+                    }
+                } header: {
+                    Text("🎭 Где я игрок")
+                        .foregroundColor(.dsTextDim)
+                        .font(.caption)
+                }
+            }
         }
+        .scrollContentBackground(.hidden)
+        #if os(iOS)
+        .listStyle(.insetGrouped)
+        #else
+        .listStyle(.sidebar)
+        #endif
     }
     
-    /// Кнопка создания новой кампании
-    private var createButton: some View {
-        Button {
-            PlatformCompatibility.hapticImpact(.medium)
-            newCampaignName = ""
-            showingNewCampaignAlert = true
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "plus.circle.fill")
-                    .font(.system(size: 22))
-                
-                Text("СОЗДАТЬ НОВУЮ КАМПАНИЮ")
-                    .font(.system(size: 14, weight: .bold))
-                    .tracking(1)
+    private var bottomActionButtons: some View {
+        HStack(spacing: 12) {
+            // Кнопка Создать
+            Button {
+                showingNewCampaignAlert = true
+            } label: {
+                VStack(spacing: 4) {
+                    Image(systemName: "plus")
+                        .font(.title2)
+                    Text("Создать")
+                        .font(.caption)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
             }
-            .foregroundColor(.dsBackground)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
-            .background(
-                LinearGradient(
-                    colors: [.dsGold, .dsGold.opacity(0.8)],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-            )
-            .cornerRadius(4)
-            .shadow(color: .dsGold.opacity(0.3), radius: 8, y: 4)
+            .buttonStyle(.borderedProminent)
+            .tint(.dsGold)
+            .foregroundColor(.black)
+            
+            // Кнопка Войти по коду (Навигация к JoinByCodeView)
+            NavigationLink {
+                JoinByCodeView()
+            } label: {
+                VStack(spacing: 4) {
+                    Image(systemName: "link")
+                        .font(.title2)
+                    Text("Войти")
+                        .font(.caption)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+            }
+            .buttonStyle(.bordered)
+            .tint(.dsGold)
+            
+            // Кнопка Архив (Навигация к ArchivedCharactersView)
+            NavigationLink {
+                ArchivedCharactersView()
+            } label: {
+                VStack(spacing: 4) {
+                    Image(systemName: "archivebox")
+                        .font(.title2)
+                    Text("Архив")
+                        .font(.caption)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+            }
+            .buttonStyle(.bordered)
+            .tint(.dsGold)
         }
-        .buttonStyle(.plain)
-        .padding(.horizontal, 20)
-        .padding(.vertical, 16)
-        .background(
-            theme.surface
-                .shadow(color: .black.opacity(0.5), radius: 10, y: -5)
-                .ignoresSafeArea(edges: .bottom)
-        )
+        .padding()
+        .background(theme.surface.opacity(0.8))
     }
     
     // MARK: - Методы действий
@@ -232,16 +272,12 @@ struct CampaignSelectionView: View {
         let trimmedName = newCampaignName.trimmingCharacters(in: .whitespaces)
         guard !trimmedName.isEmpty else { return }
         
-        // ✅ ИСПРАВЛЕНО: используем trimmedName и newCampaign
-        let newCampaign = campaignManager.createCampaign(
-            name: trimmedName,  // ← было campaignName
-            context: modelContext
-        )
-        
+        // Используем SwiftData метод создания
+        let campaign = campaignManager.createCampaign(name: trimmedName, context: modelContext)
         PlatformCompatibility.hapticNotification(.success)
         
-        // ✅ ИСПРАВЛЕНО: передаём newCampaign
-        startCampaign(newCampaign)  // ← было campaign
+        // Сразу начинаем хостинг новой кампании
+        startCampaign(campaign)
         
         newCampaignName = ""
     }
@@ -250,11 +286,9 @@ struct CampaignSelectionView: View {
     private func startCampaign(_ campaign: Campaign) {
         PlatformCompatibility.hapticImpact(.heavy)
         
-        // Запускаем хостинг через PartyManager
-        partyManager.startHosting(campaign: campaign)
-        
-        // Закрываем экран выбора
-        dismiss()
+        // Вместо немедленного старта — переходим к деталям
+        selectedCampaign = campaign
+        showingCampaignDetail = true
     }
     
     /// Подготавливает переименование кампании
@@ -276,6 +310,7 @@ struct CampaignSelectionView: View {
 struct CampaignRowView: View {
     @Environment(\.theme) private var theme
     let campaign: Campaign
+    let isOwner: Bool
     let onStart: () -> Void
     let onRename: () -> Void
     let onDelete: () -> Void
@@ -295,15 +330,26 @@ struct CampaignRowView: View {
                     
                     Spacer()
                     
-                    Button {
-                        PlatformCompatibility.hapticImpact(.light)
-                        showingMenu = true
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                            .font(.system(size: 16))
-                            .foregroundColor(.dsGold)
+                    if isOwner {
+                        Button {
+                            PlatformCompatibility.hapticImpact(.light)
+                            showingMenu = true
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                                .font(.system(size: 16))
+                                .foregroundColor(.dsGold)
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        // Бейджик для игрока
+                        Text("ИГРОК")
+                            .font(.system(size: 10, weight: .bold))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.blue.opacity(0.2))
+                            .foregroundColor(.blue)
+                            .cornerRadius(4)
                     }
-                    .buttonStyle(.plain)
                 }
                 
                 // Тонкий разделитель
@@ -317,7 +363,7 @@ struct CampaignRowView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "person.2.fill")
                             .font(.system(size: 10))
-                        Text(campaign.summary)
+                        Text("\(campaign.members.count) игр.")
                             .font(.system(size: 11))
                     }
                     .foregroundColor(.dsTextDim)
@@ -328,20 +374,21 @@ struct CampaignRowView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "clock.fill")
                             .font(.system(size: 10))
-                        Text(campaign.formattedLastPlayed)
+                        Text(campaign.lastPlayedAt.formatted(date: .abbreviated, time: .shortened))
                             .font(.system(size: 11))
                     }
                     .foregroundColor(.dsTextDim)
                 }
                 
                 // Код комнаты (если есть)
-                if let code = campaign.roomCode, !code.isEmpty {
+                if let joinCode = campaign.joinCode, !joinCode.isEmpty {
                     HStack(spacing: 6) {
                         Image(systemName: "number")
                             .font(.system(size: 10))
-                        Text("Код: \(code)")
+                        Text("Код: \(joinCode)")
                             .font(.system(size: 11, weight: .medium, design: .monospaced))
                     }
+                    .foregroundColor(.dsGold.opacity(0.7))
                 }
             }
             .padding(14)
@@ -366,9 +413,7 @@ struct CampaignRowView: View {
     }
 }
 
-// MARK: - Preview
-
 #Preview {
     CampaignSelectionView()
-        .preferredColorScheme(.dark)
+        .modelContainer(for: [Campaign.self, Player.self, GameTemplate.self], inMemory: true)
 }
