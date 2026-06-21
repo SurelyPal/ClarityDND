@@ -5,6 +5,7 @@
 // Created by KEBAB on 19.06.2026.
 //
 
+import UniformTypeIdentifiers
 import SwiftUI
 import SwiftData
 
@@ -15,6 +16,11 @@ struct TemplateManagementView: View {
     @Environment(\.dismiss) private var dismiss
     @Query(sort: \GameTemplate.name) private var templates: [GameTemplate]
     @State private var showingAddTemplate = false
+    @State private var showingImportPicker = false // 🆕 НОВОЕ
+    @State private var importedFileURL: URL? // 🆕 НОВОЕ
+    @State private var showingImportAlert = false // 🆕 НОВОЕ
+    @State private var importAlertMessage = "" // 🆕 НОВОЕ
+    @State private var importedTemplate: GameTemplate? // 🆕 НОВОЕ
     
     var body: some View {
         NavigationStack {
@@ -43,13 +49,26 @@ struct TemplateManagementView: View {
                 }
                 
                 ToolbarItem(placement: .primaryAction) {
-                    Button(action: { showingAddTemplate = true }) {
-                        HStack(spacing: 6) {
-                            Image(systemName: "plus.circle.fill")
-                            Text("Новый шаблон")
-                                .font(.system(size: 14, weight: .semibold))
+                    HStack(spacing: 12) {
+                        // 🆕 НОВОЕ: Кнопка импорта
+                        Button(action: { showingImportPicker = true }) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "square.and.arrow.down.fill")
+                                Text("Импорт")
+                                    .font(.system(size: 14, weight: .semibold))
+                            }
+                            .foregroundColor(theme.primary)
                         }
-                        .foregroundColor(theme.primary)
+                        
+                        // Кнопка создания нового шаблона
+                        Button(action: { showingAddTemplate = true }) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "plus.circle.fill")
+                                Text("Новый шаблон")
+                                    .font(.system(size: 14, weight: .semibold))
+                            }
+                            .foregroundColor(theme.primary)
+                        }
                     }
                 }
                 
@@ -63,8 +82,71 @@ struct TemplateManagementView: View {
                 AddTemplateView()
             }
         }
+        .fileImporter(
+            isPresented: $showingImportPicker,
+            allowedContentTypes: [.json],
+            allowsMultipleSelection: false
+        ) { result in
+            handleImportResult(result)
+        }
+        .alert("Импорт шаблона", isPresented: $showingImportAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(importAlertMessage)
+        }
     }
     
+    // MARK: - Обработка импорта
+
+    private func handleImportResult(_ result: Result<[URL], Error>) {
+        switch result {
+        case .success(let urls):
+            guard let fileURL = urls.first else { return }
+            
+            importedFileURL = fileURL
+            
+            // Проверяем предварительный просмотр
+            guard let preview = TemplateExportManager.shared.previewTemplate(from: fileURL) else {
+                importAlertMessage = "Неверный формат файла"
+                showingImportAlert = true
+                return
+            }
+            
+            // Пытаемся импортировать
+            let importResult = TemplateExportManager.shared.importTemplate(
+                from: fileURL,
+                context: context,
+                forceOverwrite: false
+            )
+            
+            switch importResult {
+            case .success(let template):
+                importedTemplate = template
+                importAlertMessage = "Шаблон '\(template.name)' успешно импортирован!"
+                showingImportAlert = true
+                SoundManager.shared.play(.levelUp, haptic: .success)
+                
+            case .nameConflict(let existing):
+                importAlertMessage = "Шаблон с именем '\(existing.name)' уже существует. Удалите его или переименуйте файл перед импортом."
+                showingImportAlert = true
+                SoundManager.shared.play(.unequip, haptic: .warning)
+                
+            case .invalidFormat:
+                importAlertMessage = "Неверный формат файла. Убедитесь, что это файл шаблона Clarity (.clarity-template)."
+                showingImportAlert = true
+                SoundManager.shared.play(.unequip, haptic: .error)
+                
+            case .decodingError(let error):
+                importAlertMessage = "Ошибка чтения файла: \(error.localizedDescription)"
+                showingImportAlert = true
+                SoundManager.shared.play(.unequip, haptic: .error)
+            }
+            
+        case .failure(let error):
+            importAlertMessage = "Ошибка выбора файла: \(error.localizedDescription)"
+            showingImportAlert = true
+        }
+    }
     // MARK: - UI Components
     
     private var headerSection: some View {
@@ -153,6 +235,11 @@ struct TemplateRowView: View {
     @Environment(\.theme) private var theme
     let template: GameTemplate
     
+    // Добавляем состояния для экспорта
+    @State private var isExporting = false
+    @State private var exportedFileURL: URL?
+    @State private var showingShareSheet = false
+    
     var body: some View {
         VStack(spacing: 12) {
             // Основная информация
@@ -216,31 +303,128 @@ struct TemplateRowView: View {
             
             DSdivider()
             
-            // Кнопка механик
-            NavigationLink {
-                MechanicsListView(gameTemplate: template)
-            } label: {
-                HStack {
-                    Image(systemName: "gearshape.2.fill")
-                        .foregroundColor(theme.primary)
-                    
-                    Text("Механики")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(theme.primary)
-                    
-                    Spacer()
-                    
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 12))
-                        .foregroundColor(theme.textDim)
+            // Кнопки действий
+            HStack(spacing: 12) {
+                // Кнопка механик
+                NavigationLink {
+                    MechanicsListView(gameTemplate: template)
+                } label: {
+                    HStack {
+                        Image(systemName: "gearshape.2.fill")
+                            .foregroundColor(theme.primary)
+                        
+                        Text("Механики")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(theme.primary)
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 12))
+                            .foregroundColor(theme.textDim)
+                    }
+                    .padding(.vertical, 8)
                 }
-                .padding(.vertical, 8)
+                .buttonStyle(.plain)
+                
+                // 🆕 НОВОЕ: Кнопка экспорта
+                if !template.isBuiltIn {
+                    Button {
+                        exportTemplate()
+                    } label: {
+                        HStack {
+                            Image(systemName: "square.and.arrow.up.fill")
+                                .foregroundColor(theme.primary)
+                            
+                            Text("Экспорт")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(theme.primary)
+                        }
+                        .padding(.vertical, 8)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isExporting)
+                }
             }
-            .buttonStyle(.plain)
         }
         .padding(.vertical, 4)
+        // 🆕 НОВОЕ: Share sheet для экспорта
+        .sheet(isPresented: $showingShareSheet) {
+            if let fileURL = exportedFileURL {
+                ShareSheet(items: [fileURL])
+            }
+        }
+    }
+    
+    // 🆕 НОВОЕ: Метод экспорта
+    private func exportTemplate() {
+        isExporting = true
+        
+        TemplateExportManager.shared.exportTemplate(template) { result in
+            DispatchQueue.main.async {
+                isExporting = false
+                
+                switch result {
+                case .success(let fileURL):
+                    exportedFileURL = fileURL
+                    showingShareSheet = true
+                    SoundManager.shared.play(.levelUp, haptic: .success)
+                    
+                case .failure(let error):
+                    print("❌ Ошибка экспорта: \(error)")
+                    SoundManager.shared.play(.unequip, haptic: .error)
+                }
+            }
+        }
     }
 }
+
+// MARK: - Share Sheet для экспорта файлов
+#if os(iOS)
+struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+    
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+    
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
+#else
+struct ShareSheet: View {
+    let items: [Any]
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "square.and.arrow.up.fill")
+                .font(.system(size: 50))
+                .foregroundColor(.blue)
+            
+            Text("Экспорт шаблона")
+                .font(.title2)
+                .fontWeight(.semibold)
+            
+            if let fileURL = items.first as? URL {
+                Text("Файл сохранён в:")
+                    .foregroundColor(.secondary)
+                
+                Text(fileURL.lastPathComponent)
+                    .font(.system(.body, design: .monospaced))
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(8)
+                
+                Button("Открыть в Finder") {
+                    NSWorkspace.shared.activateFileViewerSelecting([fileURL])
+                }
+                .buttonStyle(.borderedProminent)
+            }
+        }
+        .padding()
+        .frame(minWidth: 400, minHeight: 300)
+    }
+}
+#endif
 
 // MARK: - Детальный вид шаблона
 struct TemplateDetailView: View {
